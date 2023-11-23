@@ -76,26 +76,6 @@ public class Register extends AppCompatActivity {
                 String UserName = R_UserName.getText().toString();
                 String Password = R_Password.getText().toString();
                 String RS;
-                AtomicBoolean e= new AtomicBoolean(true);
-                FirebaseAuth.getInstance().fetchSignInMethodsForEmail(Email)
-                        .addOnCompleteListener(task -> {
-                            if (task.isSuccessful()) {
-                                // Check if there are any sign-in methods for the provided email
-                                List<String> signInMethods = task.getResult().getSignInMethods();
-
-                                if (signInMethods != null && ((List<?>) signInMethods).isEmpty()) {
-                                    e.set(false);
-                                } else {
-                                    e.set(true);
-                                }
-                            } else {
-                                // Error occurred while checking email existence
-                                Exception exception = task.getException();
-                                if (exception != null) {
-                                    Toast.makeText(Register.this, "Something went wrong", Toast.LENGTH_SHORT).show();
-                                }
-                            }
-                        });
                 if (TextUtils.isEmpty(Name)) {
                     R_Name.setError("Please enter your Name");
                     R_Name.requestFocus();
@@ -105,10 +85,7 @@ public class Register extends AppCompatActivity {
                 } else if (!Patterns.EMAIL_ADDRESS.matcher(Email).matches()) {
                     R_Email.setError("Valid Email is required");
                     R_Email.requestFocus();
-                } else if(e.get() ==true){
-                    R_Email.setError("Email Already Exists In The Database");
-                    R_Email.requestFocus();
-                }else if (TextUtils.isEmpty(PhoneNo)) {
+                } else if (TextUtils.isEmpty(PhoneNo)) {
                     R_PhoneNo.setError("Please enter your PhoneNo");
                     R_PhoneNo.requestFocus();
                 } else if(PhoneNo.length()!=10){

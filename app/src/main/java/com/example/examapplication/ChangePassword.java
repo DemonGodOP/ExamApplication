@@ -21,6 +21,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseUser;
 
 public class ChangePassword extends AppCompatActivity {
@@ -112,7 +113,11 @@ public class ChangePassword extends AppCompatActivity {
                             }else {
                                 try{
                                     throw task.getException();
-                                }catch (Exception e){
+                                }catch(FirebaseAuthInvalidCredentialsException e)
+                                {
+                                    CP_Password.setError("Wrong Password Entered");
+                                    CP_Password.requestFocus();
+                                } catch(Exception e){
                                     Toast.makeText(ChangePassword.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                                 }
                             }

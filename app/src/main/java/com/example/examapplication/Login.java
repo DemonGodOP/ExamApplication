@@ -66,7 +66,7 @@ public class Login extends AppCompatActivity {
                     finish();
                 }
             });
-            L_Password.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+            L_Password.setTransformationMethod(PasswordTransformationMethod.getInstance());
             ImageView imageViewShowHidePwd = findViewById(R.id.imageView_show_hide_pwd);
             imageViewShowHidePwd.setImageResource(R.drawable.ic_hide_pwd);
             imageViewShowHidePwd.setOnClickListener(new View.OnClickListener() {

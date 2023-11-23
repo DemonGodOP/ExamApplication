@@ -26,17 +26,20 @@ import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class DeleteUser extends AppCompatActivity {
     FirebaseAuth authProfile;
     FirebaseUser firebaseUser;
     EditText DU_Password;
-    TextView Text;
+    TextView Text,DUTP;
     Button DU_Authenticate, DU_Button;
     ProgressBar DU_progressBar;
-    String userPwd;
+    String userPwd,Email;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,12 +50,37 @@ public class DeleteUser extends AppCompatActivity {
         DU_Button=findViewById(R.id.DU_Button);
         DU_Authenticate=findViewById(R.id.DU_Authenticate);
 
+
         //disable delete user button until user is authenticated
         DU_Button.setEnabled(false);
 
         authProfile=FirebaseAuth.getInstance();
         firebaseUser=authProfile.getCurrentUser();
-
+        DatabaseReference referenceProfile = FirebaseDatabase.getInstance().getReference("Registered Users");
+        referenceProfile.child(firebaseUser.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                ReadWriteUserDetails readUserDetails = snapshot.getValue(ReadWriteUserDetails.class);
+                if (readUserDetails != null) {
+                    Email=readUserDetails.email;
+                } else {
+                    Toast.makeText(DeleteUser.this , "Something went wrong!", Toast.LENGTH_LONG).show();
+                }
+            }
+            @Override
+            public void onCancelled (@NonNull DatabaseError error){
+                Toast.makeText(DeleteUser.this, "Something went wrong!", Toast.LENGTH_LONG).show();
+            }
+        });
+        DUTP=findViewById(R.id.DUTP);
+        DUTP.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent=new Intent(DeleteUser.this, Profile.class);
+                startActivity(intent);
+                finish();
+            }
+        });
         if(firebaseUser.equals("")){
             Toast.makeText(DeleteUser.this, "Something went wrong! User details are not available at the moment", Toast.LENGTH_SHORT).show();
             Intent intent=new Intent(DeleteUser.this, Profile.class);
@@ -63,9 +91,12 @@ public class DeleteUser extends AppCompatActivity {
         }
     }
     private void reAuthenticateUser(FirebaseUser firebaseUser) {
+
         DU_Authenticate.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
+                DU_progressBar.setVisibility(View.VISIBLE);
                 userPwd = DU_Password.getText().toString();
 
                 if (TextUtils.isEmpty(userPwd)) {
@@ -73,10 +104,9 @@ public class DeleteUser extends AppCompatActivity {
                     DU_Password.setError("Please enter your current password to authenticator");
                     DU_Password.requestFocus();
                 } else {
-                    DU_progressBar.setVisibility(View.VISIBLE);
 
                     //ReAuthenticate User now
-                    AuthCredential credential = EmailAuthProvider.getCredential(firebaseUser.getEmail(), userPwd);
+                    AuthCredential credential = EmailAuthProvider.getCredential(Email, userPwd);
 
                     firebaseUser.reauthenticate(credential).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override

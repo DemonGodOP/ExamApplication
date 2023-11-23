@@ -22,6 +22,8 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
+import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -40,7 +42,7 @@ public class ChangeEmail extends AppCompatActivity {
     Button CE_Button;
     EditText CE_NewEmail, CE_Password;
 
-    String Old_Email,New_Email, Name, finalRole, Institute, Phone, Username;
+    String Old_Email,New_Email, Name, finalRole, Institute, Phone, Username,userPwd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,7 +107,7 @@ public class ChangeEmail extends AppCompatActivity {
             public void onClick(View v){
 
                 //obtain password for authentication
-                String userPwd=CE_Password.getText().toString();
+                userPwd=CE_Password.getText().toString();
 
                 if(TextUtils.isEmpty(userPwd)){
                     Toast.makeText(ChangeEmail.this, "Password is needed to continue", Toast.LENGTH_SHORT).show();
@@ -140,26 +142,6 @@ public class ChangeEmail extends AppCompatActivity {
                                     @Override
                                     public void onClick(View v) {
                                         New_Email = CE_NewEmail.getText().toString();
-                                        AtomicBoolean e= new AtomicBoolean(true);
-                                        FirebaseAuth.getInstance().fetchSignInMethodsForEmail(New_Email)
-                                                .addOnCompleteListener(task -> {
-                                                    if (task.isSuccessful()) {
-                                                        // Check if there are any sign-in methods for the provided email
-                                                        List<String> signInMethods = task.getResult().getSignInMethods();
-
-                                                        if (signInMethods != null && ((List<?>) signInMethods).isEmpty()) {
-                                                            e.set(false);
-                                                        } else {
-                                                            e.set(true);
-                                                        }
-                                                    } else {
-                                                        // Error occurred while checking email existence
-                                                        Exception exception = task.getException();
-                                                        if (exception != null) {
-                                                            Toast.makeText(ChangeEmail.this, "Something went wrong", Toast.LENGTH_SHORT).show();
-                                                        }
-                                                    }
-                                                });
                                         if (TextUtils.isEmpty(New_Email)) {
                                             Toast.makeText(ChangeEmail.this, "New email is required", Toast.LENGTH_SHORT).show();
                                             CE_NewEmail.setError("Please enter new email");
@@ -172,12 +154,33 @@ public class ChangeEmail extends AppCompatActivity {
                                             Toast.makeText(ChangeEmail.this, "New email cannot be same as old email", Toast.LENGTH_SHORT).show();
                                             CE_NewEmail.setError("Please enter new email");
                                             CE_NewEmail.requestFocus();
-                                        } else if(e.get() ==true){
-                                            CE_NewEmail.setError("Email Already Exists In The Database");
-                                            CE_NewEmail.requestFocus();
-                                        }else {
-                                            CE_progressBar.setVisibility(View.VISIBLE);
-                                            updateEmail(firebaseuser);
+                                        } else {
+                                            boolean e[]={true};
+                                            FirebaseAuth.getInstance().fetchSignInMethodsForEmail(New_Email)
+                                                    .addOnCompleteListener(task -> {
+                                                        if (task.isSuccessful()) {
+                                                            List<String> signInMethods = task.getResult().getSignInMethods();
+                                                            if (signInMethods != null && signInMethods.isEmpty()) {
+                                                                e[0]=false;
+                                                            } else {
+                                                                e[0]=true;
+                                                            }
+                                                        } else {
+                                                            // Handle task failure
+                                                            Exception exception = task.getException();
+                                                            if (exception != null) {
+                                                                // Log or handle the exception
+                                                            }
+                                                        }
+                                                    });
+                                            if(e[0]==false) {
+                                                CE_progressBar.setVisibility(View.VISIBLE);
+                                                updateEmail(firebaseuser);
+                                            }
+                                            else{
+                                                CE_NewEmail.setError("Email Already Exists in the Database");
+                                                CE_NewEmail.requestFocus();
+                                            }
                                         }
 
                                     }
@@ -185,7 +188,13 @@ public class ChangeEmail extends AppCompatActivity {
                             } else {
                                 try {
                                     throw task.getException();
-                                } catch (Exception e) {
+                                } catch(FirebaseAuthInvalidCredentialsException e){
+                                    CE_Password.setError("Incorrect Credentials");
+                                    CE_Password.requestFocus();
+                                }catch(FirebaseAuthUserCollisionException e){
+                                    CE_NewEmail.setError("User Already exists with this Email ID");
+                                    CE_NewEmail.requestFocus();
+                                }catch (Exception e) {
                                     Toast.makeText(ChangeEmail.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                                 }
                             }
@@ -198,22 +207,24 @@ public class ChangeEmail extends AppCompatActivity {
     }
 
     private void updateEmail(FirebaseUser firebaseuser){
+
         firebaseuser.verifyBeforeUpdateEmail(New_Email).addOnCompleteListener(new OnCompleteListener<Void>(){
             @Override
-            public void onComplete(@NonNull Task<Void> task){
-                    if(task.isComplete()){
-                        DatabaseReference referenceProfile = FirebaseDatabase.getInstance().getReference("Registered Users");
-                        ReadWriteUserDetails WriteUserDetails = new ReadWriteUserDetails(New_Email, Name, Phone, Institute, Username, finalRole);
-                        referenceProfile.child(firebaseUser.getUid()).setValue(WriteUserDetails);
-                        showAlertDialog();
-                        CE_progressBar.setVisibility(View.GONE);
-                    }else {
-                        try{
-                            throw task.getException();
-                        }catch(Exception e){
-                            Toast.makeText(ChangeEmail.this,e.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
+            public void onComplete(@NonNull Task<Void> task) {
+                if (task.isSuccessful()) {
+                    // Email verification succeeded, show alert and update database
+                    showAlertDialog();
+                    DatabaseReference referenceProfile = FirebaseDatabase.getInstance().getReference("Registered Users");
+                    ReadWriteUserDetails WriteUserDetails = new ReadWriteUserDetails(New_Email, Name, Phone, Institute, Username, finalRole);
+                    referenceProfile.child(firebaseUser.getUid()).setValue(WriteUserDetails);
+                    CE_progressBar.setVisibility(View.GONE);
+                } else {
+                    // Email verification failed, handle accordingly
+                    Exception exception = task.getException();
+                    if (exception != null) {
+                        // Handle the exception (e.g., display an error message)
                     }
+                }
             }
         });
     }
