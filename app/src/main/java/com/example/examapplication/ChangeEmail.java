@@ -29,6 +29,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public class ChangeEmail extends AppCompatActivity {
     FirebaseAuth authProfile;
     FirebaseUser firebaseUser;
@@ -137,6 +140,26 @@ public class ChangeEmail extends AppCompatActivity {
                                     @Override
                                     public void onClick(View v) {
                                         New_Email = CE_NewEmail.getText().toString();
+                                        AtomicBoolean e= new AtomicBoolean(true);
+                                        FirebaseAuth.getInstance().fetchSignInMethodsForEmail(New_Email)
+                                                .addOnCompleteListener(task -> {
+                                                    if (task.isSuccessful()) {
+                                                        // Check if there are any sign-in methods for the provided email
+                                                        List<String> signInMethods = task.getResult().getSignInMethods();
+
+                                                        if (signInMethods != null && ((List<?>) signInMethods).isEmpty()) {
+                                                            e.set(false);
+                                                        } else {
+                                                            e.set(true);
+                                                        }
+                                                    } else {
+                                                        // Error occurred while checking email existence
+                                                        Exception exception = task.getException();
+                                                        if (exception != null) {
+                                                            Toast.makeText(ChangeEmail.this, "Something went wrong", Toast.LENGTH_SHORT).show();
+                                                        }
+                                                    }
+                                                });
                                         if (TextUtils.isEmpty(New_Email)) {
                                             Toast.makeText(ChangeEmail.this, "New email is required", Toast.LENGTH_SHORT).show();
                                             CE_NewEmail.setError("Please enter new email");
@@ -149,7 +172,10 @@ public class ChangeEmail extends AppCompatActivity {
                                             Toast.makeText(ChangeEmail.this, "New email cannot be same as old email", Toast.LENGTH_SHORT).show();
                                             CE_NewEmail.setError("Please enter new email");
                                             CE_NewEmail.requestFocus();
-                                        } else {
+                                        } else if(e.get() ==true){
+                                            CE_NewEmail.setError("Email Already Exists In The Database");
+                                            CE_NewEmail.requestFocus();
+                                        }else {
                                             CE_progressBar.setVisibility(View.VISIBLE);
                                             updateEmail(firebaseuser);
                                         }
