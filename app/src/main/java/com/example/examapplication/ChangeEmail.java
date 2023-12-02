@@ -57,7 +57,7 @@ public class ChangeEmail extends AppCompatActivity {
         authProfile=FirebaseAuth.getInstance();
         firebaseUser= authProfile.getCurrentUser();
         DatabaseReference referenceProfile = FirebaseDatabase.getInstance().getReference("Registered Users");
-        referenceProfile.child(firebaseUser.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+        referenceProfile.child(firebaseUser.getUid()).child("User Details").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 ReadWriteUserDetails readUserDetails = snapshot.getValue(ReadWriteUserDetails.class);
@@ -216,7 +216,7 @@ public class ChangeEmail extends AppCompatActivity {
                     showAlertDialog();
                     DatabaseReference referenceProfile = FirebaseDatabase.getInstance().getReference("Registered Users");
                     ReadWriteUserDetails WriteUserDetails = new ReadWriteUserDetails(New_Email, Name, Phone, Institute, Username, finalRole);
-                    referenceProfile.child(firebaseUser.getUid()).setValue(WriteUserDetails);
+                    referenceProfile.child(firebaseUser.getUid()).child("User Details").setValue(WriteUserDetails);
                     CE_progressBar.setVisibility(View.GONE);
                 } else {
                     // Email verification failed, handle accordingly

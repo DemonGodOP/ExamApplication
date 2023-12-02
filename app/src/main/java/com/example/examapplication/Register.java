@@ -121,7 +121,7 @@ public class Register extends AppCompatActivity {
                     ReadWriteUserDetails WriteUserDetails = new ReadWriteUserDetails(email, name, phoneNo, institute, userName, finalRole);
                     DatabaseReference referenceProfile = FirebaseDatabase.getInstance().getReference("Registered Users");
                     assert firebaseUser != null;
-                    referenceProfile.child(firebaseUser.getUid()).setValue(WriteUserDetails);
+                    referenceProfile.child(firebaseUser.getUid()).child("User Details").setValue(WriteUserDetails);
                     Toast.makeText(Register.this, "Account Created", Toast.LENGTH_SHORT).show();
                     assert firebaseUser != null;
                     firebaseUser.sendEmailVerification();

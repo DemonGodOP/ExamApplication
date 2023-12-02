@@ -91,7 +91,7 @@ public class Profile extends AppCompatActivity {
 
         //Extracting User Reference from Database for "Registered Users"
         DatabaseReference referenceProfile = FirebaseDatabase.getInstance().getReference("Registered Users");
-        referenceProfile.child(firebaseUser.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+        referenceProfile.child(firebaseUser.getUid()).child("User Details").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot){
                 ReadWriteUserDetails readUserDetails=snapshot.getValue(ReadWriteUserDetails.class);

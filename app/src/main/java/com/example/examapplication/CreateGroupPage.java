@@ -1,5 +1,6 @@
 package com.example.examapplication;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
@@ -10,11 +11,15 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.Objects;
 
@@ -26,7 +31,7 @@ public class CreateGroupPage extends AppCompatActivity {
 
     FirebaseAuth authProfile;
 
-    String GroupName, SubjectName, SubjectCode, Institute, GroupDescription;
+    String GroupName, SubjectName, SubjectCode, Institute, GroupDescription, TeacherName;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -83,6 +88,24 @@ public class CreateGroupPage extends AppCompatActivity {
         String teacherId = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
 
         DatabaseReference database = FirebaseDatabase.getInstance().getReference("Groups");
+        DatabaseReference referenceProfile = FirebaseDatabase.getInstance().getReference("Registered Users");
+
+        referenceProfile.child(firebaseUser.getUid()).child("User Details").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot){
+                ReadWriteUserDetails readUserDetails=snapshot.getValue(ReadWriteUserDetails.class);
+                if(readUserDetails != null){
+                    TeacherName=readUserDetails.userName;
+                }else {
+                    Toast.makeText(CreateGroupPage.this, "Something went wrong", Toast.LENGTH_SHORT).show();
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error){
+                Toast.makeText(CreateGroupPage.this, "Something went wrong!", Toast.LENGTH_SHORT).show();
+
+            }
+        });
 
         String groupId = database.push().getKey(); // Generate a unique key for the group
 
@@ -95,11 +118,11 @@ public class CreateGroupPage extends AppCompatActivity {
                 .child(groupId);
 
         // Creating a Group object with its details within Teacher User
-        Group newGroup = new Group(GroupName,SubjectName,SubjectCode,GroupDescription, groupId, Institute);
+        Group newGroup = new Group(GroupName,SubjectName,SubjectCode,GroupDescription, groupId, Institute,TeacherName);
         teacherGroupsRef.setValue(newGroup);
 
         // Creating a Group Object Within the Main Group Directory
-        database.child(groupId).setValue(newGroup);
+        database.child(groupId).child("Group Details").setValue(newGroup);
         CG_progressBar.setVisibility(View.GONE);
         Intent intent = new Intent(CreateGroupPage.this, TeacherHomePage.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);

@@ -179,7 +179,7 @@ public class TeacherHomePage extends AppCompatActivity {
                             String selectedGroupId = selectedGroup.Group_ID; // Or however you store the ID in the Group class
 
                             // Create an intent to start a new activity
-                            Intent intent = new Intent(TeacherHomePage.this, GroupDetailsActivity.class);
+                            Intent intent = new Intent(TeacherHomePage.this, InsideGroup.class);
 
                             // Pass the unique key to the new activity
                             intent.putExtra("GROUP_ID", selectedGroupId);

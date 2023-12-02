@@ -82,7 +82,7 @@ public class UpdateProfile extends AppCompatActivity {
 
         UP_progressBar.setVisibility(View.VISIBLE);
 
-        referenceProfile.child(userIDofRegistered).addListenerForSingleValueEvent(new ValueEventListener() {
+        referenceProfile.child(userIDofRegistered).child("User Details").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 ReadWriteUserDetails readUserDetails = snapshot.getValue(ReadWriteUserDetails.class);
@@ -134,7 +134,7 @@ public class UpdateProfile extends AppCompatActivity {
         ReadWriteUserDetails WriteUserDetails = new ReadWriteUserDetails(email, Name, Phone, Institute, Username, finalRole);
         DatabaseReference referenceProfile = FirebaseDatabase.getInstance().getReference("Registered Users");
         assert firebaseUser != null;
-        referenceProfile.child(firebaseUser.getUid()).setValue(WriteUserDetails).addOnCompleteListener(new OnCompleteListener<Void>() {
+        referenceProfile.child(firebaseUser.getUid()).child("User Details").setValue(WriteUserDetails).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 Toast.makeText(UpdateProfile.this, "Profile Updated", Toast.LENGTH_SHORT).show();
