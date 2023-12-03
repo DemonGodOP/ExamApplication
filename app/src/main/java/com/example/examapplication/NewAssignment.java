@@ -163,6 +163,8 @@ public class NewAssignment extends AppCompatActivity {
                 Name=AS_Name.getText().toString();
                 Timing=AS_Timing.getText().toString();
 
+
+
                 if(TextUtils.isEmpty(Name)){
                     AS_Name.setError("Please enter your password for authentication");
                     AS_Name.requestFocus();
@@ -188,6 +190,14 @@ public class NewAssignment extends AppCompatActivity {
         builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
+                String NQ=NA_Q.getText().toString();
+
+                if(!TextUtils.isEmpty(NQ)&&n==0||n==Questions.size()){
+                    Questions.add(NQ);
+                }
+                else{
+                    Questions.set(n,NQ);
+                }
                 temp=true;
                 Assignment assignment=new Assignment(Questions,temp,Name,Timing,AssignmentID);
                 assert AssignmentID != null;

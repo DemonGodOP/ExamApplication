@@ -12,6 +12,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -26,6 +28,10 @@ public class StudentGroup extends AppCompatActivity {
     ListView SG_LV;
     ProgressBar SG_P;
     String GROUP_ID;
+
+    FirebaseAuth authProfile;
+
+    FirebaseUser firebaseUser;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,6 +44,9 @@ public class StudentGroup extends AppCompatActivity {
         SG_NoText=findViewById(R.id.SG_NoText);
         SG_LV=findViewById(R.id.SG_LV);
         SG_P=findViewById(R.id.SG_P);
+
+        authProfile=FirebaseAuth.getInstance();
+        firebaseUser=authProfile.getCurrentUser();
 
         SGTSHP.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -106,13 +115,62 @@ public class StudentGroup extends AppCompatActivity {
                         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                             // Get the selected group from the adapter
                             Assignment selectedAssignment = (Assignment) parent.getItemAtPosition(position);
-                            //Intent intent = new Intent(StudentGroup.this, AssignmentDetails.class);
 
-                            //intent.putExtra("GROUP_ID", GROUP_ID);
-                            //intent.putExtra("Assignment_ID",selectedAssignment.Assignment_ID);
+                            DatabaseReference Checking=FirebaseDatabase.getInstance().getReference("Groups").child(GROUP_ID).child("Assignments").child(selectedAssignment.Assignment_ID).child("Submissions").child(firebaseUser.getUid());
+                            Checking.addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                    if(snapshot.exists()){
+                                        Intent intent = new Intent(StudentGroup.this, StudentFeedBack.class);
 
-                            // Start the new activity
-                            //startActivity(intent);
+                                        //intent.putExtra("GROUP_ID", GROUP_ID);
+                                        intent.putExtra("Assignment_ID",selectedAssignment.Assignment_ID);
+
+                                        intent.putExtra("Group_ID",GROUP_ID);
+
+                                        // Start the new activity
+                                        startActivity(intent);
+                                    }
+                                    else{
+                                        DatabaseReference Active=FirebaseDatabase.getInstance().getReference("Groups").child(GROUP_ID).child("Assignments").child(selectedAssignment.Assignment_ID);
+                                        Active.addListenerForSingleValueEvent(new ValueEventListener() {
+                                            @Override
+                                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                Assignment assignment=snapshot.getValue(Assignment.class);
+                                                if(assignment!=null){
+                                                    boolean Active=assignment.Active;
+                                                    if(Active==true){
+                                                        Intent intent = new Intent(StudentGroup.this, AssignmentSubmission.class);
+
+                                                        //intent.putExtra("GROUP_ID", GROUP_ID);
+                                                        intent.putExtra("Assignment_ID",selectedAssignment.Assignment_ID);
+
+                                                        intent.putExtra("Group_ID",GROUP_ID);
+
+                                                        // Start the new activity
+                                                        startActivity(intent);
+
+                                                        finish();
+                                                    }
+                                                    else{
+                                                        Toast.makeText(StudentGroup.this, "Assignment is Not Active Right Now", Toast.LENGTH_SHORT).show();
+                                                    }
+                                                }
+                                            }
+
+                                            @Override
+                                            public void onCancelled(@NonNull DatabaseError error) {
+
+                                            }
+                                        });
+                                    }
+                                }
+
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError error) {
+                                    Toast.makeText(StudentGroup.this, "SomeThing Went Wrong", Toast.LENGTH_SHORT).show();
+                                }
+                            });
                         }
                     });
                 }

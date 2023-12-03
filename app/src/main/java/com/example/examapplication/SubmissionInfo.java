@@ -45,6 +45,8 @@ public class SubmissionInfo extends AppCompatActivity {
         SI_A=findViewById(R.id.SI_A);
         SI_AnswerText=findViewById(R.id.SI_AnswerText);
 
+
+
         SI_P=findViewById(R.id.SI_P);
         SI_N=findViewById(R.id.SI_N);
         SI_FeedBack=findViewById(R.id.SI_FeedBack);
@@ -53,6 +55,8 @@ public class SubmissionInfo extends AppCompatActivity {
         SI_Submit.setVisibility(View.GONE);
         SI_F.setVisibility(View.GONE);
         SI_FeedBackText.setVisibility(View.GONE);
+
+
 
         Intent intent=getIntent();
 
@@ -72,6 +76,9 @@ public class SubmissionInfo extends AppCompatActivity {
                     Questions=assignment.Questions;
                     SI_QN.setText(n+1+"");
                     SI_Q.setText(Questions.get(0));
+                    if(n==Questions.size()-1){
+                        SI_N.setEnabled(false);
+                    }
                 } else {
                     Toast.makeText(SubmissionInfo.this, "Something went wrong!", Toast.LENGTH_LONG).show();
                 }
@@ -183,6 +190,8 @@ public class SubmissionInfo extends AppCompatActivity {
                 finish();
             }
         });
+
+
 
     }
 }

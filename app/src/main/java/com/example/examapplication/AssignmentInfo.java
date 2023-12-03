@@ -80,6 +80,9 @@ public class AssignmentInfo extends AppCompatActivity {
                         Questions=assignment.Questions;
                         AI_QN.setText(n+1+"");
                         AI_Q.setText(Questions.get(0));
+                        if(n==Questions.size()-1){
+                            AI_N.setEnabled(false);
+                        }
 
 
 
@@ -153,6 +156,7 @@ public class AssignmentInfo extends AppCompatActivity {
                 }
             }
         });
+
 
     }
 }
