@@ -96,6 +96,22 @@ public class CreateGroupPage extends AppCompatActivity {
                 ReadWriteUserDetails readUserDetails=snapshot.getValue(ReadWriteUserDetails.class);
                 if(readUserDetails != null){
                     TeacherName=readUserDetails.userName;
+                    String groupId = database.push().getKey(); // Generate a unique key for the group
+
+                    // Save group details in teacher's directory
+                    assert groupId != null;
+                    DatabaseReference teacherGroupsRef = FirebaseDatabase.getInstance().getReference()
+                            .child("Registered Users") // Assuming this is where teachers are stored
+                            .child(teacherId) // Use the teacher's user ID
+                            .child("Groups") // Create a child node for groups
+                            .child(groupId);
+
+                    // Creating a Group object with its details within Teacher User
+                    Group newGroup = new Group(GroupName,SubjectName,SubjectCode,GroupDescription, groupId, Institute,TeacherName);
+                    teacherGroupsRef.setValue(newGroup);
+
+                    // Creating a Group Object Within the Main Group Directory
+                    database.child(groupId).child("Group Details").setValue(newGroup);
                 }else {
                     Toast.makeText(CreateGroupPage.this, "Something went wrong", Toast.LENGTH_SHORT).show();
                 }
@@ -107,22 +123,7 @@ public class CreateGroupPage extends AppCompatActivity {
             }
         });
 
-        String groupId = database.push().getKey(); // Generate a unique key for the group
 
-        // Save group details in teacher's directory
-        assert groupId != null;
-        DatabaseReference teacherGroupsRef = FirebaseDatabase.getInstance().getReference()
-                .child("Registered Users") // Assuming this is where teachers are stored
-                .child(teacherId) // Use the teacher's user ID
-                .child("Groups") // Create a child node for groups
-                .child(groupId);
-
-        // Creating a Group object with its details within Teacher User
-        Group newGroup = new Group(GroupName,SubjectName,SubjectCode,GroupDescription, groupId, Institute,TeacherName);
-        teacherGroupsRef.setValue(newGroup);
-
-        // Creating a Group Object Within the Main Group Directory
-        database.child(groupId).child("Group Details").setValue(newGroup);
         CG_progressBar.setVisibility(View.GONE);
         Intent intent = new Intent(CreateGroupPage.this, TeacherHomePage.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);

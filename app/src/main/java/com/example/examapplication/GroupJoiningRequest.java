@@ -34,6 +34,7 @@ public class GroupJoiningRequest extends AppCompatActivity {
     String Group_ID;
 
     ProgressBar GJRP;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -138,6 +139,27 @@ public class GroupJoiningRequest extends AppCompatActivity {
                       @Override
                       public void onFailure(@NonNull Exception e) {
                           Toast.makeText(GroupJoiningRequest.this, "Something Went Wrong", Toast.LENGTH_SHORT).show();
+                      }
+                  });
+
+                  DatabaseReference GroupDetails=FirebaseDatabase.getInstance().getReference("Groups").child(Group_ID).child("Group Details");
+                  GroupDetails.addListenerForSingleValueEvent(new ValueEventListener() {
+                      @Override
+                      public void onDataChange(@NonNull DataSnapshot snapshot) {
+                          if (snapshot.exists()) {
+                              Group group = snapshot.getValue(Group.class);
+                              if (group != null) {
+                                  DatabaseReference newGroup = FirebaseDatabase.getInstance().getReference("Registered Users").child(selectedParticipant.UserID).child("Groups").child(Group_ID);
+                                  newGroup.setValue(group);
+                              } else {
+                                  Toast.makeText(GroupJoiningRequest.this, "Something Went Wrong", Toast.LENGTH_SHORT).show();
+                              }
+                          }
+                      }
+                      @Override
+                      public void onCancelled (@NonNull DatabaseError error){
+                          Toast.makeText(GroupJoiningRequest.this, "Something went wrong!", Toast.LENGTH_LONG).show();
+
                       }
                   });
                 Intent intent = getIntent();

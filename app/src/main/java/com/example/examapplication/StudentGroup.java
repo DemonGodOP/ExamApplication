@@ -1,0 +1,127 @@
+package com.example.examapplication;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ListView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class StudentGroup extends AppCompatActivity {
+    TextView SGTSHP,SG_GroupDetails,SG_Text,SG_NoText;
+    ListView SG_LV;
+    ProgressBar SG_P;
+    String GROUP_ID;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_student_group);
+        Intent intent=getIntent();
+        GROUP_ID=intent.getStringExtra("GROUP_ID");
+        SGTSHP=findViewById(R.id.SGTSHP);
+        SG_GroupDetails=findViewById(R.id.SG_GroupDetails);
+        SG_Text=findViewById(R.id.SG_Text);
+        SG_NoText=findViewById(R.id.SG_NoText);
+        SG_LV=findViewById(R.id.SG_LV);
+        SG_P=findViewById(R.id.SG_P);
+
+        SGTSHP.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
+            }
+        });
+
+        SG_GroupDetails.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(StudentGroup.this, StudentGroupDetails.class);
+
+                // Pass the unique key to the new activity
+                intent.putExtra("GROUP_ID", GROUP_ID);
+
+                // Start the new activity
+                startActivity(intent);
+            }
+        });
+
+        SG_P.setVisibility(View.VISIBLE);
+        PopulateList();
+    }
+
+    public void PopulateList() {
+        DatabaseReference JoiningReference = FirebaseDatabase.getInstance().getReference("Groups").child(GROUP_ID);
+
+
+        // Listener to retrieve the groups
+        JoiningReference.child("Assignments").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                List<Assignment> AssignmentList = new ArrayList<>();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    Assignment assignment = snapshot.getValue(Assignment.class);
+                    if (assignment != null) {
+                        AssignmentList.add(assignment);
+                    }
+                }
+
+                if (AssignmentList.isEmpty()) {
+                    // If there are no groups, display the message TextView and hide the ListView
+                    SG_NoText.setVisibility(View.VISIBLE);
+                    SG_LV.setVisibility(View.GONE);
+                    SG_P.setVisibility(View.GONE);
+                    SG_Text.setVisibility(View.GONE);
+                } else {
+                    // If there are groups, display the ListView and hide the message TextView
+                    SG_NoText.setVisibility(View.GONE);
+                    SG_LV.setVisibility(View.VISIBLE);
+                    SG_Text.setVisibility(View.VISIBLE);
+
+                    // Now, you have groupsList containing the groups data
+                    // You can use this data to populate your ListView
+                    // For instance, set up an ArrayAdapter with the ListView
+                    ADLV adapter = new ADLV(StudentGroup.this, R.layout.adlv, AssignmentList);
+
+                    // Assuming you have a ListView with the ID listViewGroups in your layout
+                    SG_LV.setAdapter(adapter);
+
+                    SG_P.setVisibility(View.GONE);
+
+                    SG_LV.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                            // Get the selected group from the adapter
+                            Assignment selectedAssignment = (Assignment) parent.getItemAtPosition(position);
+                            //Intent intent = new Intent(StudentGroup.this, AssignmentDetails.class);
+
+                            //intent.putExtra("GROUP_ID", GROUP_ID);
+                            //intent.putExtra("Assignment_ID",selectedAssignment.Assignment_ID);
+
+                            // Start the new activity
+                            //startActivity(intent);
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Toast.makeText(StudentGroup.this, "Something Went Wrong Please Restart The Application", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+}

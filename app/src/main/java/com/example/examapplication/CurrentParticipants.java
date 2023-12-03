@@ -130,6 +130,8 @@ public class CurrentParticipants extends AppCompatActivity {
                         Toast.makeText(CurrentParticipants.this, "Something Went Wrong", Toast.LENGTH_SHORT).show();
                     }
                 });
+                DatabaseReference newGroup = FirebaseDatabase.getInstance().getReference("Registered Users").child(selectedParticipant.UserID).child("Groups").child(Group_ID);
+                newGroup.removeValue();
                 Intent intent = getIntent();
                 finish();
                 startActivity(intent);
