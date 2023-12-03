@@ -13,6 +13,18 @@
         android:theme="@style/Theme.ExamApplication"
         tools:targetApi="31">
         <activity
+            android:name=".SubmissionInfo"
+            android:exported="false" />
+        <activity
+            android:name=".AssignmentInfo"
+            android:exported="false" />
+        <activity
+            android:name=".AvailableAssignments"
+            android:exported="false" />
+        <activity
+            android:name=".AssignmentDetails"
+            android:exported="false" />
+        <activity
             android:name=".CurrentParticipants"
             android:exported="false" />
         <activity

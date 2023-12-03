@@ -111,6 +111,18 @@ public class InsideGroup extends AppCompatActivity {
             }
         });
 
+        IGTA.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(InsideGroup.this, AvailableAssignments.class);
+
+                intent.putExtra("GROUP_ID", receivedGroupId);
+
+                // Start the new activity
+                startActivity(intent);
+            }
+        });
+
     }
 
     private void showAlertDialog () {
