@@ -20,9 +20,11 @@ import android.widget.Toast;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
+import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -155,32 +157,34 @@ public class ChangeEmail extends AppCompatActivity {
                                             CE_NewEmail.setError("Please enter new email");
                                             CE_NewEmail.requestFocus();
                                         } else {
-                                            boolean e[]={true};
-                                            FirebaseAuth.getInstance().fetchSignInMethodsForEmail(New_Email)
-                                                    .addOnCompleteListener(task -> {
-                                                        if (task.isSuccessful()) {
-                                                            List<String> signInMethods = task.getResult().getSignInMethods();
-                                                            if (signInMethods != null && signInMethods.isEmpty()) {
-                                                                e[0]=false;
-                                                            } else {
-                                                                e[0]=true;
-                                                            }
-                                                        } else {
-                                                            // Handle task failure
-                                                            Exception exception = task.getException();
-                                                            if (exception != null) {
-                                                                // Log or handle the exception
-                                                            }
-                                                        }
-                                                    });
-                                            if(e[0]==false) {
-                                                CE_progressBar.setVisibility(View.VISIBLE);
-                                                updateEmail(firebaseuser);
-                                            }
-                                            else{
-                                                CE_NewEmail.setError("Email Already Exists in the Database");
-                                                CE_NewEmail.requestFocus();
-                                            }
+                                           boolean res[]={false};
+                                           DatabaseReference CheckEmail=FirebaseDatabase.getInstance().getReference().child("Registered Users");
+                                           CheckEmail.addValueEventListener(new ValueEventListener() {
+                                               @Override
+                                               public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                   for(DataSnapshot dataSnapshot:snapshot.getChildren()){
+                                                       ReadWriteUserDetails readWriteUserDetails=dataSnapshot.child("User Details").getValue(ReadWriteUserDetails.class);
+                                                       if(readWriteUserDetails!=null){
+                                                           if(readWriteUserDetails.email.equals(New_Email)){
+                                                               res[0]=true;
+                                                               break;
+                                                           }
+                                                       }
+                                                   }
+                                                   if(res[0]==true){
+                                                       CE_NewEmail.setError("Email Already Exists in the Database.");
+                                                       CE_NewEmail.requestFocus();
+                                                   }
+                                                   else{
+                                                       updateEmail(firebaseuser);
+                                                   }
+                                               }
+
+                                               @Override
+                                               public void onCancelled(@NonNull DatabaseError error) {
+
+                                               }
+                                           });
                                         }
 
                                     }
@@ -207,22 +211,22 @@ public class ChangeEmail extends AppCompatActivity {
     }
 
     private void updateEmail(FirebaseUser firebaseuser){
-
+        showAlertDialog();
         firebaseuser.verifyBeforeUpdateEmail(New_Email).addOnCompleteListener(new OnCompleteListener<Void>(){
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()) {
-                    // Email verification succeeded, show alert and update database
-                    showAlertDialog();
-                    DatabaseReference referenceProfile = FirebaseDatabase.getInstance().getReference("Registered Users");
-                    ReadWriteUserDetails WriteUserDetails = new ReadWriteUserDetails(New_Email, Name, Phone, Institute, Username, finalRole);
-                    referenceProfile.child(firebaseUser.getUid()).child("User Details").setValue(WriteUserDetails);
-                    CE_progressBar.setVisibility(View.GONE);
+                            DatabaseReference referenceProfile = FirebaseDatabase.getInstance().getReference("Registered Users");
+                            ReadWriteUserDetails WriteUserDetails = new ReadWriteUserDetails(New_Email, Name, Phone, Institute, Username, finalRole);
+                            referenceProfile.child(firebaseUser.getUid()).child("User Details").setValue(WriteUserDetails);
+                            CE_progressBar.setVisibility(View.GONE);
+                            CE_Password.setError("Email Updated");
+                            CE_Password.requestFocus();
                 } else {
                     // Email verification failed, handle accordingly
                     Exception exception = task.getException();
                     if (exception != null) {
-                        // Handle the exception (e.g., display an error message)
+                        Toast.makeText(ChangeEmail.this, "SomeThing Went Wrong", Toast.LENGTH_SHORT).show();
                     }
                 }
             }
@@ -251,4 +255,5 @@ public class ChangeEmail extends AppCompatActivity {
         //show the alert dialog
         alertDialog.show();
     }
+
 }
