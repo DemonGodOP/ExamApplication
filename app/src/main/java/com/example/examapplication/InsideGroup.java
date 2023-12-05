@@ -15,8 +15,14 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class InsideGroup extends AppCompatActivity {
     TextView IGTTH, IGTGD, IGTCNA, IGTA, IGTGM, IGTJR, IG_delete;
@@ -164,25 +170,43 @@ public class InsideGroup extends AppCompatActivity {
     public void deleteGroup(){
         DatabaseReference groupRef = FirebaseDatabase.getInstance().getReference("Groups").child(receivedGroupId);
 
-
-        groupRef.removeValue().addOnFailureListener(new OnFailureListener() {
+        groupRef.child("Current Participants").addValueEventListener(new ValueEventListener() {
             @Override
-            public void onFailure(@NonNull Exception e) {
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    ParticipantDetails participantDetails = snapshot.getValue(ParticipantDetails.class);
+                    if(participantDetails!=null){
+                        DatabaseReference deleteGroup=FirebaseDatabase.getInstance().getReference("Registered Users").child(participantDetails.UserID).child("Groups").child(receivedGroupId);
+                        deleteGroup.removeValue();
+                    }
+                }
+                groupRef.removeValue().addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(InsideGroup.this, "Something Went Wrong", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+                assert firebaseUser != null;
+                DatabaseReference TgroupRef=FirebaseDatabase.getInstance().getReference("Registered Users").child(firebaseUser.getUid()).child("Groups").child(receivedGroupId);
+                TgroupRef.removeValue().addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(InsideGroup.this, "Something Went Wrong", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+                Intent intent=new Intent(InsideGroup.this,TeacherHomePage.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                finish();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
                 Toast.makeText(InsideGroup.this, "Something Went Wrong", Toast.LENGTH_SHORT).show();
             }
         });
 
-        assert firebaseUser != null;
-        DatabaseReference TgroupRef=FirebaseDatabase.getInstance().getReference("Registered Users").child(firebaseUser.getUid()).child("Groups").child(receivedGroupId);
-        TgroupRef.removeValue().addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Toast.makeText(InsideGroup.this, "Something Went Wrong", Toast.LENGTH_SHORT).show();
-            }
-        });
-        Intent intent=new Intent(InsideGroup.this,TeacherHomePage.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
-        finish();
     }
 }
