@@ -40,8 +40,8 @@
 
     <TextView
         android:id="@+id/SI_QN"
-        android:layout_width="35dp"
-        android:layout_height="34dp"
+        android:layout_width="93dp"
+        android:layout_height="36dp"
         android:gravity="start"
         android:text="QN:"
         android:textAlignment="viewStart"

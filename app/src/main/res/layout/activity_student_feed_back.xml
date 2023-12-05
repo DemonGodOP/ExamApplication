@@ -39,8 +39,8 @@
 
     <TextView
         android:id="@+id/SF_QN"
-        android:layout_width="35dp"
-        android:layout_height="34dp"
+        android:layout_width="102dp"
+        android:layout_height="37dp"
         android:gravity="start"
         android:text="QN:"
         android:textAlignment="viewStart"
@@ -61,7 +61,7 @@
         android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.541"
+        app:layout_constraintHorizontal_bias="0.666"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.202" />
@@ -124,7 +124,7 @@
         android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.541"
+        app:layout_constraintHorizontal_bias="0.777"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.535" />

@@ -54,8 +54,8 @@
 
     <TextView
         android:id="@+id/NA_QN"
-        android:layout_width="54dp"
-        android:layout_height="26dp"
+        android:layout_width="76dp"
+        android:layout_height="33dp"
         android:text="QN"
         android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="parent"

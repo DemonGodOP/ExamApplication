@@ -73,7 +73,7 @@ public class NewAssignment extends AppCompatActivity {
 
         n=0;
 
-        NA_QN.setText(n+1+"");
+        NA_QN.setText("QN: "+(n+1));
 
         NA_P.setEnabled(false);
 
@@ -102,7 +102,7 @@ public class NewAssignment extends AppCompatActivity {
                     }
                     n++;
                     NA_P.setEnabled(true);
-                    NA_QN.setText(n+1+"");
+                    NA_QN.setText("QN: "+(n+1));
                     if(n==Questions.size()-1){
                         NA_N.setText("ADD QUESTION");
                     }
@@ -122,7 +122,7 @@ public class NewAssignment extends AppCompatActivity {
                 if(n==0){
                     NA_P.setEnabled(false);
                 }
-                NA_QN.setText(n+1+"");
+                NA_QN.setText("QN: "+(n+1));
                 NA_Q.setText(Questions.get(n));
                 if(n<Questions.size()-1){
                     NA_N.setText("NEXT");

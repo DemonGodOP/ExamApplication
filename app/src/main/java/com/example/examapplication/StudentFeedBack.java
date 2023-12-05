@@ -74,7 +74,7 @@ public class StudentFeedBack extends AppCompatActivity {
                 if(assignment!=null){
                     Questions=assignment.Questions;
                     SN_Q.setText(Questions.get(0));
-                    SF_QN.setText(0+"");
+                    SF_QN.setText("QN: "+(n+1));
                     if(n==Questions.size()-1){
                         SF_Next.setEnabled(false);
                     }
@@ -118,7 +118,7 @@ public class StudentFeedBack extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 n++;
-                SF_QN.setText(n+1+"");
+                SF_QN.setText("QN: "+(n+1));
                 SN_Q.setText(Questions.get(n));
                 SN_A.setText(Answers.get(n));
                 if(n==Questions.size()-1){
@@ -132,7 +132,7 @@ public class StudentFeedBack extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 n--;
-                SF_QN.setText(n+1+"");
+                SF_QN.setText("QN: "+(n+1));
                 SN_Q.setText(Questions.get(n));
                 SN_A.setText(Answers.get(n));
                 if(n==0){

@@ -78,7 +78,7 @@ public class AssignmentInfo extends AppCompatActivity {
                         AI_Name.setText(Name);
                         AI_Timing.setText(Timing);
                         Questions=assignment.Questions;
-                        AI_QN.setText(n+1+"");
+                        AI_QN.setText("QN: "+(n+1));
                         AI_Q.setText(Questions.get(0));
                         if(n==Questions.size()-1){
                             AI_N.setEnabled(false);
@@ -103,7 +103,7 @@ public class AssignmentInfo extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 n++;
-                AI_QN.setText(n+1+"");
+                AI_QN.setText("QN: "+(n+1));
                 AI_Q.setText(Questions.get(n));
                 if(n==Questions.size()-1){
                     AI_N.setEnabled(false);
@@ -116,7 +116,7 @@ public class AssignmentInfo extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 n--;
-                AI_QN.setText(n+1+"");
+                AI_QN.setText("QN: "+(n+1));
                 AI_Q.setText(Questions.get(n));
                 if(n==0){
                     AI_P.setEnabled(false);
@@ -139,7 +139,7 @@ public class AssignmentInfo extends AppCompatActivity {
                     AI_NameText.setVisibility(View.GONE);
                     AI_TimingText.setVisibility(View.GONE);
 
-                    AI_QB.setText("Questions");
+                    AI_QB.setText("Other Details");
                 }
                 else{
                     AI_QN.setVisibility(View.GONE);
@@ -152,7 +152,7 @@ public class AssignmentInfo extends AppCompatActivity {
                     AI_TimingText.setVisibility(View.VISIBLE);
                     AI_NameText.setVisibility(View.VISIBLE);
 
-                    AI_QB.setText("Name");
+                    AI_QB.setText("Questions");
                 }
             }
         });

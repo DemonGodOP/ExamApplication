@@ -74,7 +74,7 @@ public class SubmissionInfo extends AppCompatActivity {
                 Assignment assignment = dataSnapshot.getValue(Assignment.class);
                 if (assignment != null) {
                     Questions=assignment.Questions;
-                    SI_QN.setText(n+1+"");
+                    SI_QN.setText("QN: "+(n+1));
                     SI_Q.setText(Questions.get(0));
                     if(n==Questions.size()-1){
                         SI_N.setEnabled(false);
@@ -112,7 +112,7 @@ public class SubmissionInfo extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 n++;
-                SI_QN.setText(n+1+"");
+                SI_QN.setText("QN: "+(n+1));
                 SI_Q.setText(Questions.get(n));
                 SI_A.setText(Answers.get(n));
                 if(n==Questions.size()-1){
@@ -126,7 +126,7 @@ public class SubmissionInfo extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 n--;
-                SI_QN.setText(n+1+"");
+                SI_QN.setText("QN: "+(n+1));
                 SI_Q.setText(Questions.get(n));
                 SI_A.setText(Answers.get(n));
                 if(n==0){
