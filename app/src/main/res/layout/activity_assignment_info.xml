@@ -68,7 +68,7 @@
         android:id="@+id/AI_Name"
         android:layout_width="256dp"
         android:layout_height="28dp"
-        android:text="Loading"
+        android:text="Loading...."
         android:textAlignment="viewStart"
         android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="parent"

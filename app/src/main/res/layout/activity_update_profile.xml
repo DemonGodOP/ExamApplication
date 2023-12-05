@@ -158,15 +158,19 @@
 
     <TextView
         android:id="@+id/UPTH"
-        android:layout_width="95dp"
-        android:layout_height="56dp"
+        android:layout_width="90dp"
+        android:layout_height="53dp"
         android:gravity="center"
         android:text="Home"
         android:textAlignment="center"
         android:textSize="24sp"
         android:textStyle="bold"
-        tools:layout_editor_absoluteX="6dp"
-        tools:layout_editor_absoluteY="6dp" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.002" />
 
     <ProgressBar
         android:id="@+id/UP_progressBar"
