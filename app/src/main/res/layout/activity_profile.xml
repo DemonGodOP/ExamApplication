@@ -11,7 +11,7 @@
         android:layout_width="409dp"
         android:layout_height="wrap_content"
         android:background="?attr/colorAccent"
-        android:backgroundTint="#64CEFF"
+        android:backgroundTint="#009688"
         android:minHeight="?attr/actionBarSize"
         android:theme="?attr/actionBarTheme"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -216,8 +216,8 @@
 
     <TextView
         android:id="@+id/PTH"
-        android:layout_width="114dp"
-        android:layout_height="54dp"
+        android:layout_width="109dp"
+        android:layout_height="65dp"
         android:gravity="center"
         android:text="HomePage"
         android:textAlignment="center"

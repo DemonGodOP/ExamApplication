@@ -23,8 +23,8 @@
 
     <TextView
         android:id="@+id/S_SignOut"
-        android:layout_width="111dp"
-        android:layout_height="51dp"
+        android:layout_width="112dp"
+        android:layout_height="62dp"
         android:gravity="clip_horizontal|center|clip_vertical|center_horizontal"
         android:text="SignOut"
         android:textAlignment="gravity"
@@ -40,7 +40,7 @@
     <TextView
         android:id="@+id/S_Profile"
         android:layout_width="94dp"
-        android:layout_height="50dp"
+        android:layout_height="58dp"
         android:gravity="clip_horizontal|center_horizontal|center_vertical"
         android:text="Profile"
         android:textColor="#FFFFFF"

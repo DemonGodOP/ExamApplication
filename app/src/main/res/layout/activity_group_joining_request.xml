@@ -23,6 +23,7 @@
         android:layout_width="409dp"
         android:layout_height="wrap_content"
         android:background="?attr/colorAccent"
+        android:backgroundTint="#009688"
         android:minHeight="?attr/actionBarSize"
         android:theme="?attr/actionBarTheme"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -34,8 +35,8 @@
 
     <TextView
         android:id="@+id/GJRTIG"
-        android:layout_width="78dp"
-        android:layout_height="54dp"
+        android:layout_width="77dp"
+        android:layout_height="62dp"
         android:gravity="center"
         android:text="BACK"
         android:textAlignment="center"
