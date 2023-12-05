@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -23,6 +24,9 @@ public class ForgetPassword extends AppCompatActivity {
     EditText FP_Email;
     Button FP_Button;
     FirebaseAuth authProfile;
+
+    TextView FPTL;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,6 +34,7 @@ public class ForgetPassword extends AppCompatActivity {
         FP_Email=findViewById(R.id.FP_Email);
         FP_Button=findViewById(R.id.FP_Button);
         FP_progressBar=findViewById(R.id.FP_progressBar);
+        FPTL=findViewById(R.id.FPTL);
 
         FP_Button.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
@@ -49,7 +54,12 @@ public class ForgetPassword extends AppCompatActivity {
             }
         });
 
-
+        FPTL.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
+            }
+        });
 
     }
 

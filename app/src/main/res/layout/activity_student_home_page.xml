@@ -11,7 +11,7 @@
         android:layout_width="409dp"
         android:layout_height="wrap_content"
         android:background="?attr/colorAccent"
-        android:backgroundTint="#4E8473"
+        android:backgroundTint="#009688"
         android:minHeight="?attr/actionBarSize"
         android:theme="?attr/actionBarTheme"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -23,8 +23,8 @@
 
     <TextView
         android:id="@+id/S_SignOut"
-        android:layout_width="106dp"
-        android:layout_height="65dp"
+        android:layout_width="111dp"
+        android:layout_height="51dp"
         android:gravity="clip_horizontal|center|clip_vertical|center_horizontal"
         android:text="SignOut"
         android:textAlignment="gravity"
@@ -39,8 +39,8 @@
 
     <TextView
         android:id="@+id/S_Profile"
-        android:layout_width="97dp"
-        android:layout_height="61dp"
+        android:layout_width="94dp"
+        android:layout_height="50dp"
         android:gravity="clip_horizontal|center_horizontal|center_vertical"
         android:text="Profile"
         android:textColor="#FFFFFF"
