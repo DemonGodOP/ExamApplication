@@ -24,7 +24,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 public class SearchingGroup extends AppCompatActivity {
-    TextView SRGTSHM,SRG_GroupName,SRG_GroupSubjectCode,SRG_NoText;
+    TextView SRGTSHM,SRG_GroupName,SRG_GroupSubjectCode,SRG_NoText,SG_GNT,SG_GSCT;
     Button SRG_Layout;
     String Group_ID,Username,Email;
 
@@ -45,6 +45,8 @@ public class SearchingGroup extends AppCompatActivity {
         SRG_GroupSubjectCode=findViewById(R.id.SRG_GroupSubjectCode);
         SRG_NoText=findViewById(R.id.SRG_NoText);
         SRG_Layout=findViewById(R.id.SRG_Layout);
+        SG_GNT=findViewById(R.id.SG_GNT);
+        SG_GSCT=findViewById(R.id.SG_GSCT);
 
         authProfile=FirebaseAuth.getInstance();
         firebaseUser=authProfile.getCurrentUser();
@@ -74,6 +76,8 @@ public class SearchingGroup extends AppCompatActivity {
                                     SRG_GroupName.setVisibility(View.VISIBLE);
                                     SRG_GroupSubjectCode.setVisibility(View.VISIBLE);
                                     SRG_Layout.setVisibility(View.VISIBLE);
+                                    SG_GSCT.setVisibility(View.VISIBLE);
+                                    SG_GNT.setVisibility(View.VISIBLE);
                                     String Group_Name = foundGroup.Group_Name;
                                     String Group_SubjectCode = foundGroup.Subject_Code;
                                     SRG_GroupName.setText(Group_Name);
@@ -94,6 +98,9 @@ public class SearchingGroup extends AppCompatActivity {
                     SRG_GroupName.setVisibility(View.GONE);
                     SRG_GroupSubjectCode.setVisibility(View.GONE);
                     SRG_Layout.setVisibility(View.GONE);
+                    SG_GSCT.setVisibility(View.GONE);
+                    SG_GNT.setVisibility(View.GONE);
+
                 }
             }
 
