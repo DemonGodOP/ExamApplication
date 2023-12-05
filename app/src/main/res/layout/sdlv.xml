@@ -14,8 +14,8 @@
 
         <TextView
             android:id="@+id/SDLV_UserName"
-            android:layout_width="159dp"
-            android:layout_height="31dp"
+            android:layout_width="133dp"
+            android:layout_height="29dp"
             android:gravity="center"
             android:text="Loading..."
             android:textAlignment="center"
@@ -28,8 +28,8 @@
 
         <TextView
             android:id="@+id/SDLV_Email"
-            android:layout_width="248dp"
-            android:layout_height="31dp"
+            android:layout_width="268dp"
+            android:layout_height="30dp"
             android:gravity="center"
             android:text="Loading..."
             android:textAlignment="center"

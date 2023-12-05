@@ -192,10 +192,10 @@ public class NewAssignment extends AppCompatActivity {
             public void onClick(DialogInterface dialogInterface, int i) {
                 String NQ=NA_Q.getText().toString();
 
-                if(!TextUtils.isEmpty(NQ)&&n==0||n==Questions.size()){
+                if(!TextUtils.isEmpty(NQ)&&((n==0&&Questions.isEmpty())||n==Questions.size())){
                     Questions.add(NQ);
                 }
-                else{
+                else if(!TextUtils.isEmpty(NQ)){
                     Questions.set(n,NQ);
                 }
                 temp=true;
@@ -206,6 +206,7 @@ public class NewAssignment extends AppCompatActivity {
                     public void onSuccess(Void unused) {
                         Intent intent = new Intent(NewAssignment.this, InsideGroup.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                        intent.putExtra("GROUP_ID",Group_ID);
                         startActivity(intent);
                         finish();
                     }
@@ -229,6 +230,7 @@ public class NewAssignment extends AppCompatActivity {
                     public void onSuccess(Void unused) {
                         Intent intent = new Intent(NewAssignment.this, InsideGroup.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                        intent.putExtra("GROUP_ID",Group_ID);
                         startActivity(intent);
                         finish();
                     }

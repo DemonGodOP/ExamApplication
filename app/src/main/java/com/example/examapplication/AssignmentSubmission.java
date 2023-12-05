@@ -1,8 +1,10 @@
 package com.example.examapplication;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.provider.ContactsContract;
@@ -112,6 +114,9 @@ public class AssignmentSubmission extends AppCompatActivity {
                     AS_Next.setEnabled(false);
                 }
                 AS_Prev.setEnabled(true);
+                if(n!=Answers.size()){
+                    AS_A.setText(Answers.get(n));
+                }
                 AS_A.setText("");
             }
         });
@@ -123,7 +128,7 @@ public class AssignmentSubmission extends AppCompatActivity {
                 if(TextUtils.isEmpty(Temp)){
                     Temp="";
                 }
-                if(Answers.isEmpty()||n==Answers.size()-1){
+                if(Answers.isEmpty()||n==Answers.size()){
                     Answers.add(Temp);
                 }
                 else{
@@ -136,7 +141,7 @@ public class AssignmentSubmission extends AppCompatActivity {
                     AS_Prev.setEnabled(false);
                 }
                 AS_Next.setEnabled(true);
-                AS_A.setText("");
+                AS_A.setText(Answers.get(n));
             }
         });
 
@@ -159,6 +164,11 @@ public class AssignmentSubmission extends AppCompatActivity {
                             }
                             else {
                                 Answers.set(n,Temp);
+                            }
+                            if(Answers.size()<Questions.size()){
+                                while(Answers.size()<Questions.size()){
+                                    Answers.add("");
+                                }
                             }
                             String UserName=readWriteUserDetails.userName;
                             String Email=readWriteUserDetails.email;
@@ -186,4 +196,62 @@ public class AssignmentSubmission extends AppCompatActivity {
         });
 
     }
+
+    /*@Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        new AlertDialog.Builder(this)
+                .setTitle("Confirm Exit")
+                .setMessage("Your Assignment Will Be Submitted If You Exit Right Now?")
+                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        DatabaseReference userDetails= FirebaseDatabase.getInstance().getReference("Registered Users").child(firebaseUser.getUid()).child("User Details");
+
+                        userDetails.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                ReadWriteUserDetails readWriteUserDetails=snapshot.getValue(ReadWriteUserDetails.class);
+                                if(readWriteUserDetails!=null){
+                                    String Temp=AS_A.getText().toString();
+                                    if(TextUtils.isEmpty(Temp)){
+                                        Temp="";
+                                    }
+                                    if(Answers.isEmpty()||n==Answers.size()){
+                                        Answers.add(Temp);
+                                    }
+                                    else {
+                                        Answers.set(n,Temp);
+                                    }
+                                    if(Answers.size()<Questions.size()){
+                                        while(Answers.size()<Questions.size()){
+                                            Answers.add("");
+                                        }
+                                    }
+                                    String UserName=readWriteUserDetails.userName;
+                                    String Email=readWriteUserDetails.email;
+                                    DatabaseReference newRef=FirebaseDatabase.getInstance().getReference("Groups").child(Group_ID).child("Assignments").child(Assignment_ID).child("Submissions").child(firebaseUser.getUid());
+                                    SubmissionDetails submissionDetails=new SubmissionDetails(UserName,firebaseUser.getUid(),Email,Answers);
+                                    newRef.setValue(submissionDetails);
+                                    Intent intent = new Intent(AssignmentSubmission.this, StudentGroup.class);
+                                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                    intent.putExtra("GROUP_ID",Group_ID);
+                                    startActivity(intent);
+                                    finish();
+                                }
+                                else{
+                                    Toast.makeText(AssignmentSubmission.this, "SomeThing Went Wrong", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+                                Toast.makeText(AssignmentSubmission.this, "SomeThing Went Wrong", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                        finish();
+                    }
+                })
+                .setNegativeButton(android.R.string.no, null) // Dismiss the dialog if "No" is clicked
+                .show();
+    }*/
 }
