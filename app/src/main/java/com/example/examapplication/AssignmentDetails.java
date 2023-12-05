@@ -111,6 +111,18 @@ public class AssignmentDetails extends AppCompatActivity {
                             Name=assignment.Name;
                             Timing=assignment.Timing;
                             Active=assignment.Active;
+                            Assignment temp=new Assignment(Questions,!Active,Name,Timing,AssignmentID);
+                            database.setValue(temp).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void unused) {
+                                    dialogInterface.dismiss();
+                                }
+                            }).addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Toast.makeText(AssignmentDetails.this, "Something Went Wrong", Toast.LENGTH_SHORT).show();
+                                }
+                            });
                         } else {
                             Toast.makeText(AssignmentDetails.this , "Something went wrong!", Toast.LENGTH_LONG).show();
                         }
@@ -120,18 +132,6 @@ public class AssignmentDetails extends AppCompatActivity {
                     public void onCancelled (@NonNull DatabaseError error){
                         Toast.makeText(AssignmentDetails.this, "Something went wrong!", Toast.LENGTH_LONG).show();
                         //UP_progressBar.setVisibility(View.GONE);
-                    }
-                });
-                Assignment temp=new Assignment(Questions,!Active,Name,Timing,AssignmentID);
-                database.setValue(temp).addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void unused) {
-                        dialogInterface.dismiss();
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(AssignmentDetails.this, "Something Went Wrong", Toast.LENGTH_SHORT).show();
                     }
                 });
             }
