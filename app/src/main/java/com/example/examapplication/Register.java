@@ -100,7 +100,10 @@ public class Register extends AppCompatActivity {
                 } else if (TextUtils.isEmpty(Password)) {
                     R_Password.setError("Password is required");
                     R_Password.requestFocus();
-                } else if(selectedRole==-1){
+                } else if(Password.length()<8){
+                    R_Password.setError("Enter a Stronger Password");
+                    R_Password.requestFocus();
+                }else if(selectedRole==-1){
                     Toast.makeText(Register.this, "Please select a role", Toast.LENGTH_SHORT).show();
                 }else {
                     FinalRole=Selected.getText().toString();
