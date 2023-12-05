@@ -99,4 +99,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.739" />
+
+    <TextView
+        android:id="@+id/AS_Time"
+        android:layout_width="116dp"
+        android:layout_height="29dp"
+        android:text="Loading...."
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.847"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.157" />
 </androidx.constraintlayout.widget.ConstraintLayout>

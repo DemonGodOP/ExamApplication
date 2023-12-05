@@ -1,8 +1,10 @@
 package com.example.examapplication;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -132,37 +134,7 @@ public class StudentGroup extends AppCompatActivity {
                                         startActivity(intent);
                                     }
                                     else{
-                                        DatabaseReference Active=FirebaseDatabase.getInstance().getReference("Groups").child(GROUP_ID).child("Assignments").child(selectedAssignment.Assignment_ID);
-                                        Active.addListenerForSingleValueEvent(new ValueEventListener() {
-                                            @Override
-                                            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                                Assignment assignment=snapshot.getValue(Assignment.class);
-                                                if(assignment!=null){
-                                                    boolean Active=assignment.Active;
-                                                    if(Active==true){
-                                                        Intent intent = new Intent(StudentGroup.this, AssignmentSubmission.class);
-
-                                                        //intent.putExtra("GROUP_ID", GROUP_ID);
-                                                        intent.putExtra("Assignment_ID",selectedAssignment.Assignment_ID);
-
-                                                        intent.putExtra("Group_ID",GROUP_ID);
-
-                                                        // Start the new activity
-                                                        startActivity(intent);
-
-                                                        finish();
-                                                    }
-                                                    else{
-                                                        Toast.makeText(StudentGroup.this, "Assignment is Not Active Right Now", Toast.LENGTH_SHORT).show();
-                                                    }
-                                                }
-                                            }
-
-                                            @Override
-                                            public void onCancelled(@NonNull DatabaseError error) {
-
-                                            }
-                                        });
+                                        showAlertDialog(selectedAssignment);
                                     }
                                 }
 
@@ -181,5 +153,71 @@ public class StudentGroup extends AppCompatActivity {
                 Toast.makeText(StudentGroup.this, "Something Went Wrong Please Restart The Application", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void showAlertDialog (Assignment selectedAssignment) {
+
+        //Setup the Alert Builder
+        AlertDialog.Builder builder=new AlertDialog.Builder(StudentGroup.this);
+        builder.setTitle("Start Exam?");
+        builder.setMessage("Do you want to Start the Exam? Once Started You Can't Exit Before Submitting.");
+
+
+        //Open email apps i User clicks/taps Continue button
+        builder.setPositiveButton("Continue", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                DatabaseReference Active=FirebaseDatabase.getInstance().getReference("Groups").child(GROUP_ID).child("Assignments").child(selectedAssignment.Assignment_ID);
+                Active.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        Assignment assignment=snapshot.getValue(Assignment.class);
+                        if(assignment!=null){
+                            boolean Active=assignment.Active;
+                            if(Active==true){
+                                Intent intent = new Intent(StudentGroup.this, AssignmentSubmission.class);
+
+                                //intent.putExtra("GROUP_ID", GROUP_ID);
+                                intent.putExtra("Assignment_ID",selectedAssignment.Assignment_ID);
+
+                                intent.putExtra("Group_ID",GROUP_ID);
+
+                                // Start the new activity
+                                startActivity(intent);
+
+                                finish();
+                            }
+                            else{
+                                Toast.makeText(StudentGroup.this, "Assignment is Not Active Right Now", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+            }
+        });
+
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.dismiss();
+            }
+        });
+
+        AlertDialog alertDialog=builder.create();
+
+        alertDialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialogInterface) {
+                alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.red));
+            }
+        });
+
+        //show the alert dialog
+        alertDialog.show();
     }
 }
