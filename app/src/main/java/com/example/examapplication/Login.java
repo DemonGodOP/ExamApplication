@@ -49,7 +49,7 @@ public class Login extends AppCompatActivity implements TextToSpeech.OnInitListe
     ProgressBar L_progressBar;
     TextView LTR,FR;
     FirebaseAuth authProfile;
-    TextToSpeech textToSpeech;
+   TextToSpeech textToSpeech;//1
 
      Handler handler;
      Runnable toastRunnable;
@@ -57,15 +57,15 @@ public class Login extends AppCompatActivity implements TextToSpeech.OnInitListe
      boolean isUserInteracted;
 
     // Flag to indicate if TextToSpeech engine is initialized
-     boolean isTTSInitialized;
+     boolean isTTSInitialized;//1
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             setContentView(R.layout.activity_login);
-            Intent checkIntent = new Intent();
+            Intent checkIntent = new Intent();//0
             checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
-            startActivityForResult(checkIntent, 1);
+            startActivityForResult(checkIntent, 1);//0
             L_Email = findViewById(R.id.L_Email);
             L_Password = findViewById(R.id.L_Password);
             L_progressBar = findViewById(R.id.L_progressBar);
@@ -131,7 +131,7 @@ public class Login extends AppCompatActivity implements TextToSpeech.OnInitListe
                     }
                 }
             });
-            handler = new Handler();
+            handler = new Handler();//2
 
             isUserInteracted = false;
             isTTSInitialized = false;
@@ -144,11 +144,11 @@ public class Login extends AppCompatActivity implements TextToSpeech.OnInitListe
             };
 
         // Start the initial delay
-            startToastTimer();
+            startToastTimer();//2
 
         }
     //What to Do When Their is No Activity On the App
-    @Override
+    @Override //3
     protected void onResume() {
         super.onResume();
         // Reset the timer whenever the user interacts with the app
@@ -219,10 +219,10 @@ public class Login extends AppCompatActivity implements TextToSpeech.OnInitListe
             //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
             //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
             //textToSpeech.setVoice(voice);
-            int ttsResult=textToSpeech.speak("Hello, Welcome to the Login Page of Optilit, This page provides you with the facility, to " +
+            int ttsResult=textToSpeech.speak("Hello, Welcome to the Login Page of Exam Care, This page provides you with the facility, to " +
                     "login into your account, From here you can also, move to the forget password page you just have to say, Hello" +
-                    " Optilit Forget Password, Or you can also move on to the registration page, if you are a new user just say Optilit " +
-                    "Registration, If you want to Log In into your account please say, Optilit Login, to start the login functionality.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+                    " Exam Care Forget Password, Or you can also move on to the registration page, if you are a new user just say Exam Care" +
+                    "Registration, If you want to Log In into your account please say, Exam Care Login, to start the login functionality.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
             if (ttsResult == TextToSpeech.SUCCESS) {
                 // Pause the timer until TTS completes
                 pauseToastTimer();
@@ -241,10 +241,10 @@ public class Login extends AppCompatActivity implements TextToSpeech.OnInitListe
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
-        int ttsResult=textToSpeech.speak("Hello, Welcome to the Login Page of Optilit, This page provides you with the facility, to " +
+        int ttsResult=textToSpeech.speak("Hello, Welcome to the Login Page of Exam Care, This page provides you with the facility, to " +
                 "login into your account, From here you can also, move to the forget password page you just have to say, Hello" +
-                " Optilit Forget Password, Or you can also move on to the registration page, if you are a new user just say Optilit " +
-                "Registration, If you want to Log In into your account please say, Optilit Login, to start the login functionality.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+                " Exam Care Forget Password, Or you can also move on to the registration page, if you are a new user just say Exam Care " +
+                "Registration, If you want to Log In into your account please say, Exam Care Login, to start the login functionality.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();
@@ -258,7 +258,7 @@ public class Login extends AppCompatActivity implements TextToSpeech.OnInitListe
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
-        int ttsResult=textToSpeech.speak("If you want me to repeat the introduction of the page again please say, Optilit Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        int ttsResult=textToSpeech.speak("If you want me to repeat the introduction of the page again please say, Exam Care Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();
@@ -279,7 +279,7 @@ public class Login extends AppCompatActivity implements TextToSpeech.OnInitListe
         }
         super.onDestroy();
         handler.removeCallbacks(toastRunnable);
-    }
+    }//3
 
 
         private void loginUser(String email, String pwd) {

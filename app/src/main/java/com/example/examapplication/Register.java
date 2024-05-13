@@ -1,11 +1,17 @@
 package com.example.examapplication;
 
+import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
 import android.text.TextUtils;
+import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
@@ -29,10 +35,11 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
-public class Register extends AppCompatActivity {
+public class Register extends AppCompatActivity implements TextToSpeech.OnInitListener {
 
     EditText R_Name,R_Email,R_PhoneNo,R_Institute,R_UserName,R_Password;
     Button Submit;
@@ -41,10 +48,22 @@ public class Register extends AppCompatActivity {
     String FinalRole;
     ProgressBar R_PB;
     RadioButton Selected;
+    TextToSpeech textToSpeech;//1
+
+    Handler handler;
+    Runnable toastRunnable;
+
+    boolean isUserInteracted;
+
+    // Flag to indicate if TextToSpeech engine is initialized
+    boolean isTTSInitialized;//1
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
+        Intent checkIntent = new Intent();//0
+        checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
+        startActivityForResult(checkIntent, 1);//0
         R_Name=findViewById(R.id.R_Name);
         R_Email=findViewById(R.id.R_Email);
         R_PhoneNo=findViewById(R.id.R_PhoneNo);
@@ -112,7 +131,156 @@ public class Register extends AppCompatActivity {
                 }
             }
         });
+        handler = new Handler();//2
+
+        isUserInteracted = false;
+        isTTSInitialized = false;
+
+        toastRunnable = new Runnable() {
+            @Override
+            public void run() {
+                Repeat();
+            }
+        };
+
+        // Start the initial delay
+        startToastTimer();
+
+    //2
     }
+
+    @Override //3
+    protected void onResume() {
+        super.onResume();
+        // Reset the timer whenever the user interacts with the app
+        resetToastTimer();
+        isUserInteracted = false; // Reset user interaction flag
+    }
+
+
+    // Method to start the Toast timer
+    private void startToastTimer() {
+        handler.postDelayed(toastRunnable, 30000); // 1 minute delay
+    }
+
+    // Method to reset the Toast timer
+    private void resetToastTimer() {
+        handler.removeCallbacks(toastRunnable);
+        startToastTimer();
+    }
+
+    private void pauseToastTimer() {
+        handler.removeCallbacks(toastRunnable);
+    }
+
+    // Callback when TTS engine finishes speaking
+    UtteranceProgressListener utteranceProgressListener=new UtteranceProgressListener() {
+
+        @Override
+        public void onStart(String utteranceId) {
+            Log.d(TAG, "onStart ( utteranceId :"+utteranceId+" ) ");
+        }
+
+        @Override
+        public void onError(String utteranceId) {
+            Log.d(TAG, "onError ( utteranceId :"+utteranceId+" ) ");
+        }
+
+        @Override
+        public void onDone(String utteranceId) {
+            resetToastTimer();
+        }
+    };
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1) {
+            if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
+                // TTS engine is available, initialize TextToSpeech
+                textToSpeech = new TextToSpeech(this, this);
+                textToSpeech.setOnUtteranceProgressListener(utteranceProgressListener);
+            } else {
+                // TTS engine is not installed, prompt the user to install it
+                Intent installIntent = new Intent();
+                installIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
+                startActivity(installIntent);
+            }
+        }
+    }
+
+
+
+    @Override
+    public void onInit(int status) {
+        if (status == TextToSpeech.SUCCESS) {
+            // TTS initialization successful, set language and convert text to speech
+            isTTSInitialized = true;
+            textToSpeech.setLanguage(Locale.US);
+            //Locale locale = new Locale("en","IN");
+            //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
+            //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
+            //textToSpeech.setVoice(voice);
+            int ttsResult=textToSpeech.speak("Hello, Welcome to the Registration Page of Exam Care, This page provides you with the facility, to " +
+                    "register for a new account, for that you just have to say, Hello" +
+                    " Exam Care Registration, Or if you have an account, you can also move on to the login page, for that you just say Exam Care" +
+                    "login.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+            if (ttsResult == TextToSpeech.SUCCESS) {
+                // Pause the timer until TTS completes
+                pauseToastTimer();
+            }
+        } else {
+            // TTS initialization failed, handle error
+            Log.e("TTS", "Initialization failed");
+        }
+    }
+
+    // Repeat The Introduction if Repeat Method is Triggered.
+    public void StarUpRepeat(){
+        resetToastTimer();
+        textToSpeech.setLanguage(Locale.US);
+        //Locale locale = new Locale("en","IN");
+        //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
+        //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
+        //textToSpeech.setVoice(voice);
+        int ttsResult=textToSpeech.speak(" Hello, Welcome to the Registration Page of Exam Care, This page provides you with the facility, to " +
+                "register for a new account, for that you just have to say, Hello"  +
+                 "Exam Care Registration, Or if you have an account, you can also move on to the login page, for that you just say Exam Care" +
+                "login.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        if (ttsResult == TextToSpeech.SUCCESS) {
+            // Pause the timer until TTS completes
+            pauseToastTimer();
+        }
+        Repeat();
+    }
+
+    public void Repeat(){
+        textToSpeech.setLanguage(Locale.US);
+        //Locale locale = new Locale("en","IN");
+        //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
+        //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
+        //textToSpeech.setVoice(voice);
+        int ttsResult=textToSpeech.speak("If you want me to repeat the introduction of the page again please say, Exam Care Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        if (ttsResult == TextToSpeech.SUCCESS) {
+            // Pause the timer until TTS completes
+            pauseToastTimer();
+        }
+        //Enter the Condition Over here that is tts to take input from the user if they wants us to repeat the introduction and change r respectively.
+        boolean r=false;
+        if(r==true){
+            StarUpRepeat();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        // Release resources
+        if (textToSpeech != null) {
+            textToSpeech.stop();
+            textToSpeech.shutdown();
+        }
+        super.onDestroy();
+        handler.removeCallbacks(toastRunnable);
+    }//3
 
     private void registerUser(String name, String email, String phoneNo, String institute, String userName, String password, String finalRole) {
         FirebaseAuth auth= FirebaseAuth.getInstance();
