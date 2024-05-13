@@ -74,8 +74,11 @@ public class Login extends AppCompatActivity implements TextToSpeech.OnInitListe
             FR=findViewById(R.id.FR);
             FR.setOnClickListener(new View.OnClickListener(){
                 public void onClick(View v){
-                    Toast.makeText(Login.this,"You can reset your password now!",Toast.LENGTH_SHORT).show();
-                    startActivity(new Intent(Login.this,ForgetPassword.class));
+                    Intent intent=new Intent(Login.this,ForgetPassword.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                    finish();
+
                 }
             });
 
@@ -270,6 +273,8 @@ public class Login extends AppCompatActivity implements TextToSpeech.OnInitListe
         }
     }
 
+
+
     @Override
     protected void onDestroy() {
         // Release resources
@@ -280,6 +285,41 @@ public class Login extends AppCompatActivity implements TextToSpeech.OnInitListe
         super.onDestroy();
         handler.removeCallbacks(toastRunnable);
     }//3
+
+    public void VoiceLogin(){
+        textToSpeech.setLanguage(Locale.US);
+        //Locale locale = new Locale("en","IN");
+        //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
+        //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
+        //textToSpeech.setVoice(voice);
+        int tts1=textToSpeech.speak("Let's, Begin the login Process.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        if (tts1 == TextToSpeech.SUCCESS) {
+            // Pause the timer until TTS completes
+            pauseToastTimer();
+        }
+        int tts2=textToSpeech.speak("Please Say, Exam Care and then your Email ID", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        if (tts2 == TextToSpeech.SUCCESS) {
+            // Pause the timer until TTS completes
+            pauseToastTimer();
+        }
+        String Email=""; // Store the Email over here using STT.
+        int tts3=textToSpeech.speak("Please Say, Exam Case and then your Password", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        if (tts3 == TextToSpeech.SUCCESS) {
+            // Pause the timer until TTS completes
+            pauseToastTimer();
+        }
+        String pwd=""; //Store Email over here using STT.
+
+        int tts4=textToSpeech.speak("Please Say, Exam Case Log me In, Inorder to login", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        if (tts4 == TextToSpeech.SUCCESS) {
+            // Pause the timer until TTS completes
+            pauseToastTimer();
+        }
+        boolean YesLogin=false;//Edit This Using STT
+        if (YesLogin == true) {
+            loginUser(Email,pwd);
+        }
+    }
 
 
         private void loginUser(String email, String pwd) {
@@ -340,7 +380,6 @@ public class Login extends AppCompatActivity implements TextToSpeech.OnInitListe
                     L_progressBar.setVisibility(View.GONE);
                 }
             });
-
         }
         private void showAlertDialog () {
             //Setup the Alert Builder
