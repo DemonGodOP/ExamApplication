@@ -282,6 +282,70 @@ public class Register extends AppCompatActivity implements TextToSpeech.OnInitLi
         handler.removeCallbacks(toastRunnable);
     }//3
 
+    public void VoiceLogin(){
+        textToSpeech.setLanguage(Locale.US);
+        //Locale locale = new Locale("en","IN");
+        //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
+        //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
+        //textToSpeech.setVoice(voice);
+        int tts1=textToSpeech.speak("Let's, Begin the Registration Process.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        if (tts1 == TextToSpeech.SUCCESS) {
+            // Pause the timer until TTS completes
+            pauseToastTimer();
+        }
+        int tts2=textToSpeech.speak("Please Say, Exam Care and then your Name", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        if (tts2 == TextToSpeech.SUCCESS) {
+            // Pause the timer until TTS completes
+            pauseToastTimer();
+        }
+        String Name=""; // Store the Name over here using STT.
+        int tts3=textToSpeech.speak("Please Say, Exam Care and then your Email ID", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        if (tts3 == TextToSpeech.SUCCESS) {
+            // Pause the timer until TTS completes
+            pauseToastTimer();
+        }
+        String Email=""; // Store the Email over here using STT.
+        int tts4=textToSpeech.speak("Please Say, Exam Care and then your Phone no", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        if (tts4 == TextToSpeech.SUCCESS) {
+            // Pause the timer until TTS completes
+            pauseToastTimer();
+        }
+        String Phone=""; // Store the Phone No over here using STT.
+        int tts5=textToSpeech.speak("Please Say, Exam Care and then your Institute name", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        if (tts5 == TextToSpeech.SUCCESS) {
+            // Pause the timer until TTS completes
+            pauseToastTimer();
+        }
+        String Institute=""; // Store the Institute name over here using STT.
+        int tts6=textToSpeech.speak("Please Say, Exam Care and then your Username", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        if (tts6 == TextToSpeech.SUCCESS) {
+            // Pause the timer until TTS completes
+            pauseToastTimer();
+        }
+        String Username=""; // Store the Username over here using STT.
+        int tts7=textToSpeech.speak("Please Say, Exam Care and then your Password", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        if (tts7 == TextToSpeech.SUCCESS) {
+            // Pause the timer until TTS completes
+            pauseToastTimer();
+        }
+        String Pwd=""; //Store password over here using STT.
+        int tts8=textToSpeech.speak("Please Say, Exam Care and then your Role", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        if (tts8 == TextToSpeech.SUCCESS) {
+            // Pause the timer until TTS completes
+            pauseToastTimer();
+        }
+        String Role=""; // Store the Email over here using STT.
+        int tts9=textToSpeech.speak("Please Say, Exam Care Log me In, Inorder to login", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        if (tts9 == TextToSpeech.SUCCESS) {
+            // Pause the timer until TTS completes
+            pauseToastTimer();
+        }
+        boolean YesRegister=false;//Edit This Using STT
+        if (YesRegister == true) {
+            registerUser(Name, Email,Phone,Institute, Username,Pwd,Role);
+        }
+    }
+
     private void registerUser(String name, String email, String phoneNo, String institute, String userName, String password, String finalRole) {
         FirebaseAuth auth= FirebaseAuth.getInstance();
         auth.createUserWithEmailAndPassword(email,password).addOnCompleteListener(Register.this, new OnCompleteListener<AuthResult>() {

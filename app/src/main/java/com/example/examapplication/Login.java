@@ -303,14 +303,14 @@ public class Login extends AppCompatActivity implements TextToSpeech.OnInitListe
             pauseToastTimer();
         }
         String Email=""; // Store the Email over here using STT.
-        int tts3=textToSpeech.speak("Please Say, Exam Case and then your Password", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        int tts3=textToSpeech.speak("Please Say, Exam Care and then your Password", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
         if (tts3 == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();
         }
         String pwd=""; //Store Email over here using STT.
 
-        int tts4=textToSpeech.speak("Please Say, Exam Case Log me In, Inorder to login", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        int tts4=textToSpeech.speak("Please Say, Exam Care Log me In, Inorder to login", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
         if (tts4 == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();
@@ -320,7 +320,7 @@ public class Login extends AppCompatActivity implements TextToSpeech.OnInitListe
             loginUser(Email,pwd);
         }
     }
-
+ 
 
         private void loginUser(String email, String pwd) {
             authProfile.signInWithEmailAndPassword(email, pwd).addOnCompleteListener(Login.this, new OnCompleteListener<AuthResult>() {
