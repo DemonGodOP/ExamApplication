@@ -50,13 +50,20 @@ public class Profile extends AppCompatActivity implements TextToSpeech.OnInitLis
     boolean isTTSInitialized;//1
 
     TextView PTH;
+
+    String Rl;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
-        Intent checkIntent = new Intent();//0
-        checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
-        startActivityForResult(checkIntent, 1);//0
+        Intent intent = getIntent();
+
+        Rl= intent.getStringExtra("Rl");
+
+            Intent checkIntent = new Intent();//0
+            checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
+            startActivityForResult(checkIntent, 1);//0
+
         P_toolBar=findViewById(R.id.P_toolBar);
         setSupportActionBar(P_toolBar);
         if (getSupportActionBar() != null) {
@@ -86,55 +93,65 @@ public class Profile extends AppCompatActivity implements TextToSpeech.OnInitLis
                 if(role.equals("Teacher")){
                     Intent intent = new Intent(Profile.this, TeacherHomePage.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    intent.putExtra("Rl","Teacher");
                     startActivity(intent);
                     finish();
                 }
                 else{
                     Intent intent = new Intent(Profile.this, StudentHomePage.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    intent.putExtra("Rl","Student");
                     startActivity(intent);
                     finish();
                 }
             }
         });
-        handler = new Handler();//2
 
-        isUserInteracted = false;
-        isTTSInitialized = false;
+            handler = new Handler();//2
 
-        toastRunnable = new Runnable() {
-            @Override
-            public void run() {
-                Repeat();
-            }
-        };
+            isUserInteracted = false;
+            isTTSInitialized = false;
 
-        // Start the initial delay
-        startToastTimer();//2
+            toastRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    if(Rl.equals("Student"))
+                        Repeat();
+                }
+            };
+
+            // Start the initial delay
+            startToastTimer();//2
+
     }
 
     @Override //3
     protected void onResume() {
-        super.onResume();
-        // Reset the timer whenever the user interacts with the app
-        resetToastTimer();
-        isUserInteracted = false; // Reset user interaction flag
+
+            super.onResume();
+            // Reset the timer whenever the user interacts with the app
+            resetToastTimer();
+            isUserInteracted = false; // Reset user interaction flag
+
     }
 
 
     // Method to start the Toast timer
     private void startToastTimer() {
-        handler.postDelayed(toastRunnable, 30000); // 1 minute delay
+
+            handler.postDelayed(toastRunnable, 30000); // 1 minute delay
+
     }
 
     // Method to reset the Toast timer
     private void resetToastTimer() {
-        handler.removeCallbacks(toastRunnable);
-        startToastTimer();
+            handler.removeCallbacks(toastRunnable);
+            startToastTimer();
     }
 
     private void pauseToastTimer() {
-        handler.removeCallbacks(toastRunnable);
+            handler.removeCallbacks(toastRunnable);
+
     }
 
     // Callback when TTS engine finishes speaking
@@ -157,17 +174,19 @@ public class Profile extends AppCompatActivity implements TextToSpeech.OnInitLis
     };
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1) {
-            if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
-                // TTS engine is available, initialize TextToSpeech
-                textToSpeech = new TextToSpeech(this, this);
-                textToSpeech.setOnUtteranceProgressListener(utteranceProgressListener);
-            } else {
-                // TTS engine is not installed, prompt the user to install it
-                Intent installIntent = new Intent();
-                installIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
-                startActivity(installIntent);
+        if(Rl.equals("Student")) {
+            super.onActivityResult(requestCode, resultCode, data);
+            if (requestCode == 1) {
+                if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
+                    // TTS engine is available, initialize TextToSpeech
+                    textToSpeech = new TextToSpeech(this, this);
+                    textToSpeech.setOnUtteranceProgressListener(utteranceProgressListener);
+                } else {
+                    // TTS engine is not installed, prompt the user to install it
+                    Intent installIntent = new Intent();
+                    installIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
+                    startActivity(installIntent);
+                }
             }
         }
     }
@@ -176,75 +195,85 @@ public class Profile extends AppCompatActivity implements TextToSpeech.OnInitLis
 
     @Override
     public void onInit(int status) {
-        if (status == TextToSpeech.SUCCESS) {
-            // TTS initialization successful, set language and convert text to speech
-            isTTSInitialized = true;
-            textToSpeech.setLanguage(Locale.US);
-            //Locale locale = new Locale("en","IN");
-            //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
-            //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
-            //textToSpeech.setVoice(voice);
-            int ttsResult=textToSpeech.speak("Hello, Welcome to the Profile Page of Exam Care, This page provides you with the facility, to " +
-                    "                \"see your profile details such as name, email, phone no, institute, username and role, you just have to say, Hello Exam care, profile details.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-            if (ttsResult == TextToSpeech.SUCCESS) {
-                // Pause the timer until TTS completes
-                pauseToastTimer();
+        if(Rl.equals("Student")) {
+            if (status == TextToSpeech.SUCCESS) {
+                // TTS initialization successful, set language and convert text to speech
+                isTTSInitialized = true;
+                textToSpeech.setLanguage(Locale.US);
+                //Locale locale = new Locale("en","IN");
+                //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
+                //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
+                //textToSpeech.setVoice(voice);
+                int ttsResult = textToSpeech.speak("Hello, Welcome to the Profile Page of Exam Care, This page provides you with the facility, to " +
+                        "                \"see your profile details such as name, email, phone no, institute, username and role, you just have to say, Hello Exam care, profile details.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+                if (ttsResult == TextToSpeech.SUCCESS) {
+                    // Pause the timer until TTS completes
+                    pauseToastTimer();
+                }
+            } else {
+                // TTS initialization failed, handle error
+                Log.e("TTS", "Initialization failed");
             }
-        } else {
-            // TTS initialization failed, handle error
-            Log.e("TTS", "Initialization failed");
         }
     }
 
     // Repeat The Introduction if Repeat Method is Triggered.
     public void StarUpRepeat(){
-        resetToastTimer();
-        textToSpeech.setLanguage(Locale.US);
-        //Locale locale = new Locale("en","IN");
-        //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
-        //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
-        //textToSpeech.setVoice(voice);
-        int ttsResult=textToSpeech.speak("Hello, Welcome to the Profile Page of Exam Care, This page provides you with the facility, to " +
-                "see your profile details such as name, email, phone no, institute, username and role, you just have to say, Hello Exam care, profile details.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-        if (ttsResult == TextToSpeech.SUCCESS) {
-            // Pause the timer until TTS completes
-            pauseToastTimer();
-        }
-        Repeat();
+
+            resetToastTimer();
+            textToSpeech.setLanguage(Locale.US);
+            //Locale locale = new Locale("en","IN");
+            //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
+            //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
+            //textToSpeech.setVoice(voice);
+            int ttsResult = textToSpeech.speak("Hello, Welcome to the Profile Page of Exam Care, This page provides you with the facility, to " +
+                    "see your profile details such as name, email, phone no, institute, username and role, you just have to say, Hello Exam care, profile details.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+            if (ttsResult == TextToSpeech.SUCCESS) {
+                // Pause the timer until TTS completes
+                pauseToastTimer();
+            }
+            Repeat();
+
     }
 
     public void Repeat(){
-        textToSpeech.setLanguage(Locale.US);
-        //Locale locale = new Locale("en","IN");
-        //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
-        //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
-        //textToSpeech.setVoice(voice);
-        int ttsResult=textToSpeech.speak("If you want me to repeat the introduction of the page again please say, Exam Care Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-        if (ttsResult == TextToSpeech.SUCCESS) {
-            // Pause the timer until TTS completes
-            pauseToastTimer();
-        }
-        //Enter the Condition Over here that is tts to take input from the user if they wants us to repeat the introduction and change r respectively.
-        boolean r=false;
-        if(r==true){
-            StarUpRepeat();
-        }
+            textToSpeech.setLanguage(Locale.US);
+            //Locale locale = new Locale("en","IN");
+            //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
+            //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
+            //textToSpeech.setVoice(voice);
+            int ttsResult = textToSpeech.speak("If you want me to repeat the introduction of the page again please say, Exam Care Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+            if (ttsResult == TextToSpeech.SUCCESS) {
+                // Pause the timer until TTS completes
+                pauseToastTimer();
+            }
+            //Enter the Condition Over here that is tts to take input from the user if they wants us to repeat the introduction and change r respectively.
+            boolean r = false;
+            if (r == true) {
+                StarUpRepeat();
+            }
+
     }
 
 
 
     @Override
     protected void onDestroy() {
-        // Release resources
-        if (textToSpeech != null) {
-            textToSpeech.stop();
-            textToSpeech.shutdown();
-        }
-        super.onDestroy();
-        handler.removeCallbacks(toastRunnable);
+
+            // Release resources
+            if (textToSpeech != null) {
+                textToSpeech.stop();
+                textToSpeech.shutdown();
+            }
+
+            super.onDestroy();
+            handler.removeCallbacks(toastRunnable);
+
+
     }//3
 
     public void VoiceLogin(){
+
         textToSpeech.setLanguage(Locale.US);
         //Locale locale = new Locale("en","IN");
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
@@ -359,22 +388,33 @@ public class Profile extends AppCompatActivity implements TextToSpeech.OnInitLis
 
         if (id == R.id.M_CP) {
             Intent intent = new Intent(Profile.this, ChangePassword.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.putExtra("Rl",Rl);
             startActivity(intent);
-
+            finish();
         }
         if (id == R.id.M_EP) {
             Intent intent = new Intent(Profile.this, UpdateProfile.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.putExtra("Rl",Rl);
             startActivity(intent);
+            finish();
 
         }
         if (id == R.id.M_DP) {
             Intent intent = new Intent(Profile.this, DeleteUser.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.putExtra("Rl",Rl);
             startActivity(intent);
+            finish();
 
         }
         if(id==R.id.M_CE){
             Intent intent = new Intent(Profile.this, ChangeEmail.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.putExtra("Rl",Rl);
             startActivity(intent);
+            finish();
         }
         // Handle other menu item clicks if needed
 

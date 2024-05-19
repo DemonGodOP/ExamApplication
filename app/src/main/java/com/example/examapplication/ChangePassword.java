@@ -31,11 +31,14 @@ public class ChangePassword extends AppCompatActivity {
     Button CP_Authenticate, CP_Button;
     ProgressBar CP_progressBar;
     String userPwdCurr;
+
+    String Rl;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_change_password);
 
+        Rl=getIntent().getStringExtra("Rl");
         CP_Password= findViewById(R.id.CP_Password);
         CP_NewPassword = findViewById(R.id.CP_NewPassword);
         CP_ConfirmPassword= findViewById(R.id.CP_ConfirmPassword);
@@ -51,6 +54,11 @@ public class ChangePassword extends AppCompatActivity {
         CPTP.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
+                Intent intent= new Intent(ChangePassword.this, Profile.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.putExtra("Rl",Rl);
+                startActivity(intent);
                 finish();
             }
         });

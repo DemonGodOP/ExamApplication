@@ -49,13 +49,19 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
     // Flag to indicate if TextToSpeech engine is initialized
     boolean isTTSInitialized;//1
 
+    String Rl;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_update_profile);
+        Intent intent = getIntent();
+
+        Rl= intent.getStringExtra("Rl");
         Intent checkIntent = new Intent();//0
         checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
         startActivityForResult(checkIntent, 1);//0
+
         UP_progressBar = findViewById(R.id.UP_progressBar);
         UP_Name = findViewById(R.id.UP_Name);
         UP_Phone= findViewById(R.id.UP_Phone);
@@ -66,18 +72,11 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
         UPTH.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(finalRole.equals("Teacher")) {
-                    Intent intent = new Intent(UpdateProfile.this, TeacherHomePage.class);
+                    Intent intent = new Intent(UpdateProfile.this, Profile.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    intent.putExtra("Rl",Rl);
                     startActivity(intent);
                     finish();
-                }
-                else{
-                    Intent intent = new Intent(UpdateProfile.this, StudentHomePage.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(intent);
-                    finish();
-                }
             }
         });
         authProfile = FirebaseAuth.getInstance();
@@ -93,20 +92,23 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
                 updateProfile(firebaseUser);
             }
         });
-        handler = new Handler();//2
 
-        isUserInteracted = false;
-        isTTSInitialized = false;
+            handler = new Handler();//2
 
-        toastRunnable = new Runnable() {
-            @Override
-            public void run() {
-                Repeat();
-            }
-        };
+            isUserInteracted = false;
+            isTTSInitialized = false;
 
-        // Start the initial delay
-        startToastTimer();//2
+            toastRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    if(Rl.equals("Student"))
+                        Repeat();
+                }
+            };
+
+            // Start the initial delay
+            startToastTimer();//2
+
     }
     @Override //3
     protected void onResume() {
@@ -152,17 +154,19 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
     };
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1) {
-            if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
-                // TTS engine is available, initialize TextToSpeech
-                textToSpeech = new TextToSpeech(this, this);
-                textToSpeech.setOnUtteranceProgressListener(utteranceProgressListener);
-            } else {
-                // TTS engine is not installed, prompt the user to install it
-                Intent installIntent = new Intent();
-                installIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
-                startActivity(installIntent);
+        if(Rl.equals("Student")) {
+            super.onActivityResult(requestCode, resultCode, data);
+            if (requestCode == 1) {
+                if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
+                    // TTS engine is available, initialize TextToSpeech
+                    textToSpeech = new TextToSpeech(this, this);
+                    textToSpeech.setOnUtteranceProgressListener(utteranceProgressListener);
+                } else {
+                    // TTS engine is not installed, prompt the user to install it
+                    Intent installIntent = new Intent();
+                    installIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
+                    startActivity(installIntent);
+                }
             }
         }
     }
@@ -171,27 +175,29 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
 
     @Override
     public void onInit(int status) {
-        if (status == TextToSpeech.SUCCESS) {
-            // TTS initialization successful, set language and convert text to speech
-            isTTSInitialized = true;
-            textToSpeech.setLanguage(Locale.US);
-            //Locale locale = new Locale("en","IN");
-            //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
-            //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
-            //textToSpeech.setVoice(voice);
-            int ttsResult=textToSpeech.speak("Hello, Welcome to the Update Profile Page of Exam Care, This page provides you with the facility, to " +
-                    "edit your profile, change password, change email, and delete your account" +
-                    "To edit your profile, please just say, Exam Care edit profile,and you can move on to the edit profile page " +
-                    "to change password, please just say, Exam Care change password,and you can move on to the change password page " +
-                    "to change Email, please just say, Exam Care change Email,and you can move on to the change Email page " +
-                    "To delete your profile, please just say, Exam Care delete my profile,and you can move on to the delete profile page.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-            if (ttsResult == TextToSpeech.SUCCESS) {
-                // Pause the timer until TTS completes
-                pauseToastTimer();
+        if(Rl.equals("Student")) {
+            if (status == TextToSpeech.SUCCESS) {
+                // TTS initialization successful, set language and convert text to speech
+                isTTSInitialized = true;
+                textToSpeech.setLanguage(Locale.US);
+                //Locale locale = new Locale("en","IN");
+                //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
+                //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
+                //textToSpeech.setVoice(voice);
+                int ttsResult = textToSpeech.speak("Hello, Welcome to the Update Profile Page of Exam Care, This page provides you with the facility, to " +
+                        "edit your profile, change password, change email, and delete your account" +
+                        "To edit your profile, please just say, Exam Care edit profile,and you can move on to the edit profile page " +
+                        "to change password, please just say, Exam Care change password,and you can move on to the change password page " +
+                        "to change Email, please just say, Exam Care change Email,and you can move on to the change Email page " +
+                        "To delete your profile, please just say, Exam Care delete my profile,and you can move on to the delete profile page.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+                if (ttsResult == TextToSpeech.SUCCESS) {
+                    // Pause the timer until TTS completes
+                    pauseToastTimer();
+                }
+            } else {
+                // TTS initialization failed, handle error
+                Log.e("TTS", "Initialization failed");
             }
-        } else {
-            // TTS initialization failed, handle error
-            Log.e("TTS", "Initialization failed");
         }
     }
 
@@ -346,6 +352,7 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
                 Toast.makeText(UpdateProfile.this, "Profile Updated", Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(UpdateProfile.this, Profile.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.putExtra("Rl",Rl);
                 startActivity(intent);
                 finish();
             }

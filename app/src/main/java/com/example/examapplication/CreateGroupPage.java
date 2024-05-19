@@ -49,6 +49,10 @@ public class CreateGroupPage extends AppCompatActivity {
         GCTTH.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Intent intent=new Intent(CreateGroupPage.this, TeacherHomePage.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.putExtra("Rl","Teacher");
+                startActivity(intent);
                 finish();
             }
         });

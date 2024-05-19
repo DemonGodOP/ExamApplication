@@ -55,6 +55,10 @@ public class InsideGroup extends AppCompatActivity {
         IGTTH.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Intent intent=new Intent(InsideGroup.this, TeacherHomePage.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.putExtra("Rl","Teacher");
+                startActivity(intent);
                 finish();
             }
         });
@@ -75,9 +79,11 @@ public class InsideGroup extends AppCompatActivity {
 
                 // Pass the unique key to the new activity
                 intent.putExtra("GROUP_ID", receivedGroupId);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
 
                 // Start the new activity
                 startActivity(intent);
+                finish();
             }
         });
 

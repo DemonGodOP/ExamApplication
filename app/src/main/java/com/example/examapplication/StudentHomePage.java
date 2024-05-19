@@ -44,10 +44,16 @@ public class StudentHomePage extends AppCompatActivity {
 
     ListView SHM_LV;
 
+    String Rl;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_student_home_page);
+        Intent intent = getIntent();
+
+        Rl= intent.getStringExtra("Rl");
+
         SH_progressBar=findViewById(R.id.SH_progressBar);
         authProfile = FirebaseAuth.getInstance();
         FirebaseUser firebaseUser = authProfile.getCurrentUser();
@@ -82,7 +88,9 @@ public class StudentHomePage extends AppCompatActivity {
             public void onClick(View view) {
                 Intent intent=new Intent(StudentHomePage.this,Profile.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                intent.putExtra("Rl","Student");
                 startActivity(intent);
+                finish();
             }
         });
 

@@ -41,10 +41,15 @@ public class TeacherHomePage extends AppCompatActivity {
 
     ListView TGL;
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_teacher_home_page);
+
+
+
         TH_progressBar=findViewById(R.id.TH_progressBar);
         TGL = findViewById(R.id.TGL);
         noGroupsText=findViewById(R.id.noGroupsText);
@@ -76,8 +81,10 @@ public class TeacherHomePage extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Intent intent=new Intent(TeacherHomePage.this,Profile.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.putExtra("Rl","Teacher");
                 startActivity(intent);
+                finish();
             }
         });
 
@@ -89,6 +96,7 @@ public class TeacherHomePage extends AppCompatActivity {
                 Intent intent=new Intent(TeacherHomePage.this,CreateGroupPage.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(intent);
+                finish();
             }
         });
 
@@ -100,6 +108,7 @@ public class TeacherHomePage extends AppCompatActivity {
                 Intent intent=new Intent(TeacherHomePage.this,CreateGroupPage.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(intent);
+                finish();
             }
         });
 
@@ -183,9 +192,11 @@ public class TeacherHomePage extends AppCompatActivity {
 
                             // Pass the unique key to the new activity
                             intent.putExtra("GROUP_ID", selectedGroupId);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
                             // Start the new activity
                             startActivity(intent);
+                            finish();
                         }
                     });
                 }

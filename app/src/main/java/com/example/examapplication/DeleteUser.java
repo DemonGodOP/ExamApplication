@@ -57,13 +57,20 @@ public class DeleteUser extends AppCompatActivity implements TextToSpeech.OnInit
 
     // Flag to indicate if TextToSpeech engine is initialized
     boolean isTTSInitialized;//1
+
+    String Rl;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_delete_user);
+        Intent in = getIntent();
+
+        Rl= in.getStringExtra("Rl");
+
         Intent checkIntent = new Intent();//0
         checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
         startActivityForResult(checkIntent, 1);//0
+
         DU_progressBar=findViewById(R.id.DU_progressBar);
         DU_Password=findViewById(R.id.DU_Password);
         Text= findViewById(R.id.DU_Text);
@@ -97,6 +104,7 @@ public class DeleteUser extends AppCompatActivity implements TextToSpeech.OnInit
             @Override
             public void onClick(View view) {
                 Intent intent=new Intent(DeleteUser.this, Profile.class);
+                intent.putExtra("Rl",Rl);
                 startActivity(intent);
                 finish();
             }
@@ -104,25 +112,29 @@ public class DeleteUser extends AppCompatActivity implements TextToSpeech.OnInit
         if(firebaseUser.equals("")){
             Toast.makeText(DeleteUser.this, "Something went wrong! User details are not available at the moment", Toast.LENGTH_SHORT).show();
             Intent intent=new Intent(DeleteUser.this, Profile.class);
+            intent.putExtra("Rl",Rl);
             startActivity(intent);
             finish();
         }else {
             reAuthenticateUser(firebaseUser);
         }
-        handler = new Handler();//2
 
-        isUserInteracted = false;
-        isTTSInitialized = false;
+            handler = new Handler();//2
 
-        toastRunnable = new Runnable() {
-            @Override
-            public void run() {
-                Repeat();
-            }
-        };
+            isUserInteracted = false;
+            isTTSInitialized = false;
 
-        // Start the initial delay
-        startToastTimer();//2
+            toastRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    if(Rl.equals("Student"))
+                        Repeat();
+                }
+            };
+
+            // Start the initial delay
+            startToastTimer();//2
+
     }
 
     @Override //3
@@ -169,17 +181,19 @@ public class DeleteUser extends AppCompatActivity implements TextToSpeech.OnInit
     };
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1) {
-            if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
-                // TTS engine is available, initialize TextToSpeech
-                textToSpeech = new TextToSpeech(this, this);
-                textToSpeech.setOnUtteranceProgressListener(utteranceProgressListener);
-            } else {
-                // TTS engine is not installed, prompt the user to install it
-                Intent installIntent = new Intent();
-                installIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
-                startActivity(installIntent);
+        if(Rl.equals("Student")) {
+            super.onActivityResult(requestCode, resultCode, data);
+            if (requestCode == 1) {
+                if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
+                    // TTS engine is available, initialize TextToSpeech
+                    textToSpeech = new TextToSpeech(this, this);
+                    textToSpeech.setOnUtteranceProgressListener(utteranceProgressListener);
+                } else {
+                    // TTS engine is not installed, prompt the user to install it
+                    Intent installIntent = new Intent();
+                    installIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
+                    startActivity(installIntent);
+                }
             }
         }
     }
@@ -188,24 +202,26 @@ public class DeleteUser extends AppCompatActivity implements TextToSpeech.OnInit
 
     @Override
     public void onInit(int status) {
-        if (status == TextToSpeech.SUCCESS) {
-            // TTS initialization successful, set language and convert text to speech
-            isTTSInitialized = true;
-            textToSpeech.setLanguage(Locale.US);
-            //Locale locale = new Locale("en","IN");
-            //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
-            //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
-            //textToSpeech.setVoice(voice);
-            int ttsResult=textToSpeech.speak("Hello, Welcome to the Delete account Page of Exam Care, This page provides you with the facility, to " +
-                    "to delete your existing account, if you want to delete your account, you just have to say, Hello" +
-                    " Exam Care Delete my account to start the delete functionality.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-            if (ttsResult == TextToSpeech.SUCCESS) {
-                // Pause the timer until TTS completes
-                pauseToastTimer();
+        if(Rl.equals("Student")) {
+            if (status == TextToSpeech.SUCCESS) {
+                // TTS initialization successful, set language and convert text to speech
+                isTTSInitialized = true;
+                textToSpeech.setLanguage(Locale.US);
+                //Locale locale = new Locale("en","IN");
+                //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
+                //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
+                //textToSpeech.setVoice(voice);
+                int ttsResult = textToSpeech.speak("Hello, Welcome to the Delete account Page of Exam Care, This page provides you with the facility, to " +
+                        "to delete your existing account, if you want to delete your account, you just have to say, Hello" +
+                        " Exam Care Delete my account to start the delete functionality.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+                if (ttsResult == TextToSpeech.SUCCESS) {
+                    // Pause the timer until TTS completes
+                    pauseToastTimer();
+                }
+            } else {
+                // TTS initialization failed, handle error
+                Log.e("TTS", "Initialization failed");
             }
-        } else {
-            // TTS initialization failed, handle error
-            Log.e("TTS", "Initialization failed");
         }
     }
 
@@ -368,6 +384,7 @@ public class DeleteUser extends AppCompatActivity implements TextToSpeech.OnInit
             public void onClick(DialogInterface dialogInterface, int i) {
                 Intent intent = new Intent(DeleteUser.this, Profile.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.putExtra("Rl",Rl);
                 startActivity(intent);
                 finish();
             }

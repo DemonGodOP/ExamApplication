@@ -49,6 +49,13 @@ public class GroupDetailsActivity extends AppCompatActivity {
         GDTIG.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
+                Intent intent = new Intent(GroupDetailsActivity.this, InsideGroup.class);
+
+                // Pass the unique key to the new activity
+                intent.putExtra("GROUP_ID", Group_ID);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
                 finish();
             }
         });

@@ -59,13 +59,20 @@ public class ChangeEmail extends AppCompatActivity implements TextToSpeech.OnIni
 
     boolean isUserInteracted; // Flag to indicate if TextToSpeech engine is initialized
     boolean isTTSInitialized;//1
+
+    String Rl;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_change_email);
+        Intent intent = getIntent();
+
+        Rl= intent.getStringExtra("Rl");
+
         Intent checkIntent = new Intent();//0
         checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
         startActivityForResult(checkIntent, 1);//0
+
         CE_progressBar= findViewById(R.id.CE_progressBar);
         CE_Text=findViewById(R.id.CE_Text);
         CE_Email=findViewById(R.id.CE_Email);
@@ -103,6 +110,7 @@ public class ChangeEmail extends AppCompatActivity implements TextToSpeech.OnIni
             public void onClick(View view) {
                  Intent intent=new Intent(ChangeEmail.this,Profile.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.putExtra("Rl",Rl);
                 startActivity(intent);
                 finish();
             }
@@ -117,20 +125,21 @@ public class ChangeEmail extends AppCompatActivity implements TextToSpeech.OnIni
         }else{
             reAuthenticate (firebaseUser);
         }
-        handler = new Handler();//2
+            handler = new Handler();//2
 
-        isUserInteracted = false;
-        isTTSInitialized = false;
+            isUserInteracted = false;
+            isTTSInitialized = false;
 
-        toastRunnable = new Runnable() {
-            @Override
-            public void run() {
-                Repeat();
-            }
-        };
+            toastRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    if(Rl.equals("Student"))
+                        Repeat();
+                }
+            };
 
-        // Start the initial delay
-        startToastTimer();//2
+            // Start the initial delay
+            startToastTimer();//2
     }
     @Override //3
     protected void onResume() {
@@ -175,17 +184,19 @@ public class ChangeEmail extends AppCompatActivity implements TextToSpeech.OnIni
     };
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1) {
-            if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
-                // TTS engine is available, initialize TextToSpeech
-                textToSpeech = new TextToSpeech(this, this);
-                textToSpeech.setOnUtteranceProgressListener(utteranceProgressListener);
-            } else {
-                // TTS engine is not installed, prompt the user to install it
-                Intent installIntent = new Intent();
-                installIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
-                startActivity(installIntent);
+        if(Rl.equals("Student")) {
+            super.onActivityResult(requestCode, resultCode, data);
+            if (requestCode == 1) {
+                if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
+                    // TTS engine is available, initialize TextToSpeech
+                    textToSpeech = new TextToSpeech(this, this);
+                    textToSpeech.setOnUtteranceProgressListener(utteranceProgressListener);
+                } else {
+                    // TTS engine is not installed, prompt the user to install it
+                    Intent installIntent = new Intent();
+                    installIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
+                    startActivity(installIntent);
+                }
             }
         }
     }
