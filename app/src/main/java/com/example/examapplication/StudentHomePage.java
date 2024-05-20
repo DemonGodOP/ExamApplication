@@ -62,6 +62,8 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
 
     String Rl;
 
+    List<Group> groupsList;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -122,6 +124,7 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
                     SHM_SG.requestFocus();
                 }else{
                     Intent intent = new Intent(StudentHomePage.this, SearchingGroup.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
 
                     // Pass the unique key to the new activity
                     intent.putExtra("GROUP_ID", Group_ID);
@@ -130,6 +133,8 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
 
                     // Start the new activity
                     startActivity(intent);
+
+                    finish();
                 }
             }
         });
@@ -288,51 +293,70 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
         handler.removeCallbacks(toastRunnable);
     }//3
 
-    public void VoiceLogin(){
+    public void Automate(String Temp){
         textToSpeech.setLanguage(Locale.US);
         //Locale locale = new Locale("en","IN");
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
-        int tts1=textToSpeech.speak("Let's, see the Home Page.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-        if (tts1 == TextToSpeech.SUCCESS) {
-            // Pause the timer until TTS completes
-            pauseToastTimer();
+        if(Temp.equals("profile details")){
+            Intent intent=new Intent(StudentHomePage.this,Profile.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            intent.putExtra("Rl","Student");
+            startActivity(intent);
+            finish();
         }
-        int tts2=textToSpeech.speak("Please Say, Exam Care and then profile details", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-        if (tts2 == TextToSpeech.SUCCESS) {
-            // Pause the timer until TTS completes
-            pauseToastTimer();
+        else if(Temp.equals("sign out")) {
+            SH_progressBar.setVisibility(View.VISIBLE);
+            authProfile.signOut();
+            Intent intent=new Intent(StudentHomePage.this,Login.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            SH_progressBar.setVisibility(View.GONE);
+            finish();
         }
-        String profile=""; // Store the Email over here using STT.
-        int tts3=textToSpeech.speak("Please Say, Exam Care and then sign out", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-        if (tts3 == TextToSpeech.SUCCESS) {
-            // Pause the timer until TTS completes
-            pauseToastTimer();
-        }
-        String signOut=""; //Store Email over here using STT.
+        else if(Temp.equals("search group")){
+            int tts4=textToSpeech.speak("Please say your group Id now", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+            if (tts4 == TextToSpeech.SUCCESS) {
+                // Pause the timer until TTS completes
+                pauseToastTimer();
+            }
+            String groupId="";
+            Intent intent = new Intent(StudentHomePage.this, SearchingGroup.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+            // Pass the unique key to the new activity
+            intent.putExtra("GROUP_ID", groupId);
+            // Start the new activity
+            startActivity(intent);
 
-        int tts4=textToSpeech.speak("Please Say, Exam Care and then group id", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-        if (tts4 == TextToSpeech.SUCCESS) {
-            // Pause the timer until TTS completes
-            pauseToastTimer();
         }
-        String groupId="";
-        int tts5=textToSpeech.speak("Please Say, Exam Care and then Search", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-        if (tts5 == TextToSpeech.SUCCESS) {
-            // Pause the timer until TTS completes
-            pauseToastTimer();
-        }
-        String search=""; //Store Email over here using STT.
-        int tts6=textToSpeech.speak("Please Say, Exam Care and then your joined groups name", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-        if (tts6 == TextToSpeech.SUCCESS) {
-            // Pause the timer until TTS completes
-            pauseToastTimer();
-        }
-        String groupName=""; //Store Email over here using STT.
-        boolean YesLogin=false;//Edit This Using STT
-        if (YesLogin == true) {
-            //loginUser(Email,pwd);
+        else if(Temp.equals("joined groups name")){
+
+             for(int i=0;i<groupsList.size();i++){
+                 int tts5=textToSpeech.speak((i+1)+"Group name is"+groupsList.get(i).Group_Name+"and Group ID is"+groupsList.get(i).Subject_Code+"Do you want to enter the group please say yes or no", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+                 if (tts5 == TextToSpeech.SUCCESS) {
+                     // Pause the timer until TTS completes
+                     pauseToastTimer();
+                 }
+                 String YN="";
+                 if(YN.equals("Yes")){
+                     String selectedGroupId = groupsList.get(i).Group_ID; // Or however you store the ID in the Group class
+
+                     // Create an intent to start a new activity
+                     Intent intent = new Intent(StudentHomePage.this, StudentGroup.class);
+                     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                     intent.putExtra("Rl","Student");
+
+                     // Pass the unique key to the new activity
+                     intent.putExtra("GROUP_ID",selectedGroupId);
+
+                     // Start the new activity
+                     startActivity(intent);
+
+                     finish();
+                 }
+
+             }
         }
     }
 
@@ -372,7 +396,7 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
         teacherGroupsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                List<Group> groupsList = new ArrayList<>();
+                groupsList = new ArrayList<>();
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     Group group = snapshot.getValue(Group.class);
                     if (group != null) {
