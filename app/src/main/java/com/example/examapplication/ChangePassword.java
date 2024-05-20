@@ -1,5 +1,7 @@
 package com.example.examapplication;
 
+import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -8,7 +10,11 @@ import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.Handler;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -24,14 +30,22 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseUser;
 
-public class ChangePassword extends AppCompatActivity {
+import java.util.Locale;
+
+public class ChangePassword extends AppCompatActivity implements TextToSpeech.OnInitListener{
     FirebaseAuth authProfile;
     EditText CP_Password, CP_NewPassword, CP_ConfirmPassword;
     TextView CP_Text,CPTP;
     Button CP_Authenticate, CP_Button;
     ProgressBar CP_progressBar;
     String userPwdCurr;
+    TextToSpeech textToSpeech;//1
 
+    Handler handler;
+    Runnable toastRunnable;
+
+    boolean isUserInteracted; // Flag to indicate if TextToSpeech engine is initialized
+    boolean isTTSInitialized;//1
     String Rl;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +53,9 @@ public class ChangePassword extends AppCompatActivity {
         setContentView(R.layout.activity_change_password);
 
         Rl=getIntent().getStringExtra("Rl");
+        Intent checkIntent = new Intent();//0
+        checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
+        startActivityForResult(checkIntent, 1);//0
         CP_Password= findViewById(R.id.CP_Password);
         CP_NewPassword = findViewById(R.id.CP_NewPassword);
         CP_ConfirmPassword= findViewById(R.id.CP_ConfirmPassword);
@@ -72,6 +89,195 @@ public class ChangePassword extends AppCompatActivity {
             finish();
         }else{
             reAuthenticateUser(firebaseUser);
+        }
+        handler = new Handler();//2
+
+        isUserInteracted = false;
+        isTTSInitialized = false;
+
+        toastRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if(Rl.equals("Student"))
+                    Repeat();
+            }
+        };
+
+        // Start the initial delay
+        startToastTimer();//2
+    }
+    @Override //3
+    protected void onResume() {
+        super.onResume();
+        // Reset the timer whenever the user interacts with the app
+        resetToastTimer();
+        isUserInteracted = false; // Reset user interaction flag
+    }
+
+    // Method to start the Toast timer
+    private void startToastTimer() {
+        handler.postDelayed(toastRunnable, 30000); // 1 minute delay
+    }
+
+    // Method to reset the Toast timer
+    private void resetToastTimer() {
+        handler.removeCallbacks(toastRunnable);
+        startToastTimer();
+    }
+
+    private void pauseToastTimer() {
+        handler.removeCallbacks(toastRunnable);
+    }
+
+    // Callback when TTS engine finishes speaking
+    UtteranceProgressListener utteranceProgressListener=new UtteranceProgressListener() {
+
+        @Override
+        public void onStart(String utteranceId) {
+            Log.d(TAG, "onStart ( utteranceId :"+utteranceId+" ) ");
+        }
+
+        @Override
+        public void onError(String utteranceId) {
+            Log.d(TAG, "onError ( utteranceId :"+utteranceId+" ) ");
+        }
+
+        @Override
+        public void onDone(String utteranceId) {
+            resetToastTimer();
+        }
+    };
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(Rl.equals("Student")) {
+            super.onActivityResult(requestCode, resultCode, data);
+            if (requestCode == 1) {
+                if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
+                    // TTS engine is available, initialize TextToSpeech
+                    textToSpeech = new TextToSpeech(this, this);
+                    textToSpeech.setOnUtteranceProgressListener(utteranceProgressListener);
+                } else {
+                    // TTS engine is not installed, prompt the user to install it
+                    Intent installIntent = new Intent();
+                    installIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
+                    startActivity(installIntent);
+                }
+            }
+        }
+    }
+
+
+
+    @Override
+    public void onInit(int status) {
+        if (status == TextToSpeech.SUCCESS) {
+            // TTS initialization successful, set language and convert text to speech
+            isTTSInitialized = true;
+            textToSpeech.setLanguage(Locale.US);
+            //Locale locale = new Locale("en","IN");
+            //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
+            //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
+            //textToSpeech.setVoice(voice);
+            int ttsResult=textToSpeech.speak("Hello, Welcome to the Change Password Page of Exam Care, This page provides you with the facility, to " +
+                    "change your password, for that please say your registered email id and then say your old password, then new password," +
+                    "and after that say hello exam care password. Then a link will be sent to your  " +
+                    " registered email id, from there you can change your password.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+            if (ttsResult == TextToSpeech.SUCCESS) {
+                // Pause the timer until TTS completes
+                pauseToastTimer();
+            }
+        } else {
+            // TTS initialization failed, handle error
+            Log.e("TTS", "Initialization failed");
+        }
+    }
+
+    // Repeat The Introduction if Repeat Method is Triggered.
+    public void StarUpRepeat(){
+        resetToastTimer();
+        textToSpeech.setLanguage(Locale.US);
+        //Locale locale = new Locale("en","IN");
+        //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
+        //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
+        //textToSpeech.setVoice(voice);
+        int ttsResult=textToSpeech.speak("Hello, Welcome to the Change Password Page of Exam Care, This page provides you with the facility, to " +
+                "change your password, for that please say your registered email id and then say your old password, then new password," +
+                "and after that say hello exam care password. Then a link will be sent to your " +
+                "registered email id, from there you can change your password.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        if (ttsResult == TextToSpeech.SUCCESS) {
+            // Pause the timer until TTS completes
+            pauseToastTimer();
+        }
+        Repeat();
+    }
+
+    public void Repeat(){
+        textToSpeech.setLanguage(Locale.US);
+        //Locale locale = new Locale("en","IN");
+        //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
+        //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
+        //textToSpeech.setVoice(voice);
+        int ttsResult=textToSpeech.speak("If you want me to repeat the introduction of the page again please say, Exam Care Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        if (ttsResult == TextToSpeech.SUCCESS) {
+            // Pause the timer until TTS completes
+            pauseToastTimer();
+        }
+        //Enter the Condition Over here that is tts to take input from the user if they wants us to repeat the introduction and change r respectively.
+        boolean r=false;
+        if(r==true){
+            StarUpRepeat();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        // Release resources
+        if (textToSpeech != null) {
+            textToSpeech.stop();
+            textToSpeech.shutdown();
+        }
+        super.onDestroy();
+        handler.removeCallbacks(toastRunnable);
+    }//3
+    public void VoiceLogin(){
+        textToSpeech.setLanguage(Locale.US);
+        //Locale locale = new Locale("en","IN");
+        //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
+        //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
+        //textToSpeech.setVoice(voice);
+        int tts1=textToSpeech.speak("Let's, Begin the Process to change your password.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        if (tts1 == TextToSpeech.SUCCESS) {
+            // Pause the timer until TTS completes
+            pauseToastTimer();
+        }
+        int tts2=textToSpeech.speak("Please Say, Exam Care and then your registered Email ID", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        if (tts2 == TextToSpeech.SUCCESS) {
+            // Pause the timer until TTS completes
+            pauseToastTimer();
+        }
+        String Email=""; // Store the Email over here using STT.
+        int tts3=textToSpeech.speak("Please Say, Exam Care and then your old password", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        if (tts3 == TextToSpeech.SUCCESS) {
+            // Pause the timer until TTS completes
+            pauseToastTimer();
+        }
+        String pwd=""; // Store the Email over here using STT.
+
+        int tts4=textToSpeech.speak("Please Say, Exam Care and then your new password", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        if (tts4 == TextToSpeech.SUCCESS) {
+            // Pause the timer until TTS completes
+            pauseToastTimer();
+        }
+        String pwd2=""; // Store the Email over here using STT.
+        int tts5=textToSpeech.speak("Please Say, Exam Care Log me In, Inorder to login", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        if (tts5 == TextToSpeech.SUCCESS) {
+            // Pause the timer until TTS completes
+            pauseToastTimer();
+        }
+        boolean YesResetPassword=false;//Edit This Using STT
+        if (YesResetPassword == true) {
+            // reAuthenticate(firebaseuser);
+            // updateEmail(Firebaseuser);
         }
     }
     private void reAuthenticateUser(FirebaseUser firebaseUser){

@@ -200,7 +200,7 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
                 //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
                 //textToSpeech.setVoice(voice);
                 int ttsResult = textToSpeech.speak("Hello, Welcome to the Student Group Page of Exam Care, This page provides you with the facility, to " +
-                        "                \" know about your assignments which you can attempt, you just have to say, Hello Exam care, StudentGroup .", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+                        " know about your assignments which you can attempt, you just have to say, Hello Exam care, and due assignment list .", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
                 if (ttsResult == TextToSpeech.SUCCESS) {
                     // Pause the timer until TTS completes
                     pauseToastTimer();
@@ -221,8 +221,8 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
-        int ttsResult = textToSpeech.speak("Hello, Welcome to the Profile Page of Exam Care, This page provides you with the facility, to " +
-                "see your profile details such as name, email, phone no, institute, username and role, you just have to say, Hello Exam care, profile details.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+        int ttsResult = textToSpeech.speak("Hello, Welcome to the Student Group Page of Exam Care, This page provides you with the facility, to" +
+                "know about your assignments which you can attempt, you just have to say, Hello Exam care, and due assignment list ..", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();
@@ -274,29 +274,23 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
-        int tts1=textToSpeech.speak("Let's, Begin the login Process.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        int tts1=textToSpeech.speak("Let's, Begin the assignment attempt.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
         if (tts1 == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();
         }
-        int tts2=textToSpeech.speak("Please Say, Exam Care and then your Email ID", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        int tts2=textToSpeech.speak("Please Say, Exam Care and then your assignment you want to attempt", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
         if (tts2 == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();
         }
-        String Email=""; // Store the Email over here using STT.
-        int tts3=textToSpeech.speak("Please Say, Exam Care and then your Password", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        String assign=""; // Store the Email over here using STT.
+        int tts3=textToSpeech.speak("Do you want to attempt this assignment", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
         if (tts3 == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();
         }
-        String pwd=""; //Store Email over here using STT.
 
-        int tts4=textToSpeech.speak("Please Say, Exam Care Log me In, Inorder to login", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-        if (tts4 == TextToSpeech.SUCCESS) {
-            // Pause the timer until TTS completes
-            pauseToastTimer();
-        }
         boolean profile=false;//Edit This Using STT
         if ( profile== true) {
             //loginUser(Email,pwd);

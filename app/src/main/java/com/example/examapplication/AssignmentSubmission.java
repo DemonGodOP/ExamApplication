@@ -1,5 +1,7 @@
 package com.example.examapplication;
 
+import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -8,7 +10,11 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Handler;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -26,7 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class AssignmentSubmission extends AppCompatActivity {
+public class AssignmentSubmission extends AppCompatActivity implements TextToSpeech.OnInitListener {
     TextView AS_QN,AS_Q,AS_A,AS_Time;
 
     Button AS_Prev,AS_Next,AS_S;
@@ -40,7 +46,15 @@ public class AssignmentSubmission extends AppCompatActivity {
     FirebaseAuth authProfile;
 
     FirebaseUser firebaseUser;
+    TextToSpeech textToSpeech;//1
 
+    Handler handler;
+    Runnable toastRunnable;
+
+    boolean isUserInteracted;
+
+    // Flag to indicate if TextToSpeech engine is initialized
+    boolean isTTSInitialized;//1
     int n=0;
 
     CountDownTimer countDownTimer;
@@ -50,7 +64,9 @@ public class AssignmentSubmission extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_assignment_submission);
-
+        Intent checkIntent = new Intent();//0
+        checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
+        startActivityForResult(checkIntent, 1);//0
         Intent intent=getIntent();
 
         Group_ID=intent.getStringExtra("Group_ID");
@@ -199,11 +215,179 @@ public class AssignmentSubmission extends AppCompatActivity {
 
             }
         });
+        handler = new Handler();//2
 
+        isUserInteracted = false;
+        isTTSInitialized = false;
+
+        toastRunnable = new Runnable() {
+            @Override
+            public void run() {
+                Repeat();
+            }
+        };
+
+        // Start the initial delay
+        startToastTimer();//2
         startCountdownTimer();
 
     }
+    @Override //3
+    protected void onResume() {
+        super.onResume();
+        // Reset the timer whenever the user interacts with the app
+        resetToastTimer();
+        isUserInteracted = false; // Reset user interaction flag
+    }
 
+
+    // Method to start the Toast timer
+    private void startToastTimer() {
+        handler.postDelayed(toastRunnable, 30000); // 1 minute delay
+    }
+
+    // Method to reset the Toast timer
+    private void resetToastTimer() {
+        handler.removeCallbacks(toastRunnable);
+        startToastTimer();
+    }
+
+    private void pauseToastTimer() {
+        handler.removeCallbacks(toastRunnable);
+    }
+
+    // Callback when TTS engine finishes speaking
+    UtteranceProgressListener utteranceProgressListener=new UtteranceProgressListener() {
+
+        @Override
+        public void onStart(String utteranceId) {
+            Log.d(TAG, "onStart ( utteranceId :"+utteranceId+" ) ");
+        }
+
+        @Override
+        public void onError(String utteranceId) {
+            Log.d(TAG, "onError ( utteranceId :"+utteranceId+" ) ");
+        }
+
+        @Override
+        public void onDone(String utteranceId) {
+            resetToastTimer();
+        }
+    };
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1) {
+            if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
+                // TTS engine is available, initialize TextToSpeech
+                textToSpeech = new TextToSpeech(this, this);
+                textToSpeech.setOnUtteranceProgressListener(utteranceProgressListener);
+            } else {
+                // TTS engine is not installed, prompt the user to install it
+                Intent installIntent = new Intent();
+                installIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
+                startActivity(installIntent);
+            }
+        }
+    }
+
+
+
+    @Override
+    public void onInit(int status) {
+        if (status == TextToSpeech.SUCCESS) {
+            // TTS initialization successful, set language and convert text to speech
+            isTTSInitialized = true;
+            textToSpeech.setLanguage(Locale.US);
+            //Locale locale = new Locale("en","IN");
+            //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
+            //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
+            //textToSpeech.setVoice(voice);
+            int ttsResult=textToSpeech.speak("Hello,your exam has started. ", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+            if (ttsResult == TextToSpeech.SUCCESS) {
+                // Pause the timer until TTS completes
+                pauseToastTimer();
+            }
+        } else {
+            // TTS initialization failed, handle error
+            Log.e("TTS", "Initialization failed");
+        }
+    }
+
+    // Repeat The Introduction if Repeat Method is Triggered.
+    public void StarUpRepeat(){
+        resetToastTimer();
+        textToSpeech.setLanguage(Locale.US);
+        //Locale locale = new Locale("en","IN");
+        //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
+        //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
+        //textToSpeech.setVoice(voice);
+        int ttsResult=textToSpeech.speak("Hello,your exam has started.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        if (ttsResult == TextToSpeech.SUCCESS) {
+            // Pause the timer until TTS completes
+            pauseToastTimer();
+        }
+        Repeat();
+    }
+
+    public void Repeat(){
+        textToSpeech.setLanguage(Locale.US);
+        //Locale locale = new Locale("en","IN");
+        //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
+        //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
+        //textToSpeech.setVoice(voice);
+        int ttsResult=textToSpeech.speak("If you want me to repeat the introduction of the page again please say, Exam Care Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        if (ttsResult == TextToSpeech.SUCCESS) {
+            // Pause the timer until TTS completes
+            pauseToastTimer();
+        }
+        //Enter the Condition Over here that is tts to take input from the user if they wants us to repeat the introduction and change r respectively.
+        boolean r=false;
+        if(r==true){
+            StarUpRepeat();
+        }
+    }
+
+
+
+    @Override
+    protected void onDestroy() {
+        // Release resources
+        if (textToSpeech != null) {
+            textToSpeech.stop();
+            textToSpeech.shutdown();
+        }
+        super.onDestroy();
+        handler.removeCallbacks(toastRunnable);
+    }//3
+
+    public void VoiceLogin(){
+        textToSpeech.setLanguage(Locale.US);
+        //Locale locale = new Locale("en","IN");
+        //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
+        //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
+        //textToSpeech.setVoice(voice);
+        int tts1=textToSpeech.speak("Let's, Begin with the assignment.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        if (tts1 == TextToSpeech.SUCCESS) {
+            // Pause the timer until TTS completes
+            pauseToastTimer();
+        }
+        int tts3=textToSpeech.speak("Please Say, Exam Care and input the answer", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        if (tts3 == TextToSpeech.SUCCESS) {
+        // Pause the timer until TTS completes
+        pauseToastTimer();
+        }
+        String answer=""; //Store Email over here using STT.
+        int tts4=textToSpeech.speak("Do you want to submit your assignment?", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        if (tts4 == TextToSpeech.SUCCESS) {
+            // Pause the timer until TTS completes
+            pauseToastTimer();
+        }
+        boolean YesSubmit=false;//Edit This Using STT
+        if (YesSubmit == true) {
+            //loginUser(Email,pwd);
+        }
+    }
     private boolean shouldAllowExit = false;
 
     @Override
