@@ -33,6 +33,7 @@ public class SearchingGroup extends AppCompatActivity {
     FirebaseUser firebaseUser;
 
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,6 +55,16 @@ public class SearchingGroup extends AppCompatActivity {
         SRGTSHM.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Intent intent = new Intent(SearchingGroup.this, StudentHomePage.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.putExtra("Rl","Student");
+
+                // Pass the unique key to the new activity
+
+
+                // Start the new activity
+                startActivity(intent);
+
                 finish();
             }
         });

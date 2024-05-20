@@ -37,7 +37,7 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
     ListView SG_LV;
     ProgressBar SG_P;
     String GROUP_ID;
-    String Rl;
+
 
     FirebaseAuth authProfile;
     TextToSpeech textToSpeech;//1
@@ -57,13 +57,14 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_student_group);
 
+
+
         Intent checkIntent = new Intent();//0
         checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
         startActivityForResult(checkIntent, 1);//0
 
         Intent intent=getIntent();
         GROUP_ID=intent.getStringExtra("GROUP_ID");
-        Rl= intent.getStringExtra("Rl");
         SGTSHP=findViewById(R.id.SGTSHP);
         SG_GroupDetails=findViewById(R.id.SG_GroupDetails);
         SG_Text=findViewById(R.id.SG_Text);
@@ -77,6 +78,17 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
         SGTSHP.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Intent intent = new Intent(StudentGroup.this, StudentHomePage.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.putExtra("Rl","Student");
+
+                // Pass the unique key to the new activity
+                intent.putExtra("GROUP_ID", GROUP_ID);
+
+
+                // Start the new activity
+                startActivity(intent);
+
                 finish();
             }
         });
@@ -104,7 +116,6 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
         toastRunnable = new Runnable() {
             @Override
             public void run() {
-                if(Rl.equals("Student"))
                     Repeat();
             }
         };
@@ -160,7 +171,6 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
     };
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(Rl.equals("Student")) {
             super.onActivityResult(requestCode, resultCode, data);
             if (requestCode == 1) {
                 if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
@@ -172,7 +182,6 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
                     Intent installIntent = new Intent();
                     installIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
                     startActivity(installIntent);
-                }
             }
         }
     }
@@ -181,7 +190,7 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
 
     @Override
     public void onInit(int status) {
-        if(Rl.equals("Student")) {
+
             if (status == TextToSpeech.SUCCESS) {
                 // TTS initialization successful, set language and convert text to speech
                 isTTSInitialized = true;
@@ -200,7 +209,7 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
                 // TTS initialization failed, handle error
                 Log.e("TTS", "Initialization failed");
             }
-        }
+
     }
 
     // Repeat The Introduction if Repeat Method is Triggered.

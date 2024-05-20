@@ -107,6 +107,8 @@ public class StudentHomePage extends AppCompatActivity {
                     // Pass the unique key to the new activity
                     intent.putExtra("GROUP_ID", Group_ID);
 
+
+
                     // Start the new activity
                     startActivity(intent);
                 }
@@ -193,12 +195,16 @@ public class StudentHomePage extends AppCompatActivity {
 
                             // Create an intent to start a new activity
                             Intent intent = new Intent(StudentHomePage.this, StudentGroup.class);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                            intent.putExtra("Rl","Student");
 
                             // Pass the unique key to the new activity
-                            intent.putExtra("GROUP_ID", selectedGroupId);
+                            intent.putExtra("GROUP_ID",selectedGroupId);
 
                             // Start the new activity
                             startActivity(intent);
+
+                            finish();
                         }
                     });
                 }
