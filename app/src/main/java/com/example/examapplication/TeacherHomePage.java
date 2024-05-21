@@ -203,7 +203,7 @@ public class TeacherHomePage extends AppCompatActivity {
             }
             @Override
             public void onCancelled (@NonNull DatabaseError databaseError){
-                Toast.makeText(TeacherHomePage.this, "Something Went Wrong Please Restart The Application", Toast.LENGTH_SHORT).show();
+                Toast.makeText(TeacherHomePage.this, "1", Toast.LENGTH_SHORT).show();
             }
         });
     }

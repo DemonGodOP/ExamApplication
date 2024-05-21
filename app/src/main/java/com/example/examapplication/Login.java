@@ -1,6 +1,6 @@
 package com.example.examapplication;
 
-import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
+
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -9,15 +9,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.speech.tts.TextToSpeech;
-import android.speech.tts.UtteranceProgressListener;
-import android.speech.tts.Voice;
-import android.text.InputType;
+
 import android.text.TextUtils;
 import android.text.method.HideReturnsTransformationMethod;
 import android.text.method.PasswordTransformationMethod;
-import android.util.Log;
+
 import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
@@ -40,9 +36,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+
 
 public class Login extends AppCompatActivity {
     EditText L_Email, L_Password;

@@ -37,7 +37,7 @@ public class AssignmentDetails extends AppCompatActivity implements TextToSpeech
 
     ListView AD_LV;
 
-    String Group_ID,AssignmentID,Name,Timing;
+    String Group_ID,AssignmentID,Name,Timing,Duration;
 
     boolean Active;
 
@@ -296,8 +296,9 @@ public class AssignmentDetails extends AppCompatActivity implements TextToSpeech
                             Questions=assignment.Questions;
                             Name=assignment.Name;
                             Timing=assignment.Timing;
+                            Duration=assignment.Duration;
                             Active=assignment.Active;
-                            Assignment temp=new Assignment(Questions,!Active,Name,Timing,AssignmentID);
+                            Assignment temp=new Assignment(Questions,!Active,Name,Timing,AssignmentID,Duration);
                             database.setValue(temp).addOnSuccessListener(new OnSuccessListener<Void>() {
                                 @Override
                                 public void onSuccess(Void unused) {

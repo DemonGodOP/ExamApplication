@@ -21,10 +21,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AssignmentInfo extends AppCompatActivity {
-    TextView AITAD,AI_NameText,AI_Name,AI_TimingText,AI_Timing,AI_QN,AI_Q;
+    TextView AITAD,AI_NameText,AI_Name,AI_TimingText,AI_Timing,AI_QN,AI_Q,ASI_DT,ASI_DTI;
     Button AI_QB,AI_P,AI_N;
 
-    String Name,Timing;
+    String Name,Timing,Duration;
 
     int n=0;
 
@@ -45,6 +45,8 @@ public class AssignmentInfo extends AppCompatActivity {
         AI_QB=findViewById(R.id.AI_QB);
         AI_P=findViewById(R.id.AI_P);
         AI_N=findViewById(R.id.AI_N);
+        ASI_DT=findViewById(R.id.ASI_DT);
+        ASI_DTI=findViewById(R.id.ASI_DTI);
 
         AITAD.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -75,8 +77,10 @@ public class AssignmentInfo extends AppCompatActivity {
                     if (assignment != null) {
                         Name = assignment.Name;
                         Timing= assignment.Timing;
+                        Duration=assignment.Duration;
                         AI_Name.setText(Name);
                         AI_Timing.setText(Timing);
+                        ASI_DTI.setText(Duration+" Mins");
                         Questions=assignment.Questions;
                         AI_QN.setText("QN: "+(n+1));
                         AI_Q.setText(Questions.get(0));
@@ -138,6 +142,8 @@ public class AssignmentInfo extends AppCompatActivity {
                     AI_Timing.setVisibility(View.GONE);
                     AI_NameText.setVisibility(View.GONE);
                     AI_TimingText.setVisibility(View.GONE);
+                    ASI_DT.setVisibility(View.GONE);
+                    ASI_DTI.setVisibility(View.GONE);
 
                     AI_QB.setText("Other Details");
                 }
@@ -151,6 +157,8 @@ public class AssignmentInfo extends AppCompatActivity {
                     AI_Timing.setVisibility(View.VISIBLE);
                     AI_TimingText.setVisibility(View.VISIBLE);
                     AI_NameText.setVisibility(View.VISIBLE);
+                    ASI_DT.setVisibility(View.VISIBLE);
+                    ASI_DTI.setVisibility(View.VISIBLE);
 
                     AI_QB.setText("Questions");
                 }

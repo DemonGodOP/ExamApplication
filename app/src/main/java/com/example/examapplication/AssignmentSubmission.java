@@ -28,6 +28,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -37,7 +38,7 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
 
     Button AS_Prev,AS_Next,AS_S;
 
-    String Group_ID,Assignment_ID;
+    String Group_ID,Assignment_ID,Duration;
 
     List<String> Answers;
 
@@ -58,7 +59,9 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
     int n=0;
 
     CountDownTimer countDownTimer;
-    long timeLeftInMillis = 600000;
+
+    long timeLeftInMillis;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,7 +98,10 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
                 Assignment assignment=snapshot.getValue(Assignment.class);
                 if(assignment!=null){
                     Questions=assignment.Questions;
+                    Duration=assignment.Duration;
                     AS_Q.setText(Questions.get(0));
+                    timeLeftInMillis=Integer.parseInt(Duration)* 60000L;
+                    startCountdownTimer();
                     if(n==Questions.size()-1){
                         AS_Next.setEnabled(false);
                     }
@@ -229,7 +235,7 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
 
         // Start the initial delay
         startToastTimer();//2
-        startCountdownTimer();
+
 
     }
     @Override //3

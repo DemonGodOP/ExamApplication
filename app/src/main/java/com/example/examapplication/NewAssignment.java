@@ -25,12 +25,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class NewAssignment extends AppCompatActivity {
-    TextView NATIG,NA_QN,AS_NameText,AS_TimingText,AS_Text;
-    EditText NA_Q,AS_Timing,AS_Name;
+    TextView NATIG,NA_QN,AS_NameText,AS_TimingText,AS_Text,AS_DT;
+    EditText NA_Q,AS_Timing,AS_Name,AS_D;
     Button NA_P,NA_N,NA_S,AS_Submit;
     FirebaseAuth authProfile;
     FirebaseUser firebaseUser;
-    String Group_ID,Name,Timing;
+    String Group_ID,Name,Timing,Duration;
 
     boolean temp;
 
@@ -59,12 +59,16 @@ public class NewAssignment extends AppCompatActivity {
         AS_Timing=findViewById(R.id.AS_Timing);
         AS_Name=findViewById(R.id.AS_Name);
         AS_Submit=findViewById(R.id.AS_Submit);
+        AS_DT=findViewById(R.id.AS_DT);
+        AS_D=findViewById(R.id.AS_D);
 
         AS_NameText.setVisibility(View.GONE);
         AS_Timing.setVisibility(View.GONE);
         AS_TimingText.setVisibility(View.GONE);
         AS_Name.setVisibility(View.GONE);
         AS_Submit.setVisibility(View.GONE);
+        AS_D.setVisibility(View.GONE);
+        AS_DT.setVisibility(View.GONE);
 
         authProfile=FirebaseAuth.getInstance();
         firebaseUser=authProfile.getCurrentUser();
@@ -156,25 +160,38 @@ public class NewAssignment extends AppCompatActivity {
         AS_TimingText.setVisibility(View.VISIBLE);
         AS_Name.setVisibility(View.VISIBLE);
         AS_Submit.setVisibility(View.VISIBLE);
+        AS_DT.setVisibility(View.VISIBLE);
+        AS_D.setVisibility(View.VISIBLE);
 
         AS_Submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Name=AS_Name.getText().toString();
                 Timing=AS_Timing.getText().toString();
-
+                Duration=AS_D.getText().toString();
 
 
                 if(TextUtils.isEmpty(Name)){
-                    AS_Name.setError("Please enter your password for authentication");
+                    AS_Name.setError("Please enter Assignment Name");
                     AS_Name.requestFocus();
                 }
-                if(TextUtils.isEmpty(Timing)){
-                    AS_Timing.setError("Please enter your password for authentication");
+                else if(TextUtils.isEmpty(Timing)){
+                    AS_Timing.setError("Please enter Assignment Timing");
                     AS_Timing.requestFocus();
                 }
+                else if(TextUtils.isEmpty(Duration)){
+                    AS_D.setError("Please enter Assignment Duration");
+                    AS_D.requestFocus();
+                }
                 else{
-                    showAlertDialog(AssignmentID,database);
+                    try{
+                        int n=Integer.parseInt(Duration);
+                        showAlertDialog(AssignmentID,database);
+                    }
+                    catch (NumberFormatException e){
+                        AS_D.setError("Please enter a Valid Duration");
+                        AS_D.requestFocus();
+                    }
                 }
             }
         });
@@ -184,7 +201,7 @@ public class NewAssignment extends AppCompatActivity {
         //Setup the Alert Builder
         AlertDialog.Builder builder=new AlertDialog.Builder(NewAssignment.this);
         builder.setTitle("Activate Assignment");
-        builder.setMessage("Do you want to allow students to take the Assignment?");
+        builder.setMessage("Do you want to allow students to start attempting the Assignment?");
 
         //Open email apps i User clicks/taps Continue button
         builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
@@ -199,7 +216,7 @@ public class NewAssignment extends AppCompatActivity {
                     Questions.set(n,NQ);
                 }
                 temp=true;
-                Assignment assignment=new Assignment(Questions,temp,Name,Timing,AssignmentID);
+                Assignment assignment=new Assignment(Questions,temp,Name,Timing,AssignmentID,Duration);
                 assert AssignmentID != null;
                 database.child(AssignmentID).setValue(assignment).addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
@@ -223,7 +240,7 @@ public class NewAssignment extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 temp=false;
-                Assignment assignment=new Assignment(Questions,temp,Name,Timing,AssignmentID);
+                Assignment assignment=new Assignment(Questions,temp,Name,Timing,AssignmentID,Duration);
                 assert AssignmentID != null;
                 database.child(AssignmentID).setValue(assignment).addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
