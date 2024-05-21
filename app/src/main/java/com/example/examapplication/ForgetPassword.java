@@ -1,17 +1,15 @@
 package com.example.examapplication;
 
-import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
+
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.speech.tts.TextToSpeech;
-import android.speech.tts.UtteranceProgressListener;
+
 import android.text.TextUtils;
-import android.util.Log;
+
 import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
@@ -25,7 +23,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 
-import java.util.Locale;
+
 
 public class ForgetPassword extends AppCompatActivity {
     ProgressBar FP_progressBar;

@@ -1,17 +1,15 @@
 package com.example.examapplication;
 
-import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
+
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.speech.tts.TextToSpeech;
-import android.speech.tts.UtteranceProgressListener;
+
 import android.text.TextUtils;
-import android.util.Log;
+
 import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
@@ -30,13 +28,11 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.SignInMethodQueryResult;
+
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.concurrent.atomic.AtomicBoolean;
+
 
 
 public class Register extends AppCompatActivity  {
@@ -83,7 +79,6 @@ public class Register extends AppCompatActivity  {
                 String Institute = R_Institute.getText().toString();
                 String UserName = R_UserName.getText().toString();
                 String Password = R_Password.getText().toString();
-                String RS;
                 if (TextUtils.isEmpty(Name)) {
                     R_Name.setError("Please enter your Name");
                     R_Name.requestFocus();

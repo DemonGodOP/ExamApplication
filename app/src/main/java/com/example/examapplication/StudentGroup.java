@@ -52,6 +52,9 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
 
 
     FirebaseUser firebaseUser;
+
+
+    List<Assignment> AssignmentList;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -97,12 +100,14 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(StudentGroup.this, StudentGroupDetails.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
 
                 // Pass the unique key to the new activity
                 intent.putExtra("GROUP_ID", GROUP_ID);
 
                 // Start the new activity
                 startActivity(intent);
+                finish();
             }
         });
 
@@ -200,7 +205,7 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
                 //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
                 //textToSpeech.setVoice(voice);
                 int ttsResult = textToSpeech.speak("Hello, Welcome to the Student Group Page of Exam Care, This page provides you with the facility, to " +
-                        " know about your assignments which you can attempt, you just have to say, Hello Exam care, and due assignment list .", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+                        " know about your assignments which you can attempt, you just have to say, Hello Exam care, assignment list or you can Query about the Group Details, you just have to say, Hello Exam care, Group Details or you can go back to the homepage just say Hello Exam Care, Home Page", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
                 if (ttsResult == TextToSpeech.SUCCESS) {
                     // Pause the timer until TTS completes
                     pauseToastTimer();
@@ -221,8 +226,8 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
-        int ttsResult = textToSpeech.speak("Hello, Welcome to the Student Group Page of Exam Care, This page provides you with the facility, to" +
-                "know about your assignments which you can attempt, you just have to say, Hello Exam care, and due assignment list ..", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+        int ttsResult = textToSpeech.speak("Hello, Welcome to the Student Group Page of Exam Care, This page provides you with the facility, to " +
+                " know about your assignments which you can attempt, you just have to say, Hello Exam care, assignment list or you can Query about the Group Details, you just have to say, Hello Exam care, Group Details or you can go back to the homepage just say Hello Exam Care, Home Page", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();
@@ -267,33 +272,104 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
 
     }//3
 
-    public void VoiceLogin(){
+    public void Automate(String Temp){
 
         textToSpeech.setLanguage(Locale.US);
         //Locale locale = new Locale("en","IN");
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
-        int tts1=textToSpeech.speak("Let's, Begin the assignment attempt.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-        if (tts1 == TextToSpeech.SUCCESS) {
-            // Pause the timer until TTS completes
-            pauseToastTimer();
-        }
-        int tts2=textToSpeech.speak("Please Say, Exam Care and then your assignment you want to attempt", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-        if (tts2 == TextToSpeech.SUCCESS) {
-            // Pause the timer until TTS completes
-            pauseToastTimer();
-        }
-        String assign=""; // Store the Email over here using STT.
-        int tts3=textToSpeech.speak("Do you want to attempt this assignment", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-        if (tts3 == TextToSpeech.SUCCESS) {
-            // Pause the timer until TTS completes
-            pauseToastTimer();
-        }
+        if(Temp.equals("HomePage")){
+            Intent intent = new Intent(StudentGroup.this, StudentHomePage.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.putExtra("Rl","Student");
 
-        boolean profile=false;//Edit This Using STT
-        if ( profile== true) {
-            //loginUser(Email,pwd);
+            // Pass the unique key to the new activity
+            intent.putExtra("GROUP_ID", GROUP_ID);
+
+
+            // Start the new activity
+            startActivity(intent);
+
+            finish();
+        }
+        else if(Temp.equals("Group Details")) {
+            Intent intent = new Intent(StudentGroup.this, StudentGroupDetails.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+
+            // Pass the unique key to the new activity
+            intent.putExtra("GROUP_ID", GROUP_ID);
+
+            // Start the new activity
+            startActivity(intent);
+            finish();
+        }
+        else if(Temp.equals("Assignment List")) {
+            for (int i = 0; i < AssignmentList.size(); i++) {
+                int tts1 = textToSpeech.speak((i + 1) + "Assignment name is" + AssignmentList.get(i).Name + "and Assignment Timing is" + AssignmentList.get(i).Timing + "Do you want to enter the current Assignment page please say yes or no", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+                if (tts1 == TextToSpeech.SUCCESS) {
+                    // Pause the timer until TTS completes
+                    pauseToastTimer();
+                }
+                String YN1 = "";
+                if (YN1.equals("Yes")) {
+                    Assignment selectedAssignment = AssignmentList.get(i);
+
+                    DatabaseReference Checking=FirebaseDatabase.getInstance().getReference("Groups").child(GROUP_ID).child("Assignments").child(selectedAssignment.Assignment_ID).child("Submissions").child(firebaseUser.getUid());
+                    Checking.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            if(snapshot.exists()){
+                                Intent intent = new Intent(StudentGroup.this, StudentFeedBack.class);
+
+                                //intent.putExtra("GROUP_ID", GROUP_ID);
+                                intent.putExtra("Assignment_ID",selectedAssignment.Assignment_ID);
+
+                                intent.putExtra("Group_ID",GROUP_ID);
+
+                                // Start the new activity
+                                startActivity(intent);
+                            }
+                            else{
+                                int tts2 = textToSpeech.speak("You have not yet taken this assignment. Do you want to start the begin attempting the assignment?", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+                                if (tts2 == TextToSpeech.SUCCESS) {
+                                    // Pause the timer until TTS completes
+                                    pauseToastTimer();
+                                }
+                                String YN2="";
+                                if(YN2.equals("Yes")){
+                                    boolean Active=selectedAssignment.Active;
+                                    if(Active==true){
+                                        Intent intent = new Intent(StudentGroup.this, AssignmentSubmission.class);
+
+                                        //intent.putExtra("GROUP_ID", GROUP_ID);
+                                        intent.putExtra("Assignment_ID",selectedAssignment.Assignment_ID);
+
+                                        intent.putExtra("Group_ID",GROUP_ID);
+
+                                        // Start the new activity
+                                        startActivity(intent);
+
+                                        finish();
+                                    }
+                                    else{
+                                        int tts3 = textToSpeech.speak("Assignment is Not Active Right Now. Please Wait until it activated by the owner of the Group.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+                                        if (tts3 == TextToSpeech.SUCCESS) {
+                                            // Pause the timer until TTS completes
+                                            pauseToastTimer();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+                            Toast.makeText(StudentGroup.this, "SomeThing Went Wrong", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            }
         }
     }
 
@@ -305,7 +381,7 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
         JoiningReference.child("Assignments").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                List<Assignment> AssignmentList = new ArrayList<>();
+                AssignmentList = new ArrayList<>();
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     Assignment assignment = snapshot.getValue(Assignment.class);
                     if (assignment != null) {
