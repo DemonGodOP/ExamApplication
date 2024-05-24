@@ -62,6 +62,7 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
 
     long timeLeftInMillis;
 
+    Assignment assignment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,7 +96,7 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
         database.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                Assignment assignment=snapshot.getValue(Assignment.class);
+                assignment=snapshot.getValue(Assignment.class);
                 if(assignment!=null){
                     Questions=assignment.Questions;
                     Duration=assignment.Duration;
@@ -118,8 +119,6 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
         });
 
         AS_Prev.setEnabled(false);
-
-
 
         AS_Next.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -144,7 +143,9 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
                 if(n!=Answers.size()){
                     AS_A.setText(Answers.get(n));
                 }
-                AS_A.setText("");
+                else {
+                    AS_A.setText("");
+                }
             }
         });
 
@@ -309,11 +310,26 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
             //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
             //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
             //textToSpeech.setVoice(voice);
-            int ttsResult=textToSpeech.speak("Hello,your exam has started. ", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+            int ttsResult=textToSpeech.speak("Hello,your exam has started. Do you want to listen to the Detailed instructions of how to easily surf through this page. If So say, Yes", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
             if (ttsResult == TextToSpeech.SUCCESS) {
                 // Pause the timer until TTS completes
                 pauseToastTimer();
             }
+            resetToastTimer();
+            String YN="";
+            if(YN.equals("YES")){
+                StarUpRepeat();
+            }
+            else{
+                String Q=Questions.get(n);
+                int tts5=textToSpeech.speak("Question No."+n+"is"+Q, TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+                if (tts5 == TextToSpeech.SUCCESS) {
+                    // Pause the timer until TTS completes
+                    pauseToastTimer();
+                }
+                resetToastTimer();
+            }
+
         } else {
             // TTS initialization failed, handle error
             Log.e("TTS", "Initialization failed");
@@ -322,17 +338,27 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
 
     // Repeat The Introduction if Repeat Method is Triggered.
     public void StarUpRepeat(){
-        resetToastTimer();
+
         textToSpeech.setLanguage(Locale.US);
         //Locale locale = new Locale("en","IN");
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
-        int ttsResult=textToSpeech.speak("Hello,your exam has started.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        timeLeftInMillis+=120000;
+        int ttsResult=textToSpeech.speak("Hello,your exam has started. Please Start Answering the following questions within the given time frame of"
+                +assignment.Duration+"mins"+"I will Keep Updating you about the time duration left for you to complete your assignment"
+                +"The questions will be read out to you one by one and your task will be to answer them with the best of your ability. To Answer a Question" +
+                " you have to say Exam Care, Answer. You can also ask me to repeat the questions just by saying, Exam Care, Repeat Question or you can ask" +
+                " me to repeat the answer by saying, Exam Care, Repeat answer. You can Surf through the examination with simple Commands like, in order to" +
+                " go to the next question just say, Exam Care, Next, or Inorder to go to the previous Question say,Exam Care, Previous,You can also ask me to " +
+                "to inform you about the time duration left to complete the assignment just say Exam Care, Time left. and last but" +
+                " not the least in order to submit the assignment, just say Exam Care, Submit", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();
         }
+        resetToastTimer();
+
         Repeat();
     }
 
@@ -347,11 +373,13 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
             // Pause the timer until TTS completes
             pauseToastTimer();
         }
+        resetToastTimer();
         //Enter the Condition Over here that is tts to take input from the user if they wants us to repeat the introduction and change r respectively.
         boolean r=false;
         if(r==true){
             StarUpRepeat();
         }
+
     }
 
 
@@ -367,32 +395,171 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
         handler.removeCallbacks(toastRunnable);
     }//3
 
-    public void VoiceLogin(){
+    public void Automate(String Temp){
         textToSpeech.setLanguage(Locale.US);
         //Locale locale = new Locale("en","IN");
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
-        int tts1=textToSpeech.speak("Let's, Begin with the assignment.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-        if (tts1 == TextToSpeech.SUCCESS) {
-            // Pause the timer until TTS completes
-            pauseToastTimer();
+        if(Temp.equals("Answer")){
+            int tts1=textToSpeech.speak("Please Start Answering Now.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+            if (tts1 == TextToSpeech.SUCCESS) {
+                // Pause the timer until TTS completes
+                pauseToastTimer();
+            }
+            resetToastTimer();
+            String T="";
+            AS_A.setText(T);
+            if(Answers.isEmpty()||n==Answers.size()-1){
+                Answers.add(T);
+            }
+            else{
+                Answers.set(n,T);
+            }
+            int tts2=textToSpeech.speak("Your Answer has been recorded.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+            if (tts2 == TextToSpeech.SUCCESS) {
+                // Pause the timer until TTS completes
+                pauseToastTimer();
+            }
+            resetToastTimer();
         }
-        int tts3=textToSpeech.speak("Please Say, Exam Care and input the answer", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-        if (tts3 == TextToSpeech.SUCCESS) {
-        // Pause the timer until TTS completes
-        pauseToastTimer();
+        else if(Temp.equals("Repeat Answer")){
+            String A=Answers.get(n);
+            if(A.length()==0){
+                int tts3=textToSpeech.speak("You have not yet answered this question please answer the question first by using the Exam Care, Answer Command.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+                if (tts3 == TextToSpeech.SUCCESS) {
+                    // Pause the timer until TTS completes
+                    pauseToastTimer();
+                }
+                resetToastTimer();
+            }
+            else{
+                int tts4=textToSpeech.speak(A, TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+                if (tts4 == TextToSpeech.SUCCESS) {
+                    // Pause the timer until TTS completes
+                    pauseToastTimer();
+                }
+                resetToastTimer();
+            }
         }
-        String answer=""; //Store Email over here using STT.
-        int tts4=textToSpeech.speak("Do you want to submit your assignment?", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-        if (tts4 == TextToSpeech.SUCCESS) {
-            // Pause the timer until TTS completes
-            pauseToastTimer();
+        else if(Temp.equals("Repeat Questions")){
+            String Q=Questions.get(n);
+            int tts5=textToSpeech.speak("Question No."+n+"is"+Q, TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+            if (tts5 == TextToSpeech.SUCCESS) {
+                // Pause the timer until TTS completes
+                pauseToastTimer();
+            }
+            resetToastTimer();
         }
-        boolean YesSubmit=false;//Edit This Using STT
-        if (YesSubmit == true) {
-            //loginUser(Email,pwd);
+        else if(Temp.equals("Next")){
+            if(n==Questions.size()-1){
+                int tts6=textToSpeech.speak("You Have Reached the End of the of the Assignment. If you want to Submit please say Exam Care, Submit", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+                if (tts6 == TextToSpeech.SUCCESS) {
+                    // Pause the timer until TTS completes
+                    pauseToastTimer();
+                }
+                resetToastTimer();
+                if(Questions.size()>Answers.size()){
+                    Answers.add("");
+                }
+            }
+            else{
+                if(Answers.isEmpty()||n==Answers.size()){
+                    Answers.add("");
+                }
+                n++;
+                AS_QN.setText(n+1+"");
+                AS_Q.setText(Questions.get(n));
+                if(n==Questions.size()-1){
+                    AS_Next.setEnabled(false);
+                }
+                AS_Prev.setEnabled(true);
+                if(n!=Answers.size()){
+                    AS_A.setText(Answers.get(n));
+                }
+                else {
+                    AS_A.setText("");
+                }
+                String Q=Questions.get(n);
+                int tts7=textToSpeech.speak("Question No."+n+"is"+Q, TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+                if (tts7 == TextToSpeech.SUCCESS) {
+                    // Pause the timer until TTS completes
+                    pauseToastTimer();
+                }
+                resetToastTimer();
+            }
         }
+        else if(Temp.equals("Previous")){
+            if(n==0){
+                int tts8=textToSpeech.speak("You are already at the beginning of the Assignment. You can't use the" +
+                        " previous command at this moment.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+                if (tts8 == TextToSpeech.SUCCESS) {
+                    // Pause the timer until TTS completes
+                    pauseToastTimer();
+                }
+                resetToastTimer();
+            }
+            else{
+                if(Answers.isEmpty()||n==Answers.size()){
+                    Answers.add("");
+                }
+                n--;
+                AS_QN.setText(n+1+"");
+                AS_Q.setText(Questions.get(n));
+                if(n==0){
+                    AS_Prev.setEnabled(false);
+                }
+                AS_Next.setEnabled(true);
+                AS_A.setText(Answers.get(n));
+                String Q=Questions.get(n);
+                int tts9=textToSpeech.speak("Question No."+n+"is"+Q, TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+                if (tts9 == TextToSpeech.SUCCESS) {
+                    // Pause the timer until TTS completes
+                    pauseToastTimer();
+                }
+                resetToastTimer();
+            }
+        }
+        else if(Temp.equals("Submit")){
+            int tts10=textToSpeech.speak("Do you want to submit your assignment, once submitted you can't retake " +
+                    "it or make any changes. Please say Yes or No", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+            if (tts10 == TextToSpeech.SUCCESS) {
+                // Pause the timer until TTS completes
+                pauseToastTimer();
+            }
+            resetToastTimer();
+            String YN="";
+            if(YN.equals("YES")) {
+                int tts11=textToSpeech.speak("Your Assignment Submission Process has started once submitted you will " +
+                        "be redirected to the Student Group page from where you can check the assignment feedback.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+                if (tts11 == TextToSpeech.SUCCESS) {
+                    // Pause the timer until TTS completes
+                    pauseToastTimer();
+                }
+                resetToastTimer();
+                submitTest();
+            }
+        }
+        else if(Temp.equals("Duration")){
+            long seconds=timeLeftInMillis%60000L;
+            long mins=timeLeftInMillis/60000L;
+
+            int tts11=textToSpeech.speak("You have"+mins+"minutes and"+seconds+"seconds left.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+            if (tts11 == TextToSpeech.SUCCESS) {
+                // Pause the timer until TTS completes
+                pauseToastTimer();
+            }
+            resetToastTimer();
+        }
+        else{
+            int tts1=textToSpeech.speak("Wrong input provided. Please start the process from the beginning. Sorry for any inconvenience", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+            if (tts1 == TextToSpeech.SUCCESS) {
+                // Pause the timer until TTS completes
+                pauseToastTimer();
+            }
+            resetToastTimer();
+        }
+
     }
     private boolean shouldAllowExit = false;
 
@@ -512,6 +679,7 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
                     DatabaseReference newRef=FirebaseDatabase.getInstance().getReference("Groups").child(Group_ID).child("Assignments").child(Assignment_ID).child("Submissions").child(firebaseUser.getUid());
                     SubmissionDetails submissionDetails=new SubmissionDetails(UserName,firebaseUser.getUid(),Email,Answers);
                     newRef.setValue(submissionDetails);
+
                     Intent intent = new Intent(AssignmentSubmission.this, StudentGroup.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                     intent.putExtra("GROUP_ID",Group_ID);

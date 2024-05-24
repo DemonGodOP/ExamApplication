@@ -41,6 +41,8 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
 
     boolean isUserInteracted;
 
+    Group readUserDetails;
+
     // Flag to indicate if TextToSpeech engine is initialized
     boolean isTTSInitialized;//1
     @Override
@@ -69,6 +71,14 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
         SGDTSG.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Intent intent = new Intent(StudentGroupDetails.this, StudentGroup.class);
+
+                // Pass the unique key to the new activity
+                intent.putExtra("GROUP_ID", Group_ID);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                // Start the new activity
+                startActivity(intent);
                 finish();
             }
         });
@@ -158,11 +168,15 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
             //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
             //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
             //textToSpeech.setVoice(voice);
-            int ttsResult=textToSpeech.speak("Welcome to the student Group Details Page of Exam Care, This page provides you with the facility, to " +
-                    "know about your group name, subject name, subject code, creator, and group description, you just have to say Hello exam care, group details.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+            int ttsResult=textToSpeech.speak("Welcome to the student Group Details Page of Exam Care,  Would you like to listen to a Detailed introduction of the page.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
             if (ttsResult == TextToSpeech.SUCCESS) {
                 // Pause the timer until TTS completes
                 pauseToastTimer();
+            }
+            resetToastTimer();
+            String YN="";
+            if(YN.equals("YES")){
+                StarUpRepeat();
             }
         } else {
             // TTS initialization failed, handle error
@@ -172,18 +186,18 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
 
     // Repeat The Introduction if Repeat Method is Triggered.
     public void StarUpRepeat(){
-        resetToastTimer();
         textToSpeech.setLanguage(Locale.US);
         //Locale locale = new Locale("en","IN");
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
         int ttsResult=textToSpeech.speak("Hello, Welcome to the student Group Details Page of Exam Care, This page provides you with the facility, to " +
-                "know about your group name, subject name, subject code, creator, and group description, you just have to say Hello exam care, group details.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+                "know about your group name, subject name, subject code, creator, and group description, you just have to say Hello exam care, group details. or you can go back to the group page just by saying Exam care, Back", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();
         }
+        resetToastTimer();
         Repeat();
     }
 
@@ -198,6 +212,7 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
             // Pause the timer until TTS completes
             pauseToastTimer();
         }
+        resetToastTimer();
         //Enter the Condition Over here that is tts to take input from the user if they wants us to repeat the introduction and change r respectively.
         boolean r=false;
         if(r==true){
@@ -218,38 +233,38 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
         handler.removeCallbacks(toastRunnable);
     }//3
 
-    public void VoiceLogin(){
+    public void Automate(String Temp){
         textToSpeech.setLanguage(Locale.US);
         //Locale locale = new Locale("en","IN");
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
-        int tts1=textToSpeech.speak("Let's, Begin the login Process.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-        if (tts1 == TextToSpeech.SUCCESS) {
-            // Pause the timer until TTS completes
-            pauseToastTimer();
-        }
-        int tts2=textToSpeech.speak("Please Say, Exam Care and then your Email ID", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-        if (tts2 == TextToSpeech.SUCCESS) {
-            // Pause the timer until TTS completes
-            pauseToastTimer();
-        }
-        String Email=""; // Store the Email over here using STT.
-        int tts3=textToSpeech.speak("Please Say, Exam Care and then your Password", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-        if (tts3 == TextToSpeech.SUCCESS) {
-            // Pause the timer until TTS completes
-            pauseToastTimer();
-        }
-        String pwd=""; //Store Email over here using STT.
+        if(Temp.equals("Back")){
+            Intent intent = new Intent(StudentGroupDetails.this, StudentGroup.class);
 
-        int tts4=textToSpeech.speak("Please Say, Exam Care Log me In, Inorder to login", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-        if (tts4 == TextToSpeech.SUCCESS) {
-            // Pause the timer until TTS completes
-            pauseToastTimer();
+            // Pass the unique key to the new activity
+            intent.putExtra("GROUP_ID", Group_ID);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+
+            // Start the new activity
+            startActivity(intent);
+            finish();
         }
-        boolean GroupDetails=false;//Edit This Using STT
-        if (GroupDetails == true) {
-           // showGroupDetails(firebaseUser);
+        else if(Temp.equals("Group Details")){
+            int tts1=textToSpeech.speak("Group Name of the Current group is"+readUserDetails.Group_Name+"Subject Name is"+readUserDetails.Subject_Code+"Subject Code is"+readUserDetails.Subject_Code+"Teacher Name is"+readUserDetails.TeacherName+"Group Description is"+readUserDetails.Description, TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+            if (tts1 == TextToSpeech.SUCCESS) {
+                // Pause the timer until TTS completes
+                pauseToastTimer();
+            }
+            resetToastTimer();
+        }
+        else{
+            int tts1=textToSpeech.speak("Wrong input provided. Please start the process from the beginning. Sorry for any inconvenience", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+            if (tts1 == TextToSpeech.SUCCESS) {
+                // Pause the timer until TTS completes
+                pauseToastTimer();
+            }
+            resetToastTimer();
         }
     }
 
@@ -260,7 +275,7 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
         referenceProfile.child(firebaseUser.getUid()).child("Groups").child(Group_ID).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot){
-                Group readUserDetails=snapshot.getValue(Group.class);
+                readUserDetails=snapshot.getValue(Group.class);
                 if(readUserDetails != null){
                     GN=readUserDetails.Group_Name;
                     SN=readUserDetails.Subject_Name;

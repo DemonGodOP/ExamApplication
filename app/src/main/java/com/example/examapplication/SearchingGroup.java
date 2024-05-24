@@ -50,6 +50,8 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
     // Flag to indicate if TextToSpeech engine is initialized
     boolean isTTSInitialized;//1
 
+    Group foundGroup;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -100,7 +102,7 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
                     Ref.child("Group Details").addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot Snapshot) {
-                                Group foundGroup = Snapshot.getValue(Group.class);
+                                foundGroup = Snapshot.getValue(Group.class);
                                 if (foundGroup != null) {
                                     SRG_NoText.setVisibility(View.GONE);
                                     SRG_GroupName.setVisibility(View.VISIBLE);
@@ -152,12 +154,14 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
                             ParticipantDetails participantDetails = snapshot.getValue(ParticipantDetails.class);
                             if (participantDetails != null) {
                                 Intent intent = new Intent(SearchingGroup.this, StudentGroup.class);
+                                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
 
                                 // Pass the unique key to the new activity
                                 intent.putExtra("GROUP_ID", Group_ID);
 
                                 // Start the new activity
                                 startActivity(intent);
+                                finish();
                             } }else {
                                 DatabaseReference database2 = FirebaseDatabase.getInstance().getReference("Groups").child(Group_ID).child("Joining Request").child(firebaseUser.getUid());
                                 database2.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -275,12 +279,19 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
             //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
             //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
             //textToSpeech.setVoice(voice);
-            int ttsResult=textToSpeech.speak("Hello, Welcome to the Searching Group Page of Exam Care, This page provides you with the facility, to " +
-                    "search existing groups that you want to join, you just to say hello exam care,search group and enter group id.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+            String voice;
+            if(foundGroup!=null){
+                voice="Hello, Welcome to the Searching Group Page of Exam Care The Group Id that you searched for belongs to the group named"+foundGroup.Group_Name+"with subject code"+foundGroup.Subject_Code+"Do You Want to Enter or join the group if so say Exam Care, Enter Group";
+            }
+            else{
+                voice="Hello, Welcome to the Searching Group Page of Exam Care, No Groups are present with the group id that you provided please go back to the homepage and try searching for the group again. For Going back to the HomePage say Exam Care, HomePage";
+            }
+            int ttsResult=textToSpeech.speak(voice, TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
             if (ttsResult == TextToSpeech.SUCCESS) {
                 // Pause the timer until TTS completes
                 pauseToastTimer();
             }
+            resetToastTimer();
         } else {
             // TTS initialization failed, handle error
             Log.e("TTS", "Initialization failed");
@@ -289,19 +300,24 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
 
     // Repeat The Introduction if Repeat Method is Triggered.
     public void StarUpRepeat(){
-        resetToastTimer();
         textToSpeech.setLanguage(Locale.US);
         //Locale locale = new Locale("en","IN");
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
-        int ttsResult=textToSpeech.speak("Hello, Welcome to the Searching Group Page of Exam Care, This page provides you with the facility, to \" +\n" +
-                "search existing groups that you want to join, you just to say hello exam care,search group and enter group id..", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        String voice;
+        if(foundGroup!=null){
+            voice="Hello, Welcome to the Searching Group Page of Exam Care The Group Id that you searched for belongs to the group named"+foundGroup.Group_Name+"with subject code"+foundGroup.Subject_Code+"Do You Want to Enter or join the group if so say Exam Care, Enter Group";
+        }
+        else{
+            voice="Hello, Welcome to the Searching Group Page of Exam Care, No Groups are present with the group id that you provided please go back to the homepage and try searching for the group again. For Going back to the HomePage say Exam Care, HomePage";
+        }
+        int ttsResult=textToSpeech.speak(voice, TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();
         }
-        Repeat();
+        resetToastTimer();
     }
 
     public void Repeat(){
@@ -315,14 +331,13 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
             // Pause the timer until TTS completes
             pauseToastTimer();
         }
+        resetToastTimer();
         //Enter the Condition Over here that is tts to take input from the user if they wants us to repeat the introduction and change r respectively.
         boolean r=false;
         if(r==true){
             StarUpRepeat();
         }
     }
-
-
 
     @Override
     protected void onDestroy() {
@@ -335,27 +350,123 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
         handler.removeCallbacks(toastRunnable);
     }//3
 
-    public void VoiceLogin(){
+    public void Automate(String Temp){
         textToSpeech.setLanguage(Locale.US);
         //Locale locale = new Locale("en","IN");
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
-        //textToSpeech.setVoice(voice);
-        int tts1=textToSpeech.speak("Let's, Begin the Search Group Process.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-        if (tts1 == TextToSpeech.SUCCESS) {
-            // Pause the timer until TTS completes
-            pauseToastTimer();
-        }
-        int tts2=textToSpeech.speak("Please Say, Exam Care and Do you want to join the group?", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-        if (tts2 == TextToSpeech.SUCCESS) {
-            // Pause the timer until TTS completes
-            pauseToastTimer();
-        }
-        String joinGroup=""; // Store the Email over here using STT.
+        if(Temp.equals("HomePage")){
+            Intent intent = new Intent(SearchingGroup.this, StudentHomePage.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.putExtra("Rl","Student");
 
-        boolean YesGroupId=false;//Edit This Using STT
-        if (YesGroupId == true) {
-            //loginUser(Email,pwd);
+            // Start the new activity
+            startActivity(intent);
+
+            finish();
+        }
+        else if(Temp.equals("Enter Group")){
+            DatabaseReference database = FirebaseDatabase.getInstance().getReference("Groups").child(Group_ID).child("Current Participants").child(firebaseUser.getUid());
+            database.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if(snapshot.exists()){
+
+                        ParticipantDetails participantDetails = snapshot.getValue(ParticipantDetails.class);
+                        if (participantDetails != null) {
+                            Intent intent = new Intent(SearchingGroup.this, StudentGroup.class);
+
+                            // Pass the unique key to the new activity
+                            intent.putExtra("GROUP_ID", Group_ID);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                            // Start the new activity
+                            startActivity(intent);
+                            finish();
+                        } }else {
+                        DatabaseReference database2 = FirebaseDatabase.getInstance().getReference("Groups").child(Group_ID).child("Joining Request").child(firebaseUser.getUid());
+                        database2.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                if (snapshot.exists()) {
+                                    ParticipantDetails participantDetails = snapshot.getValue(ParticipantDetails.class);
+                                    if (participantDetails != null) {
+                                        int ttsResult=textToSpeech.speak("Joining Request Not Accepted yet. Please Wait Until the Group Owner Accepts your joining request. If You want to Go Back Say Exam Care, Home Page", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+                                        if (ttsResult == TextToSpeech.SUCCESS) {
+                                            // Pause the timer until TTS completes
+                                            pauseToastTimer();
+                                        }
+                                        resetToastTimer();
+                                    } }else {
+                                    int tts2=textToSpeech.speak("You have not Joined the Group Yet, Do you want to send a joining request. If So Say Yes.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+                                    if (tts2 == TextToSpeech.SUCCESS) {
+                                        // Pause the timer until TTS completes
+                                        pauseToastTimer();
+                                    }
+                                    resetToastTimer();
+                                    String YN="";
+                                    if(YN.equals("YES")) {
+                                        DatabaseReference referenceProfile = FirebaseDatabase.getInstance().getReference("Registered Users");
+                                        referenceProfile.child(firebaseUser.getUid()).child("User Details").addListenerForSingleValueEvent(new ValueEventListener() {
+                                            @Override
+                                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                ReadWriteUserDetails readUserDetails = snapshot.getValue(ReadWriteUserDetails.class);
+                                                if (readUserDetails != null) {
+                                                    Username = readUserDetails.userName;
+                                                    Email = readUserDetails.email;
+                                                    ParticipantDetails participantDetails = new ParticipantDetails(Username, Email, firebaseUser.getUid());
+                                                    DatabaseReference joiningRequest = FirebaseDatabase.getInstance().getReference("Groups").child(Group_ID).child("Joining Request");
+                                                    joiningRequest.child(firebaseUser.getUid()).setValue(participantDetails);
+                                                    int tts3 = textToSpeech.speak("Joining Request Sent, Please Wait for the group owner to accept you. If you want to Go back, Say Exam Care, Home Page", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+                                                    if (tts3 == TextToSpeech.SUCCESS) {
+                                                        // Pause the timer until TTS completes
+                                                        pauseToastTimer();
+                                                    }
+                                                    resetToastTimer();
+                                                } else {
+                                                    Toast.makeText(SearchingGroup.this, "Something went wrong!", Toast.LENGTH_LONG).show();
+                                                }
+                                            }
+
+                                            @Override
+                                            public void onCancelled(@NonNull DatabaseError error) {
+                                                Toast.makeText(SearchingGroup.this, "Something went wrong!", Toast.LENGTH_LONG).show();
+                                            }
+                                        });
+                                    }
+                                    else{
+                                        int tts4=textToSpeech.speak("Wrong input provided. Please start the process from the beginning. Sorry for any inconvenience", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+                                        if (tts4 == TextToSpeech.SUCCESS) {
+                                            // Pause the timer until TTS completes
+                                            pauseToastTimer();
+                                        }
+                                        resetToastTimer();
+                                    }
+                                }
+                            }
+                            @Override
+                            public void onCancelled (@NonNull DatabaseError error){
+                                Toast.makeText(SearchingGroup.this, "Something went wrong!", Toast.LENGTH_LONG).show();
+
+                            }
+                        });
+                    }
+
+                }
+                @Override
+                public void onCancelled (@NonNull DatabaseError error){
+                    Toast.makeText(SearchingGroup.this, "Something went wrong!", Toast.LENGTH_LONG).show();
+                    //UP_progressBar.setVisibility(View.GONE);
+                }
+            });
+        }
+        else{
+            int tts1=textToSpeech.speak("Wrong input provided. Please start the process from the beginning. Sorry for any inconvenience", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+            if (tts1 == TextToSpeech.SUCCESS) {
+                // Pause the timer until TTS completes
+                pauseToastTimer();
+            }
+            resetToastTimer();
         }
     }
 

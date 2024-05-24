@@ -227,14 +227,15 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
             //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
             //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
             //textToSpeech.setVoice(voice);
-            int ttsResult=textToSpeech.speak("Hello, Welcome to the Student Home Page of Exam Care, This page provides you with the facility, to" +
-                    " see your profile details, for this you have to say, hello Exam care, profile details," +
-                    "you can also sign Out if you want, for this you have to say, hello Exam care, sign out, you can also search, existing groups for this," +
-                    "that you want to join, you just to say, hello exam care,search group and enter group id, and finally you can check the groups," +
-                    "that you have already joined, by saying, hello exam care,joined group names.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+            int ttsResult=textToSpeech.speak("Hello, Welcome to the Student Home Page of Exam Care, Would you like to listen to a Detailed introduction of the page.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
             if (ttsResult == TextToSpeech.SUCCESS) {
                 // Pause the timer until TTS completes
                 pauseToastTimer();
+            }
+            resetToastTimer();
+            String YN="";
+            if(YN.equals("YES")){
+                StarUpRepeat();
             }
         } else {
             // TTS initialization failed, handle error
@@ -244,7 +245,6 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
 
     // Repeat The Introduction if Repeat Method is Triggered.
     public void StarUpRepeat(){
-        resetToastTimer();
         textToSpeech.setLanguage(Locale.US);
         //Locale locale = new Locale("en","IN");
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
@@ -259,6 +259,7 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
             // Pause the timer until TTS completes
             pauseToastTimer();
         }
+        resetToastTimer();
         Repeat();
     }
 
@@ -273,6 +274,7 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
             // Pause the timer until TTS completes
             pauseToastTimer();
         }
+        resetToastTimer();
         //Enter the Condition Over here that is tts to take input from the user if they wants us to repeat the introduction and change r respectively.
         boolean r=false;
         if(r==true){
@@ -321,6 +323,7 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
                 // Pause the timer until TTS completes
                 pauseToastTimer();
             }
+            resetToastTimer();
             String groupId="";
             Intent intent = new Intent(StudentHomePage.this, SearchingGroup.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -331,32 +334,58 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
 
         }
         else if(Temp.equals("joined groups name")){
+            if(groupsList.isEmpty()){
+                int tts5=textToSpeech.speak("You have not joined any groups yet. Please join a group by using the searching group functionality.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+                if (tts5 == TextToSpeech.SUCCESS) {
+                    // Pause the timer until TTS completes
+                    pauseToastTimer();
+                }
+                resetToastTimer();
+            }
+            else {
+                for (int i = 0; i < groupsList.size(); i++) {
+                    int tts5 = textToSpeech.speak((i + 1) + "Group name is" + groupsList.get(i).Group_Name + "and Group ID is" + groupsList.get(i).Subject_Code + "Do you want to enter the group please say yes or no", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+                    if (tts5 == TextToSpeech.SUCCESS) {
+                        // Pause the timer until TTS completes
+                        pauseToastTimer();
+                    }
+                    resetToastTimer();
+                    String YN = "";
+                    if (YN.equals("Yes")) {
+                        String selectedGroupId = groupsList.get(i).Group_ID; // Or however you store the ID in the Group class
 
-             for(int i=0;i<groupsList.size();i++){
-                 int tts5=textToSpeech.speak((i+1)+"Group name is"+groupsList.get(i).Group_Name+"and Group ID is"+groupsList.get(i).Subject_Code+"Do you want to enter the group please say yes or no", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-                 if (tts5 == TextToSpeech.SUCCESS) {
-                     // Pause the timer until TTS completes
-                     pauseToastTimer();
-                 }
-                 String YN="";
-                 if(YN.equals("Yes")){
-                     String selectedGroupId = groupsList.get(i).Group_ID; // Or however you store the ID in the Group class
+                        // Create an intent to start a new activity
+                        Intent intent = new Intent(StudentHomePage.this, StudentGroup.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                        intent.putExtra("Rl", "Student");
 
-                     // Create an intent to start a new activity
-                     Intent intent = new Intent(StudentHomePage.this, StudentGroup.class);
-                     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                     intent.putExtra("Rl","Student");
+                        // Pass the unique key to the new activity
+                        intent.putExtra("GROUP_ID", selectedGroupId);
 
-                     // Pass the unique key to the new activity
-                     intent.putExtra("GROUP_ID",selectedGroupId);
+                        // Start the new activity
+                        startActivity(intent);
 
-                     // Start the new activity
-                     startActivity(intent);
+                        finish();
+                    }
+                    else{
+                        int tts1=textToSpeech.speak("Wrong input provided. Please start the process from the beginning. Sorry for any inconvenience", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+                        if (tts1 == TextToSpeech.SUCCESS) {
+                            // Pause the timer until TTS completes
+                            pauseToastTimer();
+                        }
+                        resetToastTimer();
+                    }
 
-                     finish();
-                 }
-
-             }
+                }
+            }
+        }
+        else{
+            int tts1=textToSpeech.speak("Wrong input provided. Please start the process from the beginning. Sorry for any inconvenience", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+            if (tts1 == TextToSpeech.SUCCESS) {
+                // Pause the timer until TTS completes
+                pauseToastTimer();
+            }
+            resetToastTimer();
         }
     }
 
