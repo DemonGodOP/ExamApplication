@@ -278,6 +278,9 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
 
         @Override
         public void onDone(String utteranceId) {
+            if(utteranceId.equals("TTS_UTTERANCE_SUBMISSION")){
+                submitTest();
+            }
             resetToastTimer();
         }
     };
@@ -515,12 +518,11 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
             String YN="";
             if(YN.equals("YES")) {
                 int tts11=textToSpeech.speak("Your Assignment Submission Process has started once submitted you will " +
-                        "be redirected to the Student Group page from where you can check the assignment feedback.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+                        "be redirected to the Student Group page from where you can check the assignment feedback.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_SUBMISSION");
                 if (tts11 == TextToSpeech.SUCCESS) {
                     // Pause the timer until TTS completes
                     pauseToastTimer();
                 }
-                submitTest();
             }
         }
         else if(Temp.equals("Duration")){
