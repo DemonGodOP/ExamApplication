@@ -315,7 +315,6 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
                 // Pause the timer until TTS completes
                 pauseToastTimer();
             }
-            resetToastTimer();
             String YN="";
             if(YN.equals("YES")){
                 StarUpRepeat();
@@ -327,7 +326,6 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
                     // Pause the timer until TTS completes
                     pauseToastTimer();
                 }
-                resetToastTimer();
             }
 
         } else {
@@ -357,8 +355,6 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
             // Pause the timer until TTS completes
             pauseToastTimer();
         }
-        resetToastTimer();
-
         Repeat();
     }
 
@@ -373,13 +369,11 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
             // Pause the timer until TTS completes
             pauseToastTimer();
         }
-        resetToastTimer();
         //Enter the Condition Over here that is tts to take input from the user if they wants us to repeat the introduction and change r respectively.
         boolean r=false;
         if(r==true){
             StarUpRepeat();
         }
-
     }
 
 
@@ -407,7 +401,6 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
                 // Pause the timer until TTS completes
                 pauseToastTimer();
             }
-            resetToastTimer();
             String T="";
             AS_A.setText(T);
             if(Answers.isEmpty()||n==Answers.size()-1){
@@ -421,7 +414,6 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
                 // Pause the timer until TTS completes
                 pauseToastTimer();
             }
-            resetToastTimer();
         }
         else if(Temp.equals("Repeat Answer")){
             String A=Answers.get(n);
@@ -431,7 +423,6 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
                     // Pause the timer until TTS completes
                     pauseToastTimer();
                 }
-                resetToastTimer();
             }
             else{
                 int tts4=textToSpeech.speak(A, TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
@@ -439,7 +430,6 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
                     // Pause the timer until TTS completes
                     pauseToastTimer();
                 }
-                resetToastTimer();
             }
         }
         else if(Temp.equals("Repeat Questions")){
@@ -449,7 +439,6 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
                 // Pause the timer until TTS completes
                 pauseToastTimer();
             }
-            resetToastTimer();
         }
         else if(Temp.equals("Next")){
             if(n==Questions.size()-1){
@@ -458,7 +447,6 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
                     // Pause the timer until TTS completes
                     pauseToastTimer();
                 }
-                resetToastTimer();
                 if(Questions.size()>Answers.size()){
                     Answers.add("");
                 }
@@ -486,7 +474,6 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
                     // Pause the timer until TTS completes
                     pauseToastTimer();
                 }
-                resetToastTimer();
             }
         }
         else if(Temp.equals("Previous")){
@@ -497,7 +484,6 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
                     // Pause the timer until TTS completes
                     pauseToastTimer();
                 }
-                resetToastTimer();
             }
             else{
                 if(Answers.isEmpty()||n==Answers.size()){
@@ -517,7 +503,6 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
                     // Pause the timer until TTS completes
                     pauseToastTimer();
                 }
-                resetToastTimer();
             }
         }
         else if(Temp.equals("Submit")){
@@ -527,7 +512,6 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
                 // Pause the timer until TTS completes
                 pauseToastTimer();
             }
-            resetToastTimer();
             String YN="";
             if(YN.equals("YES")) {
                 int tts11=textToSpeech.speak("Your Assignment Submission Process has started once submitted you will " +
@@ -536,7 +520,6 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
                     // Pause the timer until TTS completes
                     pauseToastTimer();
                 }
-                resetToastTimer();
                 submitTest();
             }
         }
@@ -549,7 +532,6 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
                 // Pause the timer until TTS completes
                 pauseToastTimer();
             }
-            resetToastTimer();
         }
         else{
             int tts1=textToSpeech.speak("Wrong input provided. Please start the process from the beginning. Sorry for any inconvenience", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
@@ -557,7 +539,6 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
                 // Pause the timer until TTS completes
                 pauseToastTimer();
             }
-            resetToastTimer();
         }
 
     }

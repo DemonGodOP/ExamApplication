@@ -173,7 +173,6 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
                 // Pause the timer until TTS completes
                 pauseToastTimer();
             }
-            resetToastTimer();
             String YN="";
             if(YN.equals("YES")){
                 StarUpRepeat();
@@ -197,7 +196,6 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
             // Pause the timer until TTS completes
             pauseToastTimer();
         }
-        resetToastTimer();
         Repeat();
     }
 
@@ -212,7 +210,6 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
             // Pause the timer until TTS completes
             pauseToastTimer();
         }
-        resetToastTimer();
         //Enter the Condition Over here that is tts to take input from the user if they wants us to repeat the introduction and change r respectively.
         boolean r=false;
         if(r==true){
@@ -256,7 +253,6 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
                 // Pause the timer until TTS completes
                 pauseToastTimer();
             }
-            resetToastTimer();
         }
         else{
             int tts1=textToSpeech.speak("Wrong input provided. Please start the process from the beginning. Sorry for any inconvenience", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
@@ -264,7 +260,6 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
                 // Pause the timer until TTS completes
                 pauseToastTimer();
             }
-            resetToastTimer();
         }
     }
 

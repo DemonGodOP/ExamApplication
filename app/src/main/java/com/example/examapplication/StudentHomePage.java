@@ -232,7 +232,6 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
                 // Pause the timer until TTS completes
                 pauseToastTimer();
             }
-            resetToastTimer();
             String YN="";
             if(YN.equals("YES")){
                 StarUpRepeat();
@@ -259,7 +258,6 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
             // Pause the timer until TTS completes
             pauseToastTimer();
         }
-        resetToastTimer();
         Repeat();
     }
 
@@ -274,7 +272,6 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
             // Pause the timer until TTS completes
             pauseToastTimer();
         }
-        resetToastTimer();
         //Enter the Condition Over here that is tts to take input from the user if they wants us to repeat the introduction and change r respectively.
         boolean r=false;
         if(r==true){
@@ -323,7 +320,6 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
                 // Pause the timer until TTS completes
                 pauseToastTimer();
             }
-            resetToastTimer();
             String groupId="";
             Intent intent = new Intent(StudentHomePage.this, SearchingGroup.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -340,7 +336,6 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
                     // Pause the timer until TTS completes
                     pauseToastTimer();
                 }
-                resetToastTimer();
             }
             else {
                 for (int i = 0; i < groupsList.size(); i++) {
@@ -349,7 +344,6 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
                         // Pause the timer until TTS completes
                         pauseToastTimer();
                     }
-                    resetToastTimer();
                     String YN = "";
                     if (YN.equals("Yes")) {
                         String selectedGroupId = groupsList.get(i).Group_ID; // Or however you store the ID in the Group class
@@ -373,7 +367,6 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
                             // Pause the timer until TTS completes
                             pauseToastTimer();
                         }
-                        resetToastTimer();
                     }
 
                 }
@@ -385,7 +378,6 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
                 // Pause the timer until TTS completes
                 pauseToastTimer();
             }
-            resetToastTimer();
         }
     }
 

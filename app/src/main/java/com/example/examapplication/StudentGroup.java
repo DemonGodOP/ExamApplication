@@ -378,7 +378,6 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
                             // Pause the timer until TTS completes
                             pauseToastTimer();
                         }
-                        resetToastTimer();
                     }
                 }
             }
@@ -389,7 +388,6 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
                 // Pause the timer until TTS completes
                 pauseToastTimer();
             }
-            resetToastTimer();
         }
     }
 

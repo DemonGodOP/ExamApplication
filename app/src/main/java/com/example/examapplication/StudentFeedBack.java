@@ -299,7 +299,6 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
                 // Pause the timer until TTS completes
                 pauseToastTimer();
             }
-            resetToastTimer();
             String YN="";
             if(YN.equals("YES")){
                 StarUpRepeat();
@@ -311,7 +310,6 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
                     // Pause the timer until TTS completes
                     pauseToastTimer();
                 }
-                resetToastTimer();
             }
         } else {
             // TTS initialization failed, handle error
@@ -338,7 +336,6 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
             // Pause the timer until TTS completes
             pauseToastTimer();
         }
-        resetToastTimer();
         Repeat();
     }
 
@@ -353,7 +350,6 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
             // Pause the timer until TTS completes
             pauseToastTimer();
         }
-        resetToastTimer();
         //Enter the Condition Over here that is tts to take input from the user if they wants us to repeat the introduction and change r respectively.
         boolean r=false;
         if(r==true){
@@ -399,7 +395,6 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
                     // Pause the timer until TTS completes
                     pauseToastTimer();
                 }
-                resetToastTimer();
             }
             else{
                 int tts2=textToSpeech.speak("feedback not yet provided by the teacher for this assignment.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
@@ -407,7 +402,6 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
                     // Pause the timer until TTS completes
                     pauseToastTimer();
                 }
-                resetToastTimer();
             }
         }
         else if(Temp.equals("Review Assignment")){
@@ -427,7 +421,6 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
                 // Pause the timer until TTS completes
                 pauseToastTimer();
             }
-            resetToastTimer();
         }
         else if(Temp.equals("Repeat Question")){
             if(SF_FB.getText().toString().equals("Feedback")){
@@ -437,7 +430,6 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
                     // Pause the timer until TTS completes
                     pauseToastTimer();
                 }
-                resetToastTimer();
             }
             else{
                 int tts5=textToSpeech.speak("You are on the Feedback page go back to the review assignment page to review your" +
@@ -446,7 +438,6 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
                     // Pause the timer until TTS completes
                     pauseToastTimer();
                 }
-                resetToastTimer();
             }
         }
         else if(Temp.equals("Repeat Answer")){
@@ -457,7 +448,6 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
                     // Pause the timer until TTS completes
                     pauseToastTimer();
                 }
-                resetToastTimer();
             }
             else{
                 int tts5=textToSpeech.speak("You are on the Feedback page go back to the review assignment page to review your" +
@@ -466,7 +456,6 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
                     // Pause the timer until TTS completes
                     pauseToastTimer();
                 }
-                resetToastTimer();
             }
         }
         else if(Temp.equals("Next")){
@@ -477,7 +466,6 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
                     // Pause the timer until TTS completes
                     pauseToastTimer();
                 }
-                resetToastTimer();
             }
             else if(n==Questions.size()-1) {
                 int tts6 = textToSpeech.speak("You Have Reached the End of the of the Assignment.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
@@ -485,7 +473,6 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
                     // Pause the timer until TTS completes
                     pauseToastTimer();
                 }
-                resetToastTimer();
             }
             else{
                 n++;
@@ -502,7 +489,6 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
                     // Pause the timer until TTS completes
                     pauseToastTimer();
                 }
-                resetToastTimer();
             }
         }
         else if(Temp.equals("previous")){
@@ -513,7 +499,6 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
                     // Pause the timer until TTS completes
                     pauseToastTimer();
                 }
-                resetToastTimer();
             }
             else if(n==0){
                 int tts8=textToSpeech.speak("You are already at the beginning of the Assignment. You can't use the" +
@@ -522,7 +507,6 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
                     // Pause the timer until TTS completes
                     pauseToastTimer();
                 }
-                resetToastTimer();
             }
             else{
                 n--;
@@ -539,7 +523,6 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
                     // Pause the timer until TTS completes
                     pauseToastTimer();
                 }
-                resetToastTimer();
             }
         }
         else if(Temp.equals("Back")){
@@ -559,7 +542,6 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
                 // Pause the timer until TTS completes
                 pauseToastTimer();
             }
-            resetToastTimer();
         }
     }
 }

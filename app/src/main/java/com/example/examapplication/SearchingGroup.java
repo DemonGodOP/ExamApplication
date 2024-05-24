@@ -291,7 +291,6 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
                 // Pause the timer until TTS completes
                 pauseToastTimer();
             }
-            resetToastTimer();
         } else {
             // TTS initialization failed, handle error
             Log.e("TTS", "Initialization failed");
@@ -317,7 +316,6 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
             // Pause the timer until TTS completes
             pauseToastTimer();
         }
-        resetToastTimer();
     }
 
     public void Repeat(){
@@ -331,7 +329,6 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
             // Pause the timer until TTS completes
             pauseToastTimer();
         }
-        resetToastTimer();
         //Enter the Condition Over here that is tts to take input from the user if they wants us to repeat the introduction and change r respectively.
         boolean r=false;
         if(r==true){
@@ -396,14 +393,12 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
                                             // Pause the timer until TTS completes
                                             pauseToastTimer();
                                         }
-                                        resetToastTimer();
                                     } }else {
                                     int tts2=textToSpeech.speak("You have not Joined the Group Yet, Do you want to send a joining request. If So Say Yes.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
                                     if (tts2 == TextToSpeech.SUCCESS) {
                                         // Pause the timer until TTS completes
                                         pauseToastTimer();
                                     }
-                                    resetToastTimer();
                                     String YN="";
                                     if(YN.equals("YES")) {
                                         DatabaseReference referenceProfile = FirebaseDatabase.getInstance().getReference("Registered Users");
@@ -422,7 +417,6 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
                                                         // Pause the timer until TTS completes
                                                         pauseToastTimer();
                                                     }
-                                                    resetToastTimer();
                                                 } else {
                                                     Toast.makeText(SearchingGroup.this, "Something went wrong!", Toast.LENGTH_LONG).show();
                                                 }
@@ -440,7 +434,6 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
                                             // Pause the timer until TTS completes
                                             pauseToastTimer();
                                         }
-                                        resetToastTimer();
                                     }
                                 }
                             }
@@ -466,7 +459,6 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
                 // Pause the timer until TTS completes
                 pauseToastTimer();
             }
-            resetToastTimer();
         }
     }
 
