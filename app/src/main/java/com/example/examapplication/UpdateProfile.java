@@ -50,6 +50,7 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
     boolean isTTSInitialized;//1
 
     String Rl;
+    FirebaseUser firebaseUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,7 +81,7 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
             }
         });
         authProfile = FirebaseAuth.getInstance();
-        FirebaseUser firebaseUser = authProfile.getCurrentUser();
+        firebaseUser = authProfile.getCurrentUser();
 
 
         showProfile(firebaseUser);
@@ -116,8 +117,28 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
         // Reset the timer whenever the user interacts with the app
         resetToastTimer();
         isUserInteracted = false; // Reset user interaction flag
+        if (textToSpeech != null) {
+            int ttsResult=textToSpeech.speak("If you want me to repeat the introduction of the page again please say, Exam Care Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+            if (ttsResult == TextToSpeech.SUCCESS) {
+                // Pause the timer until TTS completes
+                pauseToastTimer();
+            }
+            //Enter the Condition Over here that is tts to take input from the user if they wants us to repeat the introduction and change r respectively.
+            boolean r=false;
+            if(r==true){
+                StarUpRepeat();
+            } // Restart the TTS when the activity is resumed
+        }
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        pauseToastTimer();
+        if (textToSpeech != null) {
+            textToSpeech.stop(); // Stop the TTS if the activity is no longer visible
+        }
+    }
 
     // Method to start the Toast timer
     private void startToastTimer() {
@@ -184,15 +205,15 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
                 //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
                 //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
                 //textToSpeech.setVoice(voice);
-                int ttsResult = textToSpeech.speak("Hello, Welcome to the Update Profile Page of Exam Care, This page provides you with the facility, to " +
-                        "edit your profile, change password, change email, and delete your account" +
-                        "To edit your profile, please just say, Exam Care edit profile,and you can move on to the edit profile page " +
-                        "to change password, please just say, Exam Care change password,and you can move on to the change password page " +
-                        "to change Email, please just say, Exam Care change Email,and you can move on to the change Email page " +
-                        "To delete your profile, please just say, Exam Care delete my profile,and you can move on to the delete profile page.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+                int ttsResult = textToSpeech.speak("Hello, Welcome to the Update Profile Page of Exam Care, Would you like to listen to a Detailed introduction of the page.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
                 if (ttsResult == TextToSpeech.SUCCESS) {
                     // Pause the timer until TTS completes
                     pauseToastTimer();
+                }
+
+                String YN="";
+                if(YN.equals("YES")){
+                    StarUpRepeat();
                 }
             } else {
                 // TTS initialization failed, handle error
@@ -252,38 +273,123 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
         super.onDestroy();
         handler.removeCallbacks(toastRunnable);
     }//3
-    public void VoiceLogin(){
+
+    public void Automate(String Temp) {
         textToSpeech.setLanguage(Locale.US);
         //Locale locale = new Locale("en","IN");
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
-        int tts1=textToSpeech.speak("Let's, Begin the Update Profile Process.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-        if (tts1 == TextToSpeech.SUCCESS) {
-            // Pause the timer until TTS completes
-            pauseToastTimer();
+        if(Temp.equals("back")){
+            Intent intent=new Intent(UpdateProfile.this,Profile.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            intent.putExtra("Rl","Student");
+            startActivity(intent);
+            finish();
         }
-        /*int tts2=textToSpeech.speak("Please Say, Exam Care and then your Email ID", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-        if (tts2 == TextToSpeech.SUCCESS) {
-            // Pause the timer until TTS completes
-            pauseToastTimer();
+        else if(Temp.equals("describe profile details")) {
+            int tts1 = textToSpeech.speak("Your Name is" + Name + "Your email address is" + email + "your phone number is" + Phone +
+                    "Your institute name is" + Institute + "your username is" + Username , TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+            if (tts1 == TextToSpeech.SUCCESS) {
+                // Pause the timer until TTS completes
+                pauseToastTimer();
+            }
         }
-        String Email=""; // Store the Email over here using STT.
-        int tts3=textToSpeech.speak("Please Say, Exam Care and then your Password", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-        if (tts3 == TextToSpeech.SUCCESS) {
-            // Pause the timer until TTS completes
-            pauseToastTimer();
-        }
-        String pwd=""; //Store Email over here using STT.
-
-        int tts4=textToSpeech.speak("Please Say, Exam Care Log me In, Inorder to login", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-        if (tts4 == TextToSpeech.SUCCESS) {
-            // Pause the timer until TTS completes
-            pauseToastTimer();
-        }*/
-        boolean UpdateProfile=false;//Edit This Using STT
-        if (UpdateProfile == true) {
-            //showProfiler(Email,pwd);
+        else if (Temp.equals("edit profile")) {
+            int tts2 = textToSpeech.speak("what do you want to change?", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+            if (tts2 == TextToSpeech.SUCCESS) {
+                // Pause the timer until TTS completes
+                pauseToastTimer();
+            }
+            String change="";
+            if(change.equals("Name")) {
+                int tts3 = textToSpeech.speak("Please say your new name", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+                if (tts3 == TextToSpeech.SUCCESS) {
+                    // Pause the timer until TTS completes
+                    pauseToastTimer();
+                }
+                String name2 = "";
+                ReadWriteUserDetails WriteUserDetails = new ReadWriteUserDetails(email, name2, Phone, Institute, Username, finalRole);
+                DatabaseReference referenceProfile = FirebaseDatabase.getInstance().getReference("Registered Users");
+                assert firebaseUser != null;
+                referenceProfile.child(firebaseUser.getUid()).child("User Details").setValue(WriteUserDetails).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        Toast.makeText(UpdateProfile.this, "Profile Updated", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(UpdateProfile.this, Profile.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                        intent.putExtra("Rl", Rl);
+                        startActivity(intent);
+                        finish();
+                    }
+                });
+            }
+            if(change.equals("phone number")){
+                int tts3=textToSpeech.speak("Please say your new phone number", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+                if (tts3 == TextToSpeech.SUCCESS) {
+                    // Pause the timer until TTS completes
+                    pauseToastTimer();
+                }
+                String phone2="";
+                ReadWriteUserDetails WriteUserDetails = new ReadWriteUserDetails(email, Name, phone2, Institute, Username, finalRole);
+                DatabaseReference referenceProfile = FirebaseDatabase.getInstance().getReference("Registered Users");
+                assert firebaseUser != null;
+                referenceProfile.child(firebaseUser.getUid()).child("User Details").setValue(WriteUserDetails).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        Toast.makeText(UpdateProfile.this, "Profile Updated", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(UpdateProfile.this, Profile.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                        intent.putExtra("Rl",Rl);
+                        startActivity(intent);
+                        finish();
+                    }
+                });
+            }
+            if(change.equals("institute")){
+                int tts3=textToSpeech.speak("Please say your new institute", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+                if (tts3 == TextToSpeech.SUCCESS) {
+                    // Pause the timer until TTS completes
+                    pauseToastTimer();
+                }
+                String institute2="";
+                ReadWriteUserDetails WriteUserDetails = new ReadWriteUserDetails(email, Name, Phone, institute2, Username, finalRole);
+                DatabaseReference referenceProfile = FirebaseDatabase.getInstance().getReference("Registered Users");
+                assert firebaseUser != null;
+                referenceProfile.child(firebaseUser.getUid()).child("User Details").setValue(WriteUserDetails).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        Toast.makeText(UpdateProfile.this, "Profile Updated", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(UpdateProfile.this, Profile.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                        intent.putExtra("Rl",Rl);
+                        startActivity(intent);
+                        finish();
+                    }
+                });
+            }
+            if(change.equals("username")){
+                int tts3=textToSpeech.speak("Please say your new username", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+                if (tts3 == TextToSpeech.SUCCESS) {
+                    // Pause the timer until TTS completes
+                    pauseToastTimer();
+                }
+                String username2="";
+                ReadWriteUserDetails WriteUserDetails = new ReadWriteUserDetails(email, Name, Phone, Institute, username2, finalRole);
+                DatabaseReference referenceProfile = FirebaseDatabase.getInstance().getReference("Registered Users");
+                assert firebaseUser != null;
+                referenceProfile.child(firebaseUser.getUid()).child("User Details").setValue(WriteUserDetails).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        Toast.makeText(UpdateProfile.this, "Profile Updated", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(UpdateProfile.this, Profile.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                        intent.putExtra("Rl",Rl);
+                        startActivity(intent);
+                        finish();
+                    }
+                });
+            }
         }
     }
     private void showProfile(FirebaseUser firebaseUser) {

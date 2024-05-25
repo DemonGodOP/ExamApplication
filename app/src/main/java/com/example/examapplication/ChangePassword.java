@@ -29,6 +29,8 @@ import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.Locale;
 
@@ -47,6 +49,7 @@ public class ChangePassword extends AppCompatActivity implements TextToSpeech.On
     boolean isUserInteracted; // Flag to indicate if TextToSpeech engine is initialized
     boolean isTTSInitialized;//1
     String Rl;
+    FirebaseUser firebaseUser;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -112,6 +115,27 @@ public class ChangePassword extends AppCompatActivity implements TextToSpeech.On
         // Reset the timer whenever the user interacts with the app
         resetToastTimer();
         isUserInteracted = false; // Reset user interaction flag
+        if (textToSpeech != null) {
+            int ttsResult=textToSpeech.speak("If you want me to repeat the introduction of the page again please say, Exam Care Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+            if (ttsResult == TextToSpeech.SUCCESS) {
+                // Pause the timer until TTS completes
+                pauseToastTimer();
+            }
+            //Enter the Condition Over here that is tts to take input from the user if they wants us to repeat the introduction and change r respectively.
+            boolean r=false;
+            if(r==true){
+                StarUpRepeat();
+            } // Restart the TTS when the activity is resumed
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        pauseToastTimer();
+        if (textToSpeech != null) {
+            textToSpeech.stop(); // Stop the TTS if the activity is no longer visible
+        }
     }
 
     // Method to start the Toast timer
@@ -178,13 +202,15 @@ public class ChangePassword extends AppCompatActivity implements TextToSpeech.On
             //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
             //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
             //textToSpeech.setVoice(voice);
-            int ttsResult=textToSpeech.speak("Hello, Welcome to the Change Password Page of Exam Care, This page provides you with the facility, to " +
-                    "change your password, for that please say your registered email id and then say your old password, then new password," +
-                    "and after that say hello exam care password. Then a link will be sent to your  " +
-                    " registered email id, from there you can change your password.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+            int ttsResult=textToSpeech.speak("Hello, Welcome to the Student Home Page of Exam Care, Would you like to listen to a Detailed introduction of the page.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
             if (ttsResult == TextToSpeech.SUCCESS) {
                 // Pause the timer until TTS completes
                 pauseToastTimer();
+            }
+
+            String YN="";
+            if(YN.equals("YES")){
+                StarUpRepeat();
             }
         } else {
             // TTS initialization failed, handle error
@@ -239,45 +265,111 @@ public class ChangePassword extends AppCompatActivity implements TextToSpeech.On
         super.onDestroy();
         handler.removeCallbacks(toastRunnable);
     }//3
-    public void VoiceLogin(){
+    public void Automate(String Temp) {
         textToSpeech.setLanguage(Locale.US);
         //Locale locale = new Locale("en","IN");
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
-        int tts1=textToSpeech.speak("Let's, Begin the Process to change your password.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        if(Temp.equals("back")){
+            Intent intent=new Intent(ChangePassword.this,Profile.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            intent.putExtra("Rl","Student");
+            startActivity(intent);
+            finish();
+        }else if (Temp.equals("change password")) {
+            int tts1 = textToSpeech.speak("Please say your old password", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+            if (tts1 == TextToSpeech.SUCCESS) {
+                // Pause the timer until TTS completes
+                pauseToastTimer();
+            }
+            String userPwdCur="";
+            AuthCredential credential= EmailAuthProvider.getCredential(firebaseUser.getEmail(), userPwdCur);
+            firebaseUser.reauthenticate(credential).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    if (task.isSuccessful()) {
+                        AutomateChangePwd ();
+
+                    } else {
+                        try {
+                            throw task.getException();
+                        } catch (FirebaseAuthInvalidCredentialsException e) {
+                            int tts2 = textToSpeech.speak("Wrong Password Entered", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+                            if (tts2 == TextToSpeech.SUCCESS) {
+                                // Pause the timer until TTS completes
+                                pauseToastTimer();
+                            }
+                            CP_Password.setError("Wrong Password Entered");
+                            CP_Password.requestFocus();
+                        } catch (Exception e) {
+                            Toast.makeText(ChangePassword.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                }
+
+                String change = "";
+
+
+            });
+        }
+
+
+    }
+    public void AutomateChangePwd () {
+        int tts1 = textToSpeech.speak("Please say your new password", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
         if (tts1 == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();
         }
-        int tts2=textToSpeech.speak("Please Say, Exam Care and then your registered Email ID", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        String change="";
+        int tts2 = textToSpeech.speak("Please confirm your new password", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
         if (tts2 == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();
         }
-        String Email=""; // Store the Email over here using STT.
-        int tts3=textToSpeech.speak("Please Say, Exam Care and then your old password", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-        if (tts3 == TextToSpeech.SUCCESS) {
-            // Pause the timer until TTS completes
-            pauseToastTimer();
+        String userPwdCur="";
+        if(!change.matches(userPwdCur)){
+            int tts3 = textToSpeech.speak("Password did not match", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+            if (tts3 == TextToSpeech.SUCCESS) {
+                // Pause the timer until TTS completes
+                pauseToastTimer();
+            }// Toast.makeText(ChangePassword.this, "Password did not match", Toast.LENGTH_SHORT).show();
+            CP_ConfirmPassword.setError("Please re-enter same password");
+            CP_ConfirmPassword.requestFocus();
         }
-        String pwd=""; // Store the Email over here using STT.
-
-        int tts4=textToSpeech.speak("Please Say, Exam Care and then your new password", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-        if (tts4 == TextToSpeech.SUCCESS) {
-            // Pause the timer until TTS completes
-            pauseToastTimer();
-        }
-        String pwd2=""; // Store the Email over here using STT.
-        int tts5=textToSpeech.speak("Please Say, Exam Care Log me In, Inorder to login", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-        if (tts5 == TextToSpeech.SUCCESS) {
-            // Pause the timer until TTS completes
-            pauseToastTimer();
-        }
-        boolean YesResetPassword=false;//Edit This Using STT
-        if (YesResetPassword == true) {
-            // reAuthenticate(firebaseuser);
-            // updateEmail(Firebaseuser);
+        else if(change.matches(userPwdCur)){
+            int tts4 = textToSpeech.speak("New password cannot be same as old password", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+            //Toast.makeText(ChangePassword.this, "New password cannot be same as old password", Toast.LENGTH_SHORT).show();
+            if (tts4 == TextToSpeech.SUCCESS) {
+                // Pause the timer until TTS completes
+                pauseToastTimer();
+            }CP_NewPassword.setError("Please enter a new password");
+            CP_NewPassword.requestFocus();
+        }else {
+            CP_progressBar.setVisibility(View.VISIBLE);
+            firebaseUser.updatePassword(userPwdCur).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    if (task.isSuccessful()) {
+                        int tts5 = textToSpeech.speak("New password cannot be same as old password", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+                        //Toast.makeText(ChangePassword.this, "New password cannot be same as old password", Toast.LENGTH_SHORT).show();
+                        if (tts5 == TextToSpeech.SUCCESS) {
+                            // Pause the timer until TTS completes
+                            pauseToastTimer();
+                            Toast.makeText(ChangePassword.this, "Password has been changed", Toast.LENGTH_SHORT).show();
+                            finish();
+                        } else {
+                            try {
+                                throw task.getException();
+                            } catch (Exception e) {
+                                Toast.makeText(ChangePassword.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                        CP_progressBar.setVisibility(View.GONE);
+                    }
+                }
+            });
         }
     }
     private void reAuthenticateUser(FirebaseUser firebaseUser){

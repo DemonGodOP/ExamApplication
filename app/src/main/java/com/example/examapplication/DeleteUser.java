@@ -17,6 +17,7 @@ import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -31,6 +32,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -143,6 +145,27 @@ public class DeleteUser extends AppCompatActivity implements TextToSpeech.OnInit
         // Reset the timer whenever the user interacts with the app
         resetToastTimer();
         isUserInteracted = false; // Reset user interaction flag
+        if (textToSpeech != null) {
+            int ttsResult=textToSpeech.speak("If you want me to repeat the introduction of the page again please say, Exam Care Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+            if (ttsResult == TextToSpeech.SUCCESS) {
+                // Pause the timer until TTS completes
+                pauseToastTimer();
+            }
+            //Enter the Condition Over here that is tts to take input from the user if they wants us to repeat the introduction and change r respectively.
+            boolean r=false;
+            if(r==true){
+                StarUpRepeat();
+            } // Restart the TTS when the activity is resumed
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        pauseToastTimer();
+        if (textToSpeech != null) {
+            textToSpeech.stop(); // Stop the TTS if the activity is no longer visible
+        }
     }
 
 
@@ -177,6 +200,9 @@ public class DeleteUser extends AppCompatActivity implements TextToSpeech.OnInit
         @Override
         public void onDone(String utteranceId) {
             resetToastTimer();
+            if(utteranceId.equals("UTTERANCE_DELETE")){
+                deleteUser(firebaseUser);
+            }
         }
     };
 
@@ -211,12 +237,15 @@ public class DeleteUser extends AppCompatActivity implements TextToSpeech.OnInit
                 //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
                 //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
                 //textToSpeech.setVoice(voice);
-                int ttsResult = textToSpeech.speak("Hello, Welcome to the Delete account Page of Exam Care, This page provides you with the facility, to " +
-                        "to delete your existing account, if you want to delete your account, you just have to say, Hello" +
-                        " Exam Care Delete my account to start the delete functionality.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+                int ttsResult = textToSpeech.speak("Hello, Welcome to the Delete account Page of Exam Care,Would you like to listen to a Detailed introduction of the page.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
                 if (ttsResult == TextToSpeech.SUCCESS) {
                     // Pause the timer until TTS completes
                     pauseToastTimer();
+                }
+
+                String YN="";
+                if(YN.equals("YES")){
+                    StarUpRepeat();
                 }
             } else {
                 // TTS initialization failed, handle error
@@ -273,39 +302,81 @@ public class DeleteUser extends AppCompatActivity implements TextToSpeech.OnInit
         handler.removeCallbacks(toastRunnable);
     }//3
 
-    public void VoiceLogin(){
+
+
+
+    public void Automate(String Temp) {
         textToSpeech.setLanguage(Locale.US);
         //Locale locale = new Locale("en","IN");
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
-        int tts1=textToSpeech.speak("Let's, Begin the delete account Process.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-        if (tts1 == TextToSpeech.SUCCESS) {
-            // Pause the timer until TTS completes
-            pauseToastTimer();
-        }
-        int tts2=textToSpeech.speak("Please Say, Exam Care and then your Email ID", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-        if (tts2 == TextToSpeech.SUCCESS) {
-            // Pause the timer until TTS completes
-            pauseToastTimer();
-        }
-        String Email=""; // Store the Email over here using STT.
-        int tts3=textToSpeech.speak("Please Say, Exam Care and then your Password", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-        if (tts3 == TextToSpeech.SUCCESS) {
-            // Pause the timer until TTS completes
-            pauseToastTimer();
-        }
-        String pwd=""; //Store Email over here using STT.
+        if(Temp.equals("back")){
+            Intent intent=new Intent(DeleteUser.this,Profile.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            intent.putExtra("Rl","Student");
+            startActivity(intent);
+            finish();
+        }else if (Temp.equals("delete user")) {
+            int tts1 = textToSpeech.speak("Please say your password", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+            if (tts1 == TextToSpeech.SUCCESS) {
+                // Pause the timer until TTS completes
+                pauseToastTimer();
+            }
+            String userPwdCur="";
+            AuthCredential credential= EmailAuthProvider.getCredential(firebaseUser.getEmail(), userPwdCur);
+            firebaseUser.reauthenticate(credential).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    if (task.isSuccessful()) {
+                        AutomateDeleteUser();
 
-        int tts4=textToSpeech.speak("Please Say, Exam Care Log me In, Inorder to login", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-        if (tts4 == TextToSpeech.SUCCESS) {
+                    } else {
+                        try {
+                            throw task.getException();
+                        } catch (FirebaseAuthInvalidCredentialsException e) {
+                            int tts2 = textToSpeech.speak("Wrong Password Entered", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+                            if (tts2 == TextToSpeech.SUCCESS) {
+                                // Pause the timer until TTS completes
+                                pauseToastTimer();
+                            }
+                            DU_Password.setError("Wrong Password Entered");
+                            DU_Password.requestFocus();
+                        } catch (Exception e) {
+                            Toast.makeText(DeleteUser.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                }
+
+                String change = "";
+
+
+            });
+        }
+    }
+
+    public void AutomateDeleteUser () {
+        int ttsResult = textToSpeech.speak("The account along with all your data will be permanently deleted. Do you want to delete the account?", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();
         }
-        boolean DeleteUser=false;//Edit This Using STT
-        if (DeleteUser == true) {
-            //loginUser(Email,pwd);
-            //your account has been deleted
+
+        String YN="";
+        if(YN.equals("YES")) {
+            int tts2 = textToSpeech.speak("Your Profile deletion process has been started. After the deletion, you will be redirected to the login page.", TextToSpeech.QUEUE_FLUSH, null, "UTTERANCE_DELETE");
+            if (tts2 == TextToSpeech.SUCCESS) {
+                // Pause the timer until TTS completes
+                pauseToastTimer();
+            }
+        }
+        else {
+            int tts3 = textToSpeech.speak("Your profile deletion operation has been cancelled .", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+            if (tts3 == TextToSpeech.SUCCESS) {
+                // Pause the timer until TTS completes
+                pauseToastTimer();
+
+            }
         }
     }
 
