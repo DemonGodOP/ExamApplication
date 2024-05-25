@@ -1,14 +1,17 @@
 package com.example.examapplication;
+import android.Manifest;
 
 import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.widget.Toolbar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.speech.tts.TextToSpeech;
@@ -35,9 +38,9 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 
-public class StudentHomePage extends AppCompatActivity implements TextToSpeech.OnInitListener{
+
+public class StudentHomePage extends AppCompatActivity implements TextToSpeech.OnInitListener,WakeWordListener{
 
     TextView SignOut,SHM_NoText;
     FirebaseAuth authProfile;
@@ -64,6 +67,13 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
 
     List<Group> groupsList;
 
+    AState.AppState appstate;
+
+    WakeWordHelper wakeWordHelper;
+
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -79,6 +89,15 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
         authProfile = FirebaseAuth.getInstance();
         FirebaseUser firebaseUser = authProfile.getCurrentUser();
         //Check if email is verified before user can access their profile
+
+        appstate = AState.AppState.TTS;
+        if (hasRecordPermission()){
+            wakeWordHelper=new WakeWordHelper(this,appstate,this);
+            wakeWordHelper.startListening();
+        } else {
+            // Permission already granted
+            requestRecordPermission();
+        }
 
         SHM_LV=findViewById(R.id.SHM_LV);
         SHM_Search=findViewById(R.id.SHM_Search);
@@ -140,8 +159,6 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
         });
         handler = new Handler();//2
 
-        isUserInteracted = false;
-        isTTSInitialized = false;
 
         toastRunnable = new Runnable() {
             @Override
@@ -173,6 +190,38 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
             if(r==true){
                 StarUpRepeat();
             } // Restart the TTS when the activity is resumed
+            else{
+                appstate= AState.AppState.WAKEWORD;
+            }
+
+            if(appstate== AState.AppState.WAKEWORD){
+                wakeWordHelper.startListening();
+            }
+        }
+    }
+
+
+    private boolean hasRecordPermission() {
+        return ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+                == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void requestRecordPermission() {
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, 0);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (grantResults.length == 0 ||
+                grantResults[0] == PackageManager.PERMISSION_DENIED) {
+            // handle permission denied
+            Toast.makeText(this, "App Cannot be Used Without Record Permission", Toast.LENGTH_SHORT).show();
+        } else {
+            wakeWordHelper=new WakeWordHelper(this,appstate,this);
+            wakeWordHelper.startListening();
         }
     }
 
@@ -182,6 +231,10 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
         pauseToastTimer();
         if (textToSpeech != null) {
             textToSpeech.stop(); // Stop the TTS if the activity is no longer visible
+        }
+        if(appstate== AState.AppState.WAKEWORD) {
+            wakeWordHelper.stopListening();
+            appstate = AState.AppState.TTS;
         }
     }
 
@@ -498,5 +551,10 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
                 Toast.makeText(StudentHomePage.this, "Something Went Wrong Please Restart The Application", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    @Override
+    public void onWakeWordDetected() {
+        Toast.makeText(this, "Wakeword Detected"+appstate, Toast.LENGTH_SHORT).show();
     }
 }
