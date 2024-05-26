@@ -556,5 +556,6 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
     @Override
     public void onWakeWordDetected() {
         Toast.makeText(this, "Wakeword Detected"+appstate, Toast.LENGTH_SHORT).show();
+        wakeWordHelper.startListening();
     }
 }
