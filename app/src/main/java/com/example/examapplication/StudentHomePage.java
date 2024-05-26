@@ -93,7 +93,6 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
         appstate = AState.AppState.TTS;
         if (hasRecordPermission()){
             wakeWordHelper=new WakeWordHelper(this,appstate,this);
-            wakeWordHelper.startListening();
         } else {
             // Permission already granted
             requestRecordPermission();
@@ -221,7 +220,6 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
             Toast.makeText(this, "App Cannot be Used Without Record Permission", Toast.LENGTH_SHORT).show();
         } else {
             wakeWordHelper=new WakeWordHelper(this,appstate,this);
-            wakeWordHelper.startListening();
         }
     }
 
@@ -269,6 +267,12 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
 
         @Override
         public void onDone(String utteranceId) {
+
+            if(utteranceId.equals("TTS_UTTERANCE_STARTWAKEWORD")){
+                appstate= AState.AppState.WAKEWORD;
+               wakeWordHelper.startListening();
+
+            }
             resetToastTimer();
         }
     };
@@ -310,6 +314,13 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
             if(YN.equals("YES")){
                 StarUpRepeat();
             }
+            else{
+                int tts1=textToSpeech.speak("No Input Detected, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
+                if (tts1== TextToSpeech.SUCCESS) {
+                    // Pause the timer until TTS completes
+                    pauseToastTimer();
+                }
+            }
         } else {
             // TTS initialization failed, handle error
             Log.e("TTS", "Initialization failed");
@@ -327,12 +338,11 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
                 "see your profile details, for this you have to say, hello Exam care, profile details, " +
                 "you can also sign Out if you want, for this you have to say, hello Exam care, sign out, you can also search, existing groups for this,"+
                 " that you want to join, you just to say, hello exam care,search group and enter group id, and finally you can check the groups," +
-                "that you have already joined, by saying, hello exam care,joined group names.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+                "that you have already joined, by saying, hello exam care,joined group names. If you want me to repeat the introduction of the page again please say, Exam Care Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();
         }
-        Repeat();
     }
 
     public void Repeat(){
@@ -344,12 +354,20 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
         int ttsResult=textToSpeech.speak("If you want me to repeat the introduction of the page again please say, Exam Care Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
+            appstate= AState.AppState.TTS;
             pauseToastTimer();
         }
         //Enter the Condition Over here that is tts to take input from the user if they wants us to repeat the introduction and change r respectively.
         boolean r=false;
         if(r==true){
             StarUpRepeat();
+        }
+        else{
+            int tts1=textToSpeech.speak("No Input Detected, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
+            if (tts1== TextToSpeech.SUCCESS) {
+                // Pause the timer until TTS completes
+                pauseToastTimer();
+            }
         }
     }
 
@@ -374,6 +392,10 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
+        appstate= AState.AppState.TTS;
+        if(Temp.equals("Repeat Introduction")){
+            StarUpRepeat();
+        }
         if(Temp.equals("profile details")){
             Intent intent=new Intent(StudentHomePage.this,Profile.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -438,7 +460,7 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
                         finish();
                     }
                     else{
-                        int tts1=textToSpeech.speak("Wrong input provided. Please start the process from the beginning. Sorry for any inconvenience", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+                        int tts1=textToSpeech.speak("Wrong input provided. Please start the process from the beginning. Sorry for any inconvenience, Wake Word Engine Started", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
                         if (tts1 == TextToSpeech.SUCCESS) {
                             // Pause the timer until TTS completes
                             pauseToastTimer();
@@ -449,12 +471,13 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
             }
         }
         else{
-            int tts1=textToSpeech.speak("Wrong input provided. Please start the process from the beginning. Sorry for any inconvenience", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+            int tts1=textToSpeech.speak("Wrong input provided. Please start the process from the beginning. Sorry for any inconvenience, Wake Word Engine Started", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
             if (tts1 == TextToSpeech.SUCCESS) {
                 // Pause the timer until TTS completes
                 pauseToastTimer();
             }
         }
+        wakeWordHelper.startListening();
     }
 
     private void showAlertDialog () {
@@ -556,6 +579,5 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
     @Override
     public void onWakeWordDetected() {
         Toast.makeText(this, "Wakeword Detected"+appstate, Toast.LENGTH_SHORT).show();
-        wakeWordHelper.startListening();
     }
 }
