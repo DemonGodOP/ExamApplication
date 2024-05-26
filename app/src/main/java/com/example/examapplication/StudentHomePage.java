@@ -338,7 +338,7 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
                 "see your profile details, for this you have to say, hello Exam care, profile details, " +
                 "you can also sign Out if you want, for this you have to say, hello Exam care, sign out, you can also search, existing groups for this,"+
                 " that you want to join, you just to say, hello exam care,search group and enter group id, and finally you can check the groups," +
-                "that you have already joined, by saying, hello exam care,joined group names. If you want me to repeat the introduction of the page again please say, Exam Care Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+                "that you have already joined, by saying, hello exam care,joined group names. If you want me to repeat the introduction of the page again please say, Exam Care Repeat Introduction, Wake Word Engine Started", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();
@@ -346,6 +346,9 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
     }
 
     public void Repeat(){
+        if(appstate== AState.AppState.WAKEWORD){
+            wakeWordHelper.stopListening();
+        }
         textToSpeech.setLanguage(Locale.US);
         //Locale locale = new Locale("en","IN");
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
@@ -380,6 +383,7 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
             textToSpeech.stop();
             textToSpeech.shutdown();
         }
+        wakeWordHelper.stopListening();
         super.onDestroy();
         handler.removeCallbacks(toastRunnable);
     }//3
