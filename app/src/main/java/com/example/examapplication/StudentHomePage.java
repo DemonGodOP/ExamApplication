@@ -400,7 +400,7 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
         if(Temp.equals("Repeat Introduction")){
             StarUpRepeat();
         }
-        if(Temp.equals("profile details")){
+        else if(Temp.equals("profile details")){
             Intent intent=new Intent(StudentHomePage.this,Profile.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             intent.putExtra("Rl","Student");

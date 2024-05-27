@@ -327,7 +327,7 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
         if(Temp.equals("Repeat Introduction")){
             StarUpRepeat();
         }
-        if(Temp.equals("profile details")){
+        else if(Temp.equals("profile details")){
             Intent intent=new Intent(StudentGroupDetails.this,Profile.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             intent.putExtra("Rl","Student");
