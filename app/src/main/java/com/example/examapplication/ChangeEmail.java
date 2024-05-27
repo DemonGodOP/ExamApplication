@@ -5,10 +5,13 @@ import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.speech.tts.TextToSpeech;
@@ -43,7 +46,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class ChangeEmail extends AppCompatActivity implements TextToSpeech.OnInitListener{
+public class ChangeEmail extends AppCompatActivity implements TextToSpeech.OnInitListener,WakeWordListener{
     FirebaseAuth authProfile;
     FirebaseUser firebaseUser;
     ProgressBar CE_progressBar;
@@ -61,6 +64,9 @@ public class ChangeEmail extends AppCompatActivity implements TextToSpeech.OnIni
     boolean isTTSInitialized;//1
     Button buttonVerifyUser;
     String Rl;
+    AState.AppState appstate;
+
+    WakeWordHelper wakeWordHelper;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -126,6 +132,13 @@ public class ChangeEmail extends AppCompatActivity implements TextToSpeech.OnIni
         }else{
             reAuthenticate (firebaseUser);
         }
+        appstate = AState.AppState.TTS;
+        if (hasRecordPermission()){
+            wakeWordHelper=new WakeWordHelper(this,appstate,this);
+        } else {
+            // Permission already granted
+            requestRecordPermission();
+        }
             handler = new Handler();//2
 
             isUserInteracted = false;
@@ -159,6 +172,32 @@ public class ChangeEmail extends AppCompatActivity implements TextToSpeech.OnIni
             if(r==true){
                 StarUpRepeat();
             } // Restart the TTS when the activity is resumed
+            else{
+                appstate= AState.AppState.WAKEWORD;
+                wakeWordHelper.startListening();
+            }
+        }
+    }
+    private boolean hasRecordPermission() {
+        return ActivityCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO)
+                == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void requestRecordPermission() {
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, 0);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (grantResults.length == 0 ||
+                grantResults[0] == PackageManager.PERMISSION_DENIED) {
+            // handle permission denied
+            Toast.makeText(this, "App Cannot be Used Without Record Permission", Toast.LENGTH_SHORT).show();
+        } else {
+            wakeWordHelper=new WakeWordHelper(this,appstate,this);
         }
     }
 
@@ -168,6 +207,10 @@ public class ChangeEmail extends AppCompatActivity implements TextToSpeech.OnIni
         pauseToastTimer();
         if (textToSpeech != null) {
             textToSpeech.stop(); // Stop the TTS if the activity is no longer visible
+        }
+        if(appstate== AState.AppState.WAKEWORD) {
+            wakeWordHelper.stopListening();
+            appstate = AState.AppState.TTS;
         }
     }
 
@@ -201,6 +244,11 @@ public class ChangeEmail extends AppCompatActivity implements TextToSpeech.OnIni
 
         @Override
         public void onDone(String utteranceId) {
+            if(utteranceId.equals("TTS_UTTERANCE_STARTWAKEWORD")){
+                appstate= AState.AppState.WAKEWORD;
+                wakeWordHelper.startListening();
+
+            }
             resetToastTimer();
         }
     };
@@ -245,6 +293,13 @@ public class ChangeEmail extends AppCompatActivity implements TextToSpeech.OnIni
             if(YN.equals("YES")){
                 StarUpRepeat();
             }
+            else{
+                int tts1=textToSpeech.speak("No Input Detected, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
+                if (tts1== TextToSpeech.SUCCESS) {
+                    // Pause the timer until TTS completes
+                    pauseToastTimer();
+                }
+            }
         } else {
             // TTS initialization failed, handle error
             Log.e("TTS", "Initialization failed");
@@ -259,9 +314,9 @@ public class ChangeEmail extends AppCompatActivity implements TextToSpeech.OnIni
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
-        int ttsResult=textToSpeech.speak("Hello, Welcome to the Change Email Page of Exam Care, This page provides you with the facility, to \" +\n" +
-                "change your email, for that please say your registered email id and then say the new email id and after that say hello exam care reset email. Then a link will be sent to your  \" +\n" +
-                "registered email id, from there you can reset your email.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        int ttsResult=textToSpeech.speak("Hello, Welcome to the Change Email Page of Exam Care, This page provides you with the facility, to " +
+                "change your email, for that please say your registered email id and then say the new email id and after that say hello exam care reset email. Then a link will be sent to your " +
+                "registered email id, from there you can reset your email.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();
@@ -285,6 +340,13 @@ public class ChangeEmail extends AppCompatActivity implements TextToSpeech.OnIni
         if(r==true){
             StarUpRepeat();
         }
+        else{
+            int tts1=textToSpeech.speak("No Input Detected, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
+            if (tts1== TextToSpeech.SUCCESS) {
+                // Pause the timer until TTS completes
+                pauseToastTimer();
+            }
+        }
     }
 
     @Override
@@ -294,6 +356,7 @@ public class ChangeEmail extends AppCompatActivity implements TextToSpeech.OnIni
             textToSpeech.stop();
             textToSpeech.shutdown();
         }
+        wakeWordHelper.stopListening();
         super.onDestroy();
         handler.removeCallbacks(toastRunnable);
     }//3
@@ -304,7 +367,9 @@ public class ChangeEmail extends AppCompatActivity implements TextToSpeech.OnIni
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
-        if(Temp.equals("back")){
+        if(Temp.equals("Repeat Introduction")){
+            StarUpRepeat();
+        }else if(Temp.equals("back")){
             Intent intent=new Intent(ChangeEmail.this,Profile.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             intent.putExtra("Rl","Student");
@@ -359,6 +424,7 @@ public class ChangeEmail extends AppCompatActivity implements TextToSpeech.OnIni
                 }
             });
         }
+        wakeWordHelper.startListening();
     }
 
     public void AutomateChangeEmail () {
@@ -574,5 +640,8 @@ public class ChangeEmail extends AppCompatActivity implements TextToSpeech.OnIni
         //show the alert dialog
         alertDialog.show();
     }
-
+    @Override
+    public void onWakeWordDetected() {
+        Toast.makeText(this, "Wakeword Detected"+appstate, Toast.LENGTH_SHORT).show();
+    }
 }
