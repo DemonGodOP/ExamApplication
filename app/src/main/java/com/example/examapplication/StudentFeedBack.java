@@ -460,13 +460,6 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
         if(Temp.equals("Repeat Introduction")){
             StarUpRepeat();
         }
-        else if(Temp.equals("profile details")){
-            Intent intent=new Intent(StudentFeedBack.this,Profile.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            intent.putExtra("Rl","Student");
-            startActivity(intent);
-            finish();
-        }
         else if(Temp.equals("feedback")){
             SF_QN.setVisibility(View.GONE);
             SN_Q.setVisibility(View.GONE);

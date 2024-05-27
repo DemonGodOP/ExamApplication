@@ -483,13 +483,6 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
         if(Temp.equals("Repeat Introduction")){
             StarUpRepeat();
         }
-       else if(Temp.equals("profile details")){
-            Intent intent=new Intent(AssignmentSubmission.this,Profile.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            intent.putExtra("Rl","Student");
-            startActivity(intent);
-            finish();
-        }
         else if(Temp.equals("Answer")){
             int tts1=textToSpeech.speak("Please Start Answering Now.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
             if (tts1 == TextToSpeech.SUCCESS) {
