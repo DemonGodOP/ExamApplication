@@ -4,8 +4,11 @@ import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.speech.tts.TextToSpeech;
@@ -27,7 +30,7 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.List;
 import java.util.Locale;
 
-public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.OnInitListener{
+public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.OnInitListener,WakeWordListener{
    TextView SFTSG,SF_QN,SN_Q,SF_FText,SN_F,SF_AnswerText,SN_A;
    Button SF_Prev,SF_Next,SF_FB;
 
@@ -49,6 +52,10 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
     boolean isTTSInitialized;//1
 
     FeedBackDetails feedBackDetails;
+
+    AState.AppState appstate;
+
+    WakeWordHelper wakeWordHelper;
    int n=0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -207,6 +214,15 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
                 });
             }
         });
+
+        appstate = AState.AppState.TTS;
+        if (hasRecordPermission()){
+            wakeWordHelper=new WakeWordHelper(this,appstate,this);
+        } else {
+            // Permission already granted
+            requestRecordPermission();
+        }
+
         handler = new Handler();//2
 
         isUserInteracted = false;
@@ -240,6 +256,33 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
             if(r==true){
                 StarUpRepeat();
             } // Restart the TTS when the activity is resumed
+            else{
+                appstate= AState.AppState.WAKEWORD;
+                wakeWordHelper.startListening();
+            }
+        }
+    }
+
+    private boolean hasRecordPermission() {
+        return ActivityCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO)
+                == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void requestRecordPermission() {
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, 0);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (grantResults.length == 0 ||
+                grantResults[0] == PackageManager.PERMISSION_DENIED) {
+            // handle permission denied
+            Toast.makeText(this, "App Cannot be Used Without Record Permission", Toast.LENGTH_SHORT).show();
+        } else {
+            wakeWordHelper=new WakeWordHelper(this,appstate,this);
         }
     }
 
@@ -249,6 +292,10 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
         pauseToastTimer();
         if (textToSpeech != null) {
             textToSpeech.stop(); // Stop the TTS if the activity is no longer visible
+        }
+        if(appstate== AState.AppState.WAKEWORD) {
+            wakeWordHelper.stopListening();
+            appstate = AState.AppState.TTS;
         }
     }
 
@@ -283,6 +330,11 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
 
         @Override
         public void onDone(String utteranceId) {
+            if(utteranceId.equals("TTS_UTTERANCE_STARTWAKEWORD")){
+                appstate= AState.AppState.WAKEWORD;
+                wakeWordHelper.startListening();
+
+            }
             resetToastTimer();
         }
     };
@@ -326,7 +378,7 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
             }
             else{
                 String Q=Questions.get(n);
-                int tts5=textToSpeech.speak("Question No."+n+"is"+Q, TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+                int tts5=textToSpeech.speak("Question No."+n+"is"+Q+"Wake word engine started you can surf through the page now", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
                 if (tts5 == TextToSpeech.SUCCESS) {
                     // Pause the timer until TTS completes
                     pauseToastTimer();
@@ -352,7 +404,7 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
                 "Exam Care, Repeat Question or you can ask\" +\n" +
                 "\" me to repeat the answer by saying, Exam Care, Repeat answer. You can Surf through question review with simple Commands like, in order to\" +\n" +
                 "\" go to the next question just say, Exam Care, Next, or Inorder to go to the previous Question say,Exam Care, Previous or you can go back to the student group page just say " +
-                "Exam care, back", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+                "Exam care, back", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();
@@ -376,6 +428,13 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
         if(r==true){
             StarUpRepeat();
         }
+        else{
+            int tts1=textToSpeech.speak("No Input Detected, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
+            if (tts1== TextToSpeech.SUCCESS) {
+                // Pause the timer until TTS completes
+                pauseToastTimer();
+            }
+        }
     }
 
 
@@ -387,6 +446,7 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
             textToSpeech.stop();
             textToSpeech.shutdown();
         }
+        wakeWordHelper.stopListening();
         super.onDestroy();
         handler.removeCallbacks(toastRunnable);
     }//3
@@ -396,7 +456,18 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
-        if(Temp.equals("feedback")){
+        appstate= AState.AppState.TTS;
+        if(Temp.equals("Repeat Introduction")){
+            StarUpRepeat();
+        }
+        if(Temp.equals("profile details")){
+            Intent intent=new Intent(StudentFeedBack.this,Profile.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            intent.putExtra("Rl","Student");
+            startActivity(intent);
+            finish();
+        }
+        else if(Temp.equals("feedback")){
             SF_QN.setVisibility(View.GONE);
             SN_Q.setVisibility(View.GONE);
             SF_Prev.setVisibility(View.GONE);
@@ -564,6 +635,11 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
                 pauseToastTimer();
             }
         }
+        wakeWordHelper.startListening();
+    }
+    @Override
+    public void onWakeWordDetected() {
+        Toast.makeText(this, "Wakeword Detected"+appstate, Toast.LENGTH_SHORT).show();
     }
 }
 

@@ -6,9 +6,12 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.app.ActivityCompat;
 
+import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.speech.tts.TextToSpeech;
@@ -31,7 +34,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.Locale;
 
-public class SearchingGroup extends AppCompatActivity implements TextToSpeech.OnInitListener{
+public class SearchingGroup extends AppCompatActivity implements TextToSpeech.OnInitListener,WakeWordListener{
     TextView SRGTSHM,SRG_GroupName,SRG_GroupSubjectCode,SRG_NoText,SG_GNT,SG_GSCT;
     Button SRG_Layout;
     String Group_ID,Username,Email;
@@ -52,6 +55,10 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
 
     Group foundGroup;
 
+    AState.AppState appstate;
+
+    WakeWordHelper wakeWordHelper;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,6 +68,8 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
         startActivityForResult(checkIntent, 1);//0
         Intent intent=getIntent();
         Group_ID=intent.getStringExtra("GROUP_ID");
+
+
 
         SRGTSHM=findViewById(R.id.SRGTSHM);
         SRG_GroupName=findViewById(R.id.SRG_GroupName);
@@ -192,6 +201,15 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
                 });
             }
         });
+
+        appstate = AState.AppState.TTS;
+        if (hasRecordPermission()){
+            wakeWordHelper=new WakeWordHelper(this,appstate,this);
+        } else {
+            // Permission already granted
+            requestRecordPermission();
+        }
+
         handler = new Handler();//2
 
         isUserInteracted = false;
@@ -224,9 +242,37 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
             boolean r=false;
             if(r==true){
                 StarUpRepeat();
-            } // Restart the TTS when the activity is resumed
+            }else{
+                appstate= AState.AppState.WAKEWORD;
+                wakeWordHelper.startListening();
+            }// Restart the TTS when the activity is resumed
+
         }
     }
+
+    private boolean hasRecordPermission() {
+        return ActivityCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO)
+                == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void requestRecordPermission() {
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, 0);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (grantResults.length == 0 ||
+                grantResults[0] == PackageManager.PERMISSION_DENIED) {
+            // handle permission denied
+            Toast.makeText(this, "App Cannot be Used Without Record Permission", Toast.LENGTH_SHORT).show();
+        } else {
+            wakeWordHelper=new WakeWordHelper(this,appstate,this);
+        }
+    }
+
 
     @Override
     protected void onPause() {
@@ -234,6 +280,10 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
         pauseToastTimer();
         if (textToSpeech != null) {
             textToSpeech.stop(); // Stop the TTS if the activity is no longer visible
+        }
+        if(appstate== AState.AppState.WAKEWORD) {
+            wakeWordHelper.stopListening();
+            appstate = AState.AppState.TTS;
         }
     }
 
@@ -268,6 +318,11 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
 
         @Override
         public void onDone(String utteranceId) {
+            if(utteranceId.equals("TTS_UTTERANCE_STARTWAKEWORD")){
+                appstate= AState.AppState.WAKEWORD;
+                wakeWordHelper.startListening();
+
+            }
             resetToastTimer();
         }
     };
@@ -307,7 +362,7 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
             else{
                 voice="Hello, Welcome to the Searching Group Page of Exam Care, No Groups are present with the group id that you provided please go back to the homepage and try searching for the group again. For Going back to the HomePage say Exam Care, HomePage";
             }
-            int ttsResult=textToSpeech.speak(voice, TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+            int ttsResult=textToSpeech.speak(voice, TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
             if (ttsResult == TextToSpeech.SUCCESS) {
                 // Pause the timer until TTS completes
                 pauseToastTimer();
@@ -332,7 +387,7 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
         else{
             voice="Hello, Welcome to the Searching Group Page of Exam Care, No Groups are present with the group id that you provided please go back to the homepage and try searching for the group again. For Going back to the HomePage say Exam Care, HomePage";
         }
-        int ttsResult=textToSpeech.speak(voice, TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        int ttsResult=textToSpeech.speak(voice, TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();
@@ -340,6 +395,9 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
     }
 
     public void Repeat(){
+        if(appstate== AState.AppState.WAKEWORD){
+            wakeWordHelper.stopListening();
+        }
         textToSpeech.setLanguage(Locale.US);
         //Locale locale = new Locale("en","IN");
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
@@ -364,6 +422,7 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
             textToSpeech.stop();
             textToSpeech.shutdown();
         }
+        wakeWordHelper.stopListening();
         super.onDestroy();
         handler.removeCallbacks(toastRunnable);
     }//3
@@ -373,7 +432,11 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
         //Locale locale = new Locale("en","IN");
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
-        if(Temp.equals("HomePage")){
+        appstate= AState.AppState.TTS;
+        if(Temp.equals("Repeat Introduction")){
+            StarUpRepeat();
+        }
+        else if(Temp.equals("HomePage")){
             Intent intent = new Intent(SearchingGroup.this, StudentHomePage.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
             intent.putExtra("Rl","Student");
@@ -481,6 +544,7 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
                 pauseToastTimer();
             }
         }
+        wakeWordHelper.startListening();
     }
 
     private void showAlertDialog () {
@@ -527,5 +591,9 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
 
         //show the alert dialog
         alertDialog.show();
+    }
+    @Override
+    public void onWakeWordDetected() {
+        Toast.makeText(this, "Wakeword Detected"+appstate, Toast.LENGTH_SHORT).show();
     }
 }

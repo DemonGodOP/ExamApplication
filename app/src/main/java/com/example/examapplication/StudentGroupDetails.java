@@ -4,8 +4,11 @@ import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.speech.tts.TextToSpeech;
@@ -26,7 +29,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.Locale;
 
-public class StudentGroupDetails extends AppCompatActivity implements TextToSpeech.OnInitListener  {
+public class StudentGroupDetails extends AppCompatActivity implements TextToSpeech.OnInitListener,WakeWordListener  {
     TextView SGDTSG,SGD_GN,SGD_SN,SGD_SC,SGD_CB,SGD_GD;
 
     ProgressBar SGD_progressBar;
@@ -45,6 +48,10 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
 
     // Flag to indicate if TextToSpeech engine is initialized
     boolean isTTSInitialized;//1
+
+    AState.AppState appstate;
+
+    WakeWordHelper wakeWordHelper;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,6 +89,14 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
                 finish();
             }
         });
+
+        appstate = AState.AppState.TTS;
+        if (hasRecordPermission()){
+            wakeWordHelper=new WakeWordHelper(this,appstate,this);
+        } else {
+            // Permission already granted
+            requestRecordPermission();
+        }
         handler = new Handler();//2
 
         isUserInteracted = false;
@@ -114,6 +129,33 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
             if(r==true){
                 StarUpRepeat();
             } // Restart the TTS when the activity is resumed
+            else{
+                appstate= AState.AppState.WAKEWORD;
+                wakeWordHelper.startListening();
+            }
+        }
+    }
+
+    private boolean hasRecordPermission() {
+        return ActivityCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO)
+                == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void requestRecordPermission() {
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, 0);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (grantResults.length == 0 ||
+                grantResults[0] == PackageManager.PERMISSION_DENIED) {
+            // handle permission denied
+            Toast.makeText(this, "App Cannot be Used Without Record Permission", Toast.LENGTH_SHORT).show();
+        } else {
+            wakeWordHelper=new WakeWordHelper(this,appstate,this);
         }
     }
 
@@ -123,6 +165,10 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
         pauseToastTimer();
         if (textToSpeech != null) {
             textToSpeech.stop(); // Stop the TTS if the activity is no longer visible
+        }
+        if(appstate== AState.AppState.WAKEWORD) {
+            wakeWordHelper.stopListening();
+            appstate = AState.AppState.TTS;
         }
     }
 
@@ -156,6 +202,12 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
 
         @Override
         public void onDone(String utteranceId) {
+
+            if(utteranceId.equals("TTS_UTTERANCE_STARTWAKEWORD")){
+                appstate= AState.AppState.WAKEWORD;
+                wakeWordHelper.startListening();
+
+            }
             resetToastTimer();
         }
     };
@@ -197,6 +249,13 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
             if(YN.equals("YES")){
                 StarUpRepeat();
             }
+            else{
+                int tts1=textToSpeech.speak("No Input Detected, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
+                if (tts1== TextToSpeech.SUCCESS) {
+                    // Pause the timer until TTS completes
+                    pauseToastTimer();
+                }
+            }
         } else {
             // TTS initialization failed, handle error
             Log.e("TTS", "Initialization failed");
@@ -211,7 +270,7 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
         int ttsResult=textToSpeech.speak("Hello, Welcome to the student Group Details Page of Exam Care, This page provides you with the facility, to " +
-                "know about your group name, subject name, subject code, creator, and group description, you just have to say Hello exam care, group details. or you can go back to the group page just by saying Exam care, Back", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+                "know about your group name, subject name, subject code, creator, and group description, you just have to say Hello exam care, group details. or you can go back to the group page just by saying Exam care, Back", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();
@@ -235,6 +294,13 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
         if(r==true){
             StarUpRepeat();
         }
+        else{
+            int tts1=textToSpeech.speak("No Input Detected, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
+            if (tts1== TextToSpeech.SUCCESS) {
+                // Pause the timer until TTS completes
+                pauseToastTimer();
+            }
+        }
     }
 
 
@@ -246,6 +312,7 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
             textToSpeech.stop();
             textToSpeech.shutdown();
         }
+        wakeWordHelper.stopListening();
         super.onDestroy();
         handler.removeCallbacks(toastRunnable);
     }//3
@@ -256,7 +323,18 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
-        if(Temp.equals("Back")){
+        appstate= AState.AppState.TTS;
+        if(Temp.equals("Repeat Introduction")){
+            StarUpRepeat();
+        }
+        if(Temp.equals("profile details")){
+            Intent intent=new Intent(StudentGroupDetails.this,Profile.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            intent.putExtra("Rl","Student");
+            startActivity(intent);
+            finish();
+        }
+        else if(Temp.equals("Back")){
             Intent intent = new Intent(StudentGroupDetails.this, StudentGroup.class);
 
             // Pass the unique key to the new activity
@@ -281,6 +359,7 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
                 pauseToastTimer();
             }
         }
+        wakeWordHelper.startListening();
     }
 
     public void showGroupDetails(FirebaseUser firebaseUser){
@@ -312,5 +391,10 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
                 Toast.makeText(StudentGroupDetails.this, "Something went wrong!", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    @Override
+    public void onWakeWordDetected() {
+        Toast.makeText(this, "Wakeword Detected"+appstate, Toast.LENGTH_SHORT).show();
     }
 }

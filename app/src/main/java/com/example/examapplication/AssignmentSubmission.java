@@ -5,9 +5,12 @@ import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
+import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -33,7 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class AssignmentSubmission extends AppCompatActivity implements TextToSpeech.OnInitListener {
+public class AssignmentSubmission extends AppCompatActivity implements TextToSpeech.OnInitListener,WakeWordListener {
     TextView AS_QN,AS_Q,AS_A,AS_Time;
 
     Button AS_Prev,AS_Next,AS_S;
@@ -63,6 +66,10 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
     long timeLeftInMillis;
 
     Assignment assignment;
+
+    AState.AppState appstate;
+
+    WakeWordHelper wakeWordHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -222,6 +229,15 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
 
             }
         });
+
+        appstate = AState.AppState.TTS;
+        if (hasRecordPermission()){
+            wakeWordHelper=new WakeWordHelper(this,appstate,this);
+        } else {
+            // Permission already granted
+            requestRecordPermission();
+        }
+
         handler = new Handler();//2
 
         isUserInteracted = false;
@@ -256,6 +272,33 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
             if(r==true){
                 StarUpRepeat();
             } // Restart the TTS when the activity is resumed
+            else{
+                appstate= AState.AppState.WAKEWORD;
+                wakeWordHelper.startListening();
+            }
+        }
+    }
+
+    private boolean hasRecordPermission() {
+        return ActivityCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO)
+                == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void requestRecordPermission() {
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, 0);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (grantResults.length == 0 ||
+                grantResults[0] == PackageManager.PERMISSION_DENIED) {
+            // handle permission denied
+            Toast.makeText(this, "App Cannot be Used Without Record Permission", Toast.LENGTH_SHORT).show();
+        } else {
+            wakeWordHelper=new WakeWordHelper(this,appstate,this);
         }
     }
 
@@ -265,6 +308,10 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
         pauseToastTimer();
         if (textToSpeech != null) {
             textToSpeech.stop(); // Stop the TTS if the activity is no longer visible
+        }
+        if(appstate== AState.AppState.WAKEWORD) {
+            wakeWordHelper.stopListening();
+            appstate = AState.AppState.TTS;
         }
     }
 
@@ -301,6 +348,11 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
         public void onDone(String utteranceId) {
             if(utteranceId.equals("TTS_UTTERANCE_SUBMISSION")){
                 submitTest();
+            }
+           else if(utteranceId.equals("TTS_UTTERANCE_STARTWAKEWORD")){
+                appstate= AState.AppState.WAKEWORD;
+                wakeWordHelper.startListening();
+
             }
             resetToastTimer();
         }
@@ -345,7 +397,7 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
             }
             else{
                 String Q=Questions.get(n);
-                int tts5=textToSpeech.speak("Question No."+n+"is"+Q, TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+                int tts5=textToSpeech.speak("Question No."+n+"is"+Q+"Wake word engine started, you can surf through the page now", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
                 if (tts5 == TextToSpeech.SUCCESS) {
                     // Pause the timer until TTS completes
                     pauseToastTimer();
@@ -374,7 +426,7 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
                 " me to repeat the answer by saying, Exam Care, Repeat answer. You can Surf through the examination with simple Commands like, in order to" +
                 " go to the next question just say, Exam Care, Next, or Inorder to go to the previous Question say,Exam Care, Previous,You can also ask me to " +
                 "to inform you about the time duration left to complete the assignment just say Exam Care, Time left. and last but" +
-                " not the least in order to submit the assignment, just say Exam Care, Submit", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+                " not the least in order to submit the assignment, just say Exam Care, Submit", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();
@@ -398,6 +450,13 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
         if(r==true){
             StarUpRepeat();
         }
+        else{
+            int tts1=textToSpeech.speak("No Input Detected, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
+            if (tts1== TextToSpeech.SUCCESS) {
+                // Pause the timer until TTS completes
+                pauseToastTimer();
+            }
+        }
     }
 
 
@@ -409,6 +468,7 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
             textToSpeech.stop();
             textToSpeech.shutdown();
         }
+        wakeWordHelper.stopListening();
         super.onDestroy();
         handler.removeCallbacks(toastRunnable);
     }//3
@@ -419,7 +479,18 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
-        if(Temp.equals("Answer")){
+        appstate= AState.AppState.TTS;
+        if(Temp.equals("Repeat Introduction")){
+            StarUpRepeat();
+        }
+        if(Temp.equals("profile details")){
+            Intent intent=new Intent(AssignmentSubmission.this,Profile.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            intent.putExtra("Rl","Student");
+            startActivity(intent);
+            finish();
+        }
+        else if(Temp.equals("Answer")){
             int tts1=textToSpeech.speak("Please Start Answering Now.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
             if (tts1 == TextToSpeech.SUCCESS) {
                 // Pause the timer until TTS completes
@@ -563,7 +634,7 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
                 pauseToastTimer();
             }
         }
-
+        wakeWordHelper.startListening();
     }
     private boolean shouldAllowExit = false;
 
@@ -780,6 +851,10 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
 
         //show the alert dialog
         alertDialog.show();
+    }
+    @Override
+    public void onWakeWordDetected() {
+        Toast.makeText(this, "Wakeword Detected"+appstate, Toast.LENGTH_SHORT).show();
     }
 
 }
