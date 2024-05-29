@@ -653,9 +653,8 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
                 }
             }
             else {
-
                         for (int i = 0; i < groupsList.size(); i++) {
-                            int tts5 = textToSpeech.speak("Index" + (i + 1) + "Group name is" + groupsList.get(i).Group_Name + "and Group ID is" + groupsList.get(i).Subject_Code+"Do you want to enter the Group", TextToSpeech.QUEUE_FLUSH, null, i+"");
+                            int tts5 = textToSpeech.speak("Index" + (i + 1) + "Group name is" + groupsList.get(i).Group_Name + "and Group ID is" + groupsList.get(i).Subject_Code+"Do you want to enter the Group. Please say Yes or No", TextToSpeech.QUEUE_FLUSH, null, i+"");
                             if (tts5 == TextToSpeech.SUCCESS) {
                                 // Pause the timer until TTS completes
                                 pauseToastTimer();

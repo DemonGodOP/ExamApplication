@@ -288,6 +288,8 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
             Toast.makeText(this, "App Cannot be Used Without Record Permission", Toast.LENGTH_SHORT).show();
         } else {
             wakeWordHelper=new WakeWordHelper(this,appstate,this);
+            speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+            speechRecognizer.setRecognitionListener(new SearchingGroup.SpeechListener());
         }
     }
 
@@ -688,7 +690,7 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
             });
         }
         else{
-            int tts1=textToSpeech.speak("Wrong input provided. Please start the process from the beginning. Sorry for any inconvenience", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
+            int tts1=textToSpeech.speak("Wrong input provided"+Temp+"Please start the process from the beginning. Sorry for any inconvenience", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
             if (tts1 == TextToSpeech.SUCCESS) {
                 // Pause the timer until TTS completes
                 pauseToastTimer();

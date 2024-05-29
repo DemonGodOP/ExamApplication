@@ -258,6 +258,8 @@ public class Profile extends AppCompatActivity implements TextToSpeech.OnInitLis
             Toast.makeText(this, "App Cannot be Used Without Record Permission", Toast.LENGTH_SHORT).show();
         } else {
             wakeWordHelper=new WakeWordHelper(this,appstate,this);
+            speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+            speechRecognizer.setRecognitionListener(new Profile.SpeechListener());
         }
     }
 
