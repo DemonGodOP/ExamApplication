@@ -416,6 +416,7 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
                 Toast.makeText(SearchingGroup.this, "Listening", Toast.LENGTH_SHORT).show();
             }
             else if(utteranceId.equals("TTS_UTTERANCE_JOINGROUP")){
+                wakeWordHelper.stopListening();
                 runOnUiThread(() -> {
                     try {
                         speechRecognizer.startListening(speechRecognizerIntent);
