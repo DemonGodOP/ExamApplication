@@ -336,8 +336,6 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
                 default:
                     Toast.makeText(StudentHomePage.this, "Something wrong occurred.", Toast.LENGTH_SHORT).show();
             }
-
-
         }
 
         @Override

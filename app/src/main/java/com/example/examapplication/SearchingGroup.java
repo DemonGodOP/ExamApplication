@@ -72,29 +72,8 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_searching_group);
-        Intent checkIntent = new Intent();//0
-        checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
-        startActivityForResult(checkIntent, 1);//0
         Intent intent=getIntent();
         Group_ID=intent.getStringExtra("GROUP_ID");
-
-        speechRecognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
-        speechRecognizerIntent.putExtra(
-                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
-
-        if (hasRecordPermission()){
-            wakeWordHelper=new WakeWordHelper(this,appstate,this);
-            speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
-            speechRecognizer.setRecognitionListener(new SearchingGroup.SpeechListener());
-        } else {
-            // Permission already granted
-            requestRecordPermission();
-        }
-
-        appstate = AState.AppState.TTS;
 
 
 
@@ -126,57 +105,6 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
             }
         });
 
-        DatabaseReference groupsRef = FirebaseDatabase.getInstance().getReference("Groups");
-
-
-        groupsRef.child(Group_ID).addListenerForSingleValueEvent(new ValueEventListener() {
-
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if(dataSnapshot.exists()) {
-                    DatabaseReference Ref = FirebaseDatabase.getInstance().getReference("Groups").child(Group_ID);
-                    Ref.child("Group Details").addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot Snapshot) {
-                                foundGroup = Snapshot.getValue(Group.class);
-                                if (foundGroup != null) {
-                                    SRG_NoText.setVisibility(View.GONE);
-                                    SRG_GroupName.setVisibility(View.VISIBLE);
-                                    SRG_GroupSubjectCode.setVisibility(View.VISIBLE);
-                                    SRG_Layout.setVisibility(View.VISIBLE);
-                                    SG_GSCT.setVisibility(View.VISIBLE);
-                                    SG_GNT.setVisibility(View.VISIBLE);
-                                    String Group_Name = foundGroup.Group_Name;
-                                    String Group_SubjectCode = foundGroup.Subject_Code;
-                                    SRG_GroupName.setText(Group_Name);
-                                    SRG_GroupSubjectCode.setText(Group_SubjectCode);
-                                }
-                            else {
-                                Toast.makeText(SearchingGroup.this, "No Data", Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError databaseError) {
-                            Toast.makeText(SearchingGroup.this, "Something Went Wrong", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                }
-                else {
-                    SRG_NoText.setVisibility(View.VISIBLE);
-                    SRG_GroupName.setVisibility(View.GONE);
-                    SRG_GroupSubjectCode.setVisibility(View.GONE);
-                    SRG_Layout.setVisibility(View.GONE);
-                    SG_GSCT.setVisibility(View.GONE);
-                    SG_GNT.setVisibility(View.GONE);
-
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                Toast.makeText(SearchingGroup.this, "Something Went Wrong", Toast.LENGTH_SHORT).show();
-            }
-        });
 
         SRG_Layout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -228,6 +156,28 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
                 });
             }
         });
+
+        Intent checkIntent = new Intent();//0
+        checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
+        startActivityForResult(checkIntent, 1);//0
+
+        speechRecognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
+        speechRecognizerIntent.putExtra(
+                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+
+        if (hasRecordPermission()){
+            wakeWordHelper=new WakeWordHelper(this,appstate,this);
+            speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+            speechRecognizer.setRecognitionListener(new SearchingGroup.SpeechListener());
+        } else {
+            // Permission already granted
+            requestRecordPermission();
+        }
+
+        appstate = AState.AppState.TTS;
 
 
         handler = new Handler();//2
@@ -544,30 +494,81 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
 
     @Override
     public void onInit(int status) {
-        if (status == TextToSpeech.SUCCESS) {
-            // TTS initialization successful, set language and convert text to speech
-            isTTSInitialized = true;
-            textToSpeech.setLanguage(Locale.US);
-            //Locale locale = new Locale("en","IN");
-            //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
-            //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
-            //textToSpeech.setVoice(voice);
-            String voice;
-            if(foundGroup!=null){
-                voice="Hello, Welcome to the Searching Group Page of Exam Care The Group Id that you searched for belongs to the group named"+foundGroup.Group_Name+"with subject code"+foundGroup.Subject_Code+"Do You Want to Enter or join the group if so say Exam Care, Enter Group";
+        DatabaseReference groupsRef = FirebaseDatabase.getInstance().getReference("Groups");
+
+
+        groupsRef.child(Group_ID).addListenerForSingleValueEvent(new ValueEventListener() {
+
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if(dataSnapshot.exists()) {
+                    DatabaseReference Ref = FirebaseDatabase.getInstance().getReference("Groups").child(Group_ID);
+                    Ref.child("Group Details").addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot Snapshot) {
+                            foundGroup = Snapshot.getValue(Group.class);
+                            if (foundGroup != null) {
+                                SRG_NoText.setVisibility(View.GONE);
+                                SRG_GroupName.setVisibility(View.VISIBLE);
+                                SRG_GroupSubjectCode.setVisibility(View.VISIBLE);
+                                SRG_Layout.setVisibility(View.VISIBLE);
+                                SG_GSCT.setVisibility(View.VISIBLE);
+                                SG_GNT.setVisibility(View.VISIBLE);
+                                String Group_Name = foundGroup.Group_Name;
+                                String Group_SubjectCode = foundGroup.Subject_Code;
+                                SRG_GroupName.setText(Group_Name);
+                                SRG_GroupSubjectCode.setText(Group_SubjectCode);
+                                if (status == TextToSpeech.SUCCESS) {
+                                    // TTS initialization successful, set language and convert text to speech
+                                    isTTSInitialized = true;
+                                    textToSpeech.setLanguage(Locale.US);
+                                    //Locale locale = new Locale("en","IN");
+                                    //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
+                                    //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
+                                    //textToSpeech.setVoice(voice);
+
+
+                                    int ttsResult=textToSpeech.speak("Hello, Welcome to the Searching Group Page of Exam Care The Group Id that you searched for belongs to the group named"+foundGroup.Group_Name+"with subject code"+foundGroup.Subject_Code+"Do You Want to Enter or join the group if so say Exam Care, Enter Group", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
+                                    if (ttsResult == TextToSpeech.SUCCESS) {
+                                        // Pause the timer until TTS completes
+                                        pauseToastTimer();
+                                    }
+                                } else {
+                                    int ttsResult=textToSpeech.speak("Hello, Welcome to the Searching Group Page of Exam Care, No Groups are present with the group id that you provided please go back to the homepage and try searching for the group again. For Going back to the HomePage say Exam Care, HomePage", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
+                                    if (ttsResult == TextToSpeech.SUCCESS) {
+                                        // Pause the timer until TTS completes
+                                        pauseToastTimer();
+                                    }
+                                    // TTS initialization failed, handle error
+                                    Log.e("TTS", "Initialization failed");
+                                }
+                            }
+                            else {
+                                Toast.makeText(SearchingGroup.this, "No Data", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+                            Toast.makeText(SearchingGroup.this, "Something Went Wrong", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+                else {
+                    SRG_NoText.setVisibility(View.VISIBLE);
+                    SRG_GroupName.setVisibility(View.GONE);
+                    SRG_GroupSubjectCode.setVisibility(View.GONE);
+                    SRG_Layout.setVisibility(View.GONE);
+                    SG_GSCT.setVisibility(View.GONE);
+                    SG_GNT.setVisibility(View.GONE);
+
+                }
             }
-            else{
-                voice="Hello, Welcome to the Searching Group Page of Exam Care, No Groups are present with the group id that you provided please go back to the homepage and try searching for the group again. For Going back to the HomePage say Exam Care, HomePage";
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Toast.makeText(SearchingGroup.this, "Something Went Wrong", Toast.LENGTH_SHORT).show();
             }
-            int ttsResult=textToSpeech.speak(voice, TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
-            if (ttsResult == TextToSpeech.SUCCESS) {
-                // Pause the timer until TTS completes
-                pauseToastTimer();
-            }
-        } else {
-            // TTS initialization failed, handle error
-            Log.e("TTS", "Initialization failed");
-        }
+        });
     }
 
     // Repeat The Introduction if Repeat Method is Triggered.
