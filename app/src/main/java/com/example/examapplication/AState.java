@@ -4,6 +4,7 @@ public class AState {
     enum AppState {
         TTS,
         WAKEWORD,
-        STT
+        STT,
+        AUTOMATE
     }
 }

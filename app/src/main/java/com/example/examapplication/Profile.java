@@ -14,6 +14,10 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
+import android.speech.RecognitionListener;
+import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.util.Log;
@@ -32,6 +36,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -55,9 +60,13 @@ public class Profile extends AppCompatActivity implements TextToSpeech.OnInitLis
     TextView PTH;
 
     String Rl;
+    private SpeechRecognizer speechRecognizer;
+    private Intent speechRecognizerIntent;
     AState.AppState appstate;
 
     WakeWordHelper wakeWordHelper;
+
+    String STTData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,12 +121,23 @@ public class Profile extends AppCompatActivity implements TextToSpeech.OnInitLis
                 }
             }
         });
-        appstate = AState.AppState.TTS;
-        if (hasRecordPermission()){
-            wakeWordHelper=new WakeWordHelper(this,appstate,this);
-        } else {
-            // Permission already granted
-            requestRecordPermission();
+        if(Rl.equals("Student")) {
+            speechRecognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+            speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
+            speechRecognizerIntent.putExtra(
+                    RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                    RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+            speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+
+            appstate = AState.AppState.TTS;
+            if (hasRecordPermission()) {
+                wakeWordHelper = new WakeWordHelper(this, appstate, this);
+                speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+                speechRecognizer.setRecognitionListener(new Profile.SpeechListener());
+            } else {
+                // Permission already granted
+                requestRecordPermission();
+            }
         }
         handler = new Handler();//2
 
@@ -139,29 +159,84 @@ public class Profile extends AppCompatActivity implements TextToSpeech.OnInitLis
 
 
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(speechRecognizer!=null) {
+            speechRecognizer.stopListening();
+        }
+        pauseToastTimer();
+        if(wakeWordHelper!=null) {
+            wakeWordHelper.stopListening();
+            appstate= AState.AppState.TTS;
+        }
+        if(textToSpeech!=null) {
+            textToSpeech.stop();
+        }
+    }
+
     @Override //3
     protected void onResume() {
         super.onResume();
         // Reset the timer whenever the user interacts with the app
         resetToastTimer();
-        isUserInteracted = false; // Reset user interaction flag
-        if (textToSpeech != null) {
-            int ttsResult=textToSpeech.speak("If you want me to repeat the introduction of the page again please say, Exam Care Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-            if (ttsResult == TextToSpeech.SUCCESS) {
-                // Pause the timer until TTS completes
-                pauseToastTimer();
-            }
-            //Enter the Condition Over here that is tts to take input from the user if they wants us to repeat the introduction and change r respectively.
-            boolean r=false;
+        if(Rl.equals("Student")) {
+            isUserInteracted = false; // Reset user interaction flag
+            if (textToSpeech != null) {
+                int ttsResult = textToSpeech.speak("If you want me to repeat the introduction of the page again please say, Exam Care, Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                if (ttsResult == TextToSpeech.SUCCESS) {
+                    // Pause the timer until TTS completes
+                    pauseToastTimer();
+                }
+                //Enter the Condition Over here that is tts to take input from the user if they wants us to repeat the introduction and change r respectively.
+            /*boolean r=false;
             if(r==true){
                 StarUpRepeat();
             } // Restart the TTS when the activity is resumed
             else{
                 appstate= AState.AppState.WAKEWORD;
                 wakeWordHelper.startListening();
+            }*/
             }
         }
     }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if(Rl.equals("Student")) {
+            if (speechRecognizer != null) {
+                speechRecognizer.stopListening(); // Destroy the speech recognizer when the app is no longer visible
+            }
+            if (textToSpeech != null) {
+                textToSpeech.stop();
+            }
+
+            if (wakeWordHelper != null) {
+                wakeWordHelper.stopListening();
+            }
+        }
+        pauseToastTimer();
+    }
+
+    @Override
+    protected void onDestroy() {
+        // Release resources
+        if(Rl.equals("Student")) {
+            if (textToSpeech != null) {
+                textToSpeech.stop();
+                textToSpeech.shutdown();
+            }
+            if (speechRecognizer != null) {
+                speechRecognizer.destroy(); // Destroy the speech recognizer when the app is no longer visible
+            }
+            if (wakeWordHelper != null) {
+                wakeWordHelper.stopListening();
+            }
+        }
+        handler.removeCallbacks(toastRunnable);
+        super.onDestroy();
+    }//3
 
     private boolean hasRecordPermission() {
         return ActivityCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO)
@@ -186,18 +261,7 @@ public class Profile extends AppCompatActivity implements TextToSpeech.OnInitLis
         }
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        pauseToastTimer();
-        if (textToSpeech != null) {
-            textToSpeech.stop(); // Stop the TTS if the activity is no longer visible
-        }
-        if(appstate== AState.AppState.WAKEWORD) {
-            wakeWordHelper.stopListening();
-            appstate = AState.AppState.TTS;
-        }
-    }
+
 
 
     // Method to start the Toast timer
@@ -218,6 +282,92 @@ public class Profile extends AppCompatActivity implements TextToSpeech.OnInitLis
 
     }
 
+    private class SpeechListener implements RecognitionListener {
+        @Override
+        public void onReadyForSpeech(Bundle params) {
+        }
+
+        @Override
+        public void onBeginningOfSpeech() {
+        }
+
+        @Override
+        public void onRmsChanged(float rmsdB) {
+        }
+
+        @Override
+        public void onBufferReceived(byte[] buffer) {
+        }
+
+        @Override
+        public void onEndOfSpeech() {
+        }
+
+        @Override
+        public void onError(int error) {
+            switch (error) {
+                case SpeechRecognizer.ERROR_AUDIO:
+                    Toast.makeText(Profile.this, "Error recording audio.", Toast.LENGTH_SHORT).show();
+                    break;
+                case SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS:
+                    Toast.makeText(Profile.this, "Insufficient permissions.", Toast.LENGTH_SHORT).show();
+                    break;
+                case SpeechRecognizer.ERROR_NETWORK_TIMEOUT:
+                case SpeechRecognizer.ERROR_NETWORK:
+                    Toast.makeText(Profile.this, "Network Error.", Toast.LENGTH_SHORT).show();
+                    break;
+                case SpeechRecognizer.ERROR_NO_MATCH:
+                    Toast.makeText(Profile.this, "No recognition result matched.", Toast.LENGTH_SHORT).show();
+                    break;
+                case SpeechRecognizer.ERROR_CLIENT:
+                    return;
+                case SpeechRecognizer.ERROR_RECOGNIZER_BUSY:
+                    Toast.makeText(Profile.this, "Recognition service is busy.", Toast.LENGTH_SHORT).show();
+                    break;
+                case SpeechRecognizer.ERROR_SERVER:
+                    Toast.makeText(Profile.this, "Server Error.", Toast.LENGTH_SHORT).show();
+                    break;
+                case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
+                    Toast.makeText(Profile.this, "No speech input.", Toast.LENGTH_SHORT).show();
+                    break;
+                default:
+                    Toast.makeText(Profile.this, "Something wrong occurred.", Toast.LENGTH_SHORT).show();
+            }
+
+
+        }
+
+        @Override
+        public void onResults(Bundle results) {
+            ArrayList<String> data = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+            if(appstate==AState.AppState.STT) {
+                STTData = data.get(0).toLowerCase();
+            }
+            else if(appstate== AState.AppState.AUTOMATE){
+                if(data.get(0).toLowerCase()!=null)
+                    Automate(data.get(0).toLowerCase());
+                else{
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            speechRecognizer.startListening(speechRecognizerIntent);
+                            Toast.makeText(Profile.this, "Listening", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            }
+        }
+
+        @Override
+        public void onPartialResults(Bundle partialResults) {
+        }
+
+        @Override
+        public void onEvent(int i, Bundle bundle) {
+
+        }
+    }
+
     // Callback when TTS engine finishes speaking
     UtteranceProgressListener utteranceProgressListener = new UtteranceProgressListener() {
 
@@ -236,7 +386,37 @@ public class Profile extends AppCompatActivity implements TextToSpeech.OnInitLis
             if(utteranceId.equals("TTS_UTTERANCE_STARTWAKEWORD")){
                 appstate= AState.AppState.WAKEWORD;
                 wakeWordHelper.startListening();
+                Toast.makeText(Profile.this, "Listening", Toast.LENGTH_SHORT).show();
+            }
+            else if(utteranceId.equals("TTS_UTTERANCE_ONINIT")){
+                runOnUiThread(() -> {
+                    try {
+                        speechRecognizer.startListening(speechRecognizerIntent);
+                        Log.d("STT", "Speech recognizer started listening.");
+                    } catch (Exception e) {
+                        Log.e("STT", "Exception starting speech recognizer", e);
+                    }
 
+                    // Ensure the Toast is shown on the main thread
+                    Toast.makeText(Profile.this, "Listening", Toast.LENGTH_SHORT).show();
+                });
+                appstate = AState.AppState.STT;
+                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        speechRecognizer.stopListening();
+                        String YN = STTData;
+                        if (YN != null && YN.equals("yes")) {
+                            StarUpRepeat();
+                        } else {
+                            int tts1 = textToSpeech.speak("No Input Detected, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                            if (tts1 == TextToSpeech.SUCCESS) {
+                                // Pause the timer until TTS completes
+                                pauseToastTimer();
+                            }
+                        }
+                    }
+                }, 5000);
             }
             resetToastTimer();
         }
@@ -272,22 +452,10 @@ public class Profile extends AppCompatActivity implements TextToSpeech.OnInitLis
                 //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
                 //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
                 //textToSpeech.setVoice(voice);
-                int ttsResult = textToSpeech.speak("Hello, Welcome to the Profile Page of Exam Care, Would you like to listen to a Detailed introduction of the page.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+                int ttsResult = textToSpeech.speak("Hello, Welcome to the Profile Page of Exam Care, Would you like to listen to a Detailed introduction of the page. Say Yes or No", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ONINIT");
                 if (ttsResult == TextToSpeech.SUCCESS) {
                     // Pause the timer until TTS completes
                     pauseToastTimer();
-                }
-
-                String YN="";
-                if(YN.equals("YES")){
-                    StarUpRepeat();
-                }
-                else{
-                    int tts1=textToSpeech.speak("No Input Detected, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
-                    if (tts1== TextToSpeech.SUCCESS) {
-                        // Pause the timer until TTS completes
-                        pauseToastTimer();
-                    }
                 }
         } else {
                 // TTS initialization failed, handle error
@@ -306,13 +474,11 @@ public class Profile extends AppCompatActivity implements TextToSpeech.OnInitLis
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
         int ttsResult = textToSpeech.speak("Hello, Welcome to the Profile Page of Exam Care, This page provides you with the facility, to " +
-                "see your profile details such as name, email, phone number, institute, username and role, you just have to say, Hello Exam care, profile details.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                "see your profile details such as name, email, phone number, institute, username and role, you just have to say, Hello Exam care,describe profile details.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();
         }
-        Repeat();
-
     }
 
     public void Repeat() {
@@ -321,41 +487,14 @@ public class Profile extends AppCompatActivity implements TextToSpeech.OnInitLis
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
-        int ttsResult = textToSpeech.speak("If you want me to repeat the introduction of the page again please say, Exam Care Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+        int ttsResult=textToSpeech.speak("If you want me to repeat the introduction of the page again please say, Exam Care Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
+            //appstate= AState.AppState.TTS;
             pauseToastTimer();
         }
-        //Enter the Condition Over here that is tts to take input from the user if they wants us to repeat the introduction and change r respectively.
-        boolean r = false;
-        if (r == true) {
-            StarUpRepeat();
-        }
-        else{
-            int tts1=textToSpeech.speak("No Input Detected, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
-            if (tts1== TextToSpeech.SUCCESS) {
-                // Pause the timer until TTS completes
-                pauseToastTimer();
-            }
-        }
-
     }
 
-
-    @Override
-    protected void onDestroy() {
-
-        // Release resources
-        if (textToSpeech != null) {
-            textToSpeech.stop();
-            textToSpeech.shutdown();
-        }
-        wakeWordHelper.stopListening();
-        super.onDestroy();
-        handler.removeCallbacks(toastRunnable);
-
-
-    }//3
 
     public void Automate(String Temp) {
         textToSpeech.setLanguage(Locale.US);
@@ -363,7 +502,7 @@ public class Profile extends AppCompatActivity implements TextToSpeech.OnInitLis
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
-        if(Temp.equals("Repeat Introduction")){
+        if(Temp.equals("repeat introduction")){
             StarUpRepeat();
         }else if(Temp.equals("back")){
             Intent intent=new Intent(Profile.this,StudentHomePage.class);
@@ -391,7 +530,7 @@ public class Profile extends AppCompatActivity implements TextToSpeech.OnInitLis
             intent.putExtra("Rl", "Student");
             startActivity(intent);
             finish();
-        } else if (Temp.equals("Delete profile")) {
+        } else if (Temp.equals("delete profile")) {
             Intent intent = new Intent(Profile.this, DeleteUser.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
             intent.putExtra("Rl", "Student");
@@ -404,6 +543,14 @@ public class Profile extends AppCompatActivity implements TextToSpeech.OnInitLis
             intent.putExtra("Rl", "Student");
             startActivity(intent);
             finish();
+        }
+        else{
+            Toast.makeText(this, Temp, Toast.LENGTH_SHORT).show();
+            int tts1=textToSpeech.speak("Wrong input provided "+Temp+ " Please start the process from the beginning. Sorry for any inconvenience", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+            if (tts1 == TextToSpeech.SUCCESS) {
+                // Pause the timer until TTS completes
+                pauseToastTimer();
+            }
         }
         wakeWordHelper.startListening();
     }
@@ -525,5 +672,13 @@ public class Profile extends AppCompatActivity implements TextToSpeech.OnInitLis
     @Override
     public void onWakeWordDetected() {
         Toast.makeText(this, "Wakeword Detected"+appstate, Toast.LENGTH_SHORT).show();
+        if(speechRecognizerIntent!=null){
+            appstate= AState.AppState.AUTOMATE;
+            pauseToastTimer();
+            speechRecognizer.startListening(speechRecognizerIntent);
+        }
+        else{
+            Toast.makeText(this, "Null Speech 2", Toast.LENGTH_SHORT).show();
+        }
     }
 }

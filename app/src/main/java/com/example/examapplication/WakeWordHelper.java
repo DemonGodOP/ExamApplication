@@ -62,7 +62,6 @@ public class WakeWordHelper {
             }
 
             // Display toast message indicating the wake word has been detected.
-            currentState = AState.AppState.STT;
             if(wakeWordListener!=null){
                 wakeWordListener.onWakeWordDetected();
             }
