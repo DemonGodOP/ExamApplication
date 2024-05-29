@@ -497,6 +497,7 @@ public class Profile extends AppCompatActivity implements TextToSpeech.OnInitLis
 
 
     public void Automate(String Temp) {
+        wakeWordHelper.stopListening();
         textToSpeech.setLanguage(Locale.US);
         //Locale locale = new Locale("en","IN");
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
@@ -513,7 +514,7 @@ public class Profile extends AppCompatActivity implements TextToSpeech.OnInitLis
         }
         else if(Temp.equals("describe profile details")){
             int tts1=textToSpeech.speak("Your Name is"+name+"Your email address is"+email+"your phone number is"+phone+
-                            "Your institute name is"+institute+"your username is"+username+"", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+                            "Your institute name is"+institute+"your username is"+username+"", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
             if (tts1 == TextToSpeech.SUCCESS) {
                 // Pause the timer until TTS completes
                 pauseToastTimer();
@@ -546,13 +547,12 @@ public class Profile extends AppCompatActivity implements TextToSpeech.OnInitLis
         }
         else{
             Toast.makeText(this, Temp, Toast.LENGTH_SHORT).show();
-            int tts1=textToSpeech.speak("Wrong input provided "+Temp+ " Please start the process from the beginning. Sorry for any inconvenience", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+            int tts1=textToSpeech.speak("Wrong input provided "+Temp+ " Please start the process from the beginning. Sorry for any inconvenience", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
             if (tts1 == TextToSpeech.SUCCESS) {
                 // Pause the timer until TTS completes
                 pauseToastTimer();
             }
         }
-        wakeWordHelper.startListening();
     }
 
 

@@ -613,6 +613,7 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
 
 
     public void Automate(String Temp){
+        wakeWordHelper.stopListening();
         textToSpeech.setLanguage(Locale.US);
         //Locale locale = new Locale("en","IN");
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
@@ -693,7 +694,6 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
                 pauseToastTimer();
             }
         }
-        wakeWordHelper.startListening();
     }
 
     private void showAlertDialog () {

@@ -667,17 +667,25 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
                                 }
                             },25000);
                         }
+                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        appstate= AState.AppState.WAKEWORD;
+                        wakeWordHelper.startListening();
+                        resetToastTimer();
+                        Toast.makeText(StudentHomePage.this, "Listening", Toast.LENGTH_SHORT).show();
+                    }
+                },groupsList.size()* 25000L);
                     }
         }
         else{
             Toast.makeText(this, Temp, Toast.LENGTH_SHORT).show();
-            int tts1=textToSpeech.speak("Wrong input provided "+Temp+ " Please start the process from the beginning. Sorry for any inconvenience", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+            int tts1=textToSpeech.speak("Wrong input provided "+Temp+ " Please start the process from the beginning. Sorry for any inconvenience", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
             if (tts1 == TextToSpeech.SUCCESS) {
                 // Pause the timer until TTS completes
                 pauseToastTimer();
             }
         }
-        wakeWordHelper.startListening();
     }
 
     private void showAlertDialog () {
