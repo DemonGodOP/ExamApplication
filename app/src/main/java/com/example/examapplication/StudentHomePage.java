@@ -468,50 +468,71 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
                     }
                 },5000);
             }
-            else if(utteranceId.length()<6){
-                wakeWordHelper.stopListening();
-                int j=Integer.parseInt(utteranceId);
-                appstate = AState.AppState.STT;
-                runOnUiThread(() -> {
-                    try {
-                        speechRecognizer.startListening(speechRecognizerIntent);
-                        Log.d("STT", "Speech recognizer started listening.");
-                    } catch (Exception e) {
-                        Log.e("STT", "Exception starting speech recognizer", e);
+            else if(utteranceId.length()<6) {
+                if (Integer.parseInt(utteranceId) < groupsList.size()) {
+                    int j = Integer.parseInt(utteranceId);
+                    wakeWordHelper.stopListening();
+                    int tts5 = textToSpeech.speak("Index" + (j + 1) + "Group name is" + groupsList.get(j).Group_Name + "and Group ID is" + groupsList.get(j).Subject_Code + "Do you want to enter the Group. Please say Yes or No", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+                    if (tts5 == TextToSpeech.SUCCESS) {
+                        // Pause the timer until TTS completes
+                        pauseToastTimer();
                     }
 
-                    // Ensure the Toast is shown on the main thread
-                    Toast.makeText(StudentHomePage.this, "Listening", Toast.LENGTH_SHORT).show();
                     new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            speechRecognizer.stopListening();
-                            String YN = STTData;
-                            if (YN != null && YN.equals("yes")) {
-                                String selectedGroupId = groupsList.get(j).Group_ID; // Or however you store the ID in the Group class
-
-                                // Create an intent to start a new activity
-                                Intent intent = new Intent(StudentHomePage.this, StudentGroup.class);
-                                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                                intent.putExtra("Rl", "Student");
-
-                                // Pass the unique key to the new activity
-                                intent.putExtra("GROUP_ID", selectedGroupId);
-
-                                // Start the new activity
-                                startActivity(intent);
-
-                                finish();
-                            } else {
-                                int tts1 = textToSpeech.speak("No Input Detected, Continuing.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
-                                if (tts1 == TextToSpeech.SUCCESS) {
-                                    // Pause the timer until TTS completes
-                                    pauseToastTimer();
+                            appstate = AState.AppState.STT;
+                            runOnUiThread(() -> {
+                                try {
+                                    speechRecognizer.startListening(speechRecognizerIntent);
+                                    Log.d("STT", "Speech recognizer started listening.");
+                                } catch (Exception e) {
+                                    Log.e("STT", "Exception starting speech recognizer", e);
                                 }
-                            }
+
+                                // Ensure the Toast is shown on the main thread
+                                Toast.makeText(StudentHomePage.this, "Listening", Toast.LENGTH_SHORT).show();
+                                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        speechRecognizer.stopListening();
+                                        String YN = STTData;
+                                        if (YN != null && YN.equals("yes")) {
+                                            String selectedGroupId = groupsList.get(j).Group_ID; // Or however you store the ID in the Group class
+
+                                            // Create an intent to start a new activity
+                                            Intent intent = new Intent(StudentHomePage.this, StudentGroup.class);
+                                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                            intent.putExtra("Rl", "Student");
+
+                                            // Pass the unique key to the new activity
+                                            intent.putExtra("GROUP_ID", selectedGroupId);
+
+                                            // Start the new activity
+                                            startActivity(intent);
+
+                                            finish();
+                                        } else {
+                                            if (Integer.parseInt(utteranceId) + 1 < groupsList.size()) {
+                                                int tts1 = textToSpeech.speak("No Input Detected, Continuing.", TextToSpeech.QUEUE_FLUSH, null, Integer.parseInt(utteranceId) + 1 + "");
+                                                if (tts1 == TextToSpeech.SUCCESS) {
+                                                    // Pause the timer until TTS completes
+                                                    pauseToastTimer();
+                                                }
+                                            } else {
+                                                int tts1 = textToSpeech.speak("Group List Ended. Please Say Exam Care Repeat Introduction to Listen to the Introduction of the page", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                                                if (tts1 == TextToSpeech.SUCCESS) {
+                                                    // Pause the timer until TTS completes
+                                                    pauseToastTimer();
+                                                }
+                                            }
+                                        }
+                                    }
+                                }, 5000);
+                            });
                         }
-                    }, 5000);
-                });
+                    }, 7000);
+                }
             }
             resetToastTimer();
         }
@@ -653,28 +674,13 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
                 }
             }
             else {
-                        for (int i = 0; i < groupsList.size(); i++) {
-                            int tts5 = textToSpeech.speak("Index" + (i + 1) + "Group name is" + groupsList.get(i).Group_Name + "and Group ID is" + groupsList.get(i).Subject_Code+"Do you want to enter the Group. Please say Yes or No", TextToSpeech.QUEUE_FLUSH, null, i+"");
+                        int i=0;
+                            int tts5 = textToSpeech.speak("Reading the Group Names Now", TextToSpeech.QUEUE_FLUSH, null, i+"");
                             if (tts5 == TextToSpeech.SUCCESS) {
                                 // Pause the timer until TTS completes
                                 pauseToastTimer();
                             }
-                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                }
-                            },25000);
-                        }
-                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        int tts5 = textToSpeech.speak("Starting WakeWord Engine, Inorder to listen to the introduction of the page again say, exam care, Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
-                        if (tts5 == TextToSpeech.SUCCESS) {
-                            // Pause the timer until TTS completes
-                            pauseToastTimer();
-                        }
-                    }
-                },groupsList.size()* 25000L);
+
                     }
         }
         else{

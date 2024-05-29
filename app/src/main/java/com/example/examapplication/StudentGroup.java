@@ -314,20 +314,29 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
                 }, 5000);
             }
             else if(utteranceId.length()<6){
-                wakeWordHelper.stopListening();
-                int j=Integer.parseInt(utteranceId);
-                appstate = AState.AppState.STT;
-                runOnUiThread(() -> {
-                    try {
-                        speechRecognizer.startListening(speechRecognizerIntent);
-                        Log.d("STT", "Speech recognizer started listening.");
-                    } catch (Exception e) {
-                        Log.e("STT", "Exception starting speech recognizer", e);
+                if (Integer.parseInt(utteranceId) < AssignmentList.size()) {
+                    int j = Integer.parseInt(utteranceId);
+                    wakeWordHelper.stopListening();
+                    int tts1 = textToSpeech.speak((j + 1) + "Assignment name is" + AssignmentList.get(j).Name + "and Assignment Timing is" + AssignmentList.get(j).Timing + "Do you want to enter the current Assignment page please say yes or no", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+                    if (tts1 == TextToSpeech.SUCCESS) {
+                        // Pause the timer until TTS completes
+                        pauseToastTimer();
                     }
-                });
+                    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            appstate = AState.AppState.STT;
+                            runOnUiThread(() -> {
+                                try {
+                                    speechRecognizer.startListening(speechRecognizerIntent);
+                                    Log.d("STT", "Speech recognizer started listening.");
+                                } catch (Exception e) {
+                                    Log.e("STT", "Exception starting speech recognizer", e);
+                                }
+                            });
 
-                    // Ensure the Toast is shown on the main thread
-                    Toast.makeText(StudentGroup.this, "Listening", Toast.LENGTH_SHORT).show();
+                            // Ensure the Toast is shown on the main thread
+                            Toast.makeText(StudentGroup.this, "Listening", Toast.LENGTH_SHORT).show();
 
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
@@ -367,7 +376,10 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
                                                                 } catch (Exception e) {
                                                                     Log.e("STT", "Exception starting speech recognizer", e);
                                                                 }
+                                                                Toast.makeText(StudentGroup.this, "Listening", Toast.LENGTH_SHORT).show();
                                                             });
+
+
                                                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                                                 @Override
                                                                 public void run() {
@@ -396,9 +408,9 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
                                                                         }
                                                                     }
                                                                 }
-                                                            },5000);
+                                                            }, 5000);
                                                         }
-                                                    },5000);
+                                                    }, 6000);
                                                 }
                                             }
 
@@ -408,14 +420,26 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
                                             }
                                         });
                                     } else {
-                                        int tts4 = textToSpeech.speak("Wrong input provided. Please start the process from the beginning. Sorry for any inconvenience", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
-                                        if (tts4 == TextToSpeech.SUCCESS) {
-                                            // Pause the timer until TTS completes
-                                            pauseToastTimer();
+                                        if(Integer.parseInt(utteranceId)+1<AssignmentList.size()) {
+                                            int tts4 = textToSpeech.speak("Moving On toThe Next Assignement", TextToSpeech.QUEUE_FLUSH, null, Integer.parseInt(utteranceId) + 1 + "");
+                                            if (tts4 == TextToSpeech.SUCCESS) {
+                                                // Pause the timer until TTS completes
+                                                pauseToastTimer();
+                                            }
+                                        }
+                                        else{
+                                            int tts1 = textToSpeech.speak("Assignment List Ended. Please Say Exam Care Repeat Introduction to Listen to the Introduction of the page", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                                            if (tts1 == TextToSpeech.SUCCESS) {
+                                                // Pause the timer until TTS completes
+                                                pauseToastTimer();
+                                            }
                                         }
                                     }
                                 }
                             }, 5000);
+                        }
+                    }, 9000);
+                }
 
                         }
             resetToastTimer();
@@ -630,28 +654,12 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
                 }
             }
             else {
-                for (int i = 0; i < AssignmentList.size(); i++) {
-                    int tts1 = textToSpeech.speak((i + 1) + "Assignment name is" + AssignmentList.get(i).Name + "and Assignment Timing is" + AssignmentList.get(i).Timing + "Do you want to enter the current Assignment page please say yes or no", TextToSpeech.QUEUE_FLUSH, null, i+"");
-                    if (tts1 == TextToSpeech.SUCCESS) {
-                        // Pause the timer until TTS completes
-                        pauseToastTimer();
-                    }
-                    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                        }
-                    },25000);
+                int i=0;
+                int tts5 = textToSpeech.speak("Reading the Assignment Names Now", TextToSpeech.QUEUE_FLUSH, null, i+"");
+                if (tts5 == TextToSpeech.SUCCESS) {
+                    // Pause the timer until TTS completes
+                    pauseToastTimer();
                 }
-                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        int tts5 = textToSpeech.speak("Starting WakeWord Engine, Inorder to listen to the introduction of the page again say, exam care, Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
-                        if (tts5 == TextToSpeech.SUCCESS) {
-                            // Pause the timer until TTS completes
-                            pauseToastTimer();
-                        }
-                    }
-                },AssignmentList.size()* 25000L);
             }
         }
         else{
