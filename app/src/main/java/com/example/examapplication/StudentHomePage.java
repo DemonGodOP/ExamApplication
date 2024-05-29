@@ -663,17 +663,17 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-
                                 }
                             },25000);
                         }
                 new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        appstate= AState.AppState.WAKEWORD;
-                        wakeWordHelper.startListening();
-                        resetToastTimer();
-                        Toast.makeText(StudentHomePage.this, "Listening", Toast.LENGTH_SHORT).show();
+                        int tts5 = textToSpeech.speak("Starting WakeWord Engine, Inorder to listen to the introduction of the page again say, exam care, Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                        if (tts5 == TextToSpeech.SUCCESS) {
+                            // Pause the timer until TTS completes
+                            pauseToastTimer();
+                        }
                     }
                 },groupsList.size()* 25000L);
                     }
