@@ -58,10 +58,12 @@ public class ChangePassword extends AppCompatActivity implements TextToSpeech.On
     boolean isTTSInitialized;//1
     String Rl;
     FirebaseUser firebaseUser;
-    AState.AppState appstate;
     private SpeechRecognizer speechRecognizer;
     private Intent speechRecognizerIntent;
+
+    AState.AppState appstate;
     String STTData;
+
     WakeWordHelper wakeWordHelper;
 
     @Override
@@ -155,27 +157,80 @@ public class ChangePassword extends AppCompatActivity implements TextToSpeech.On
         super.onResume();
         // Reset the timer whenever the user interacts with the app
         resetToastTimer();
-        isUserInteracted = false; // Reset user interaction flag
-            if(Rl.equals("Student")) {
-                isUserInteracted = false; // Reset user interaction flag
-                if (textToSpeech != null) {
-                    int ttsResult = textToSpeech.speak("If you want me to repeat the introduction of the page again please say, Exam Care, Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
-                    if (ttsResult == TextToSpeech.SUCCESS) {
-                        // Pause the timer until TTS completes
-                        pauseToastTimer();
-                    }
-                    //Enter the Condition Over here that is tts to take input from the user if they wants us to repeat the introduction and change r respectively.
+        if(Rl.equals("Student")) {
+            isUserInteracted = false; // Reset user interaction flag
+            if (textToSpeech != null) {
+                int ttsResult = textToSpeech.speak("If you want me to repeat the introduction of the page again please say, Exam Care, Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                if (ttsResult == TextToSpeech.SUCCESS) {
+                    // Pause the timer until TTS completes
+                    pauseToastTimer();
+                }
+                //Enter the Condition Over here that is tts to take input from the user if they wants us to repeat the introduction and change r respectively.
             /*boolean r=false;
             if(r==true){
                 StarUpRepeat();
             } // Restart the TTS when the activity is resumed
             else{
                 appstate= AState.AppState.WAKEWORD;
-                wakeWordHelper.startListening();*/
-                }
+                wakeWordHelper.startListening();
+            }*/
             }
         }
+    }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(Rl.equals("Student")) {
+            if (speechRecognizer != null) {
+                speechRecognizer.stopListening();
+            }
+            if (wakeWordHelper != null) {
+                wakeWordHelper.stopListening();
+                appstate = AState.AppState.TTS;
+            }
+            if (textToSpeech != null) {
+                textToSpeech.stop();
+            }
+        }
+        pauseToastTimer();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if(Rl.equals("Student")) {
+            if (speechRecognizer != null) {
+                speechRecognizer.stopListening(); // Destroy the speech recognizer when the app is no longer visible
+            }
+            if (textToSpeech != null) {
+                textToSpeech.stop();
+            }
+
+            if (wakeWordHelper != null) {
+                wakeWordHelper.stopListening();
+            }
+        }
+        pauseToastTimer();
+    }
+    @Override
+    protected void onDestroy() {
+        // Release resources
+        if(Rl.equals("Student")) {
+            if (textToSpeech != null) {
+                textToSpeech.stop();
+                textToSpeech.shutdown();
+            }
+            if (speechRecognizer != null) {
+                speechRecognizer.destroy(); // Destroy the speech recognizer when the app is no longer visible
+            }
+            if (wakeWordHelper != null) {
+                wakeWordHelper.stopListening();
+            }
+        }
+        handler.removeCallbacks(toastRunnable);
+        super.onDestroy();
+    }//3
     private boolean hasRecordPermission() {
         return ActivityCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO)
                 == PackageManager.PERMISSION_GRANTED;
@@ -199,59 +254,6 @@ public class ChangePassword extends AppCompatActivity implements TextToSpeech.On
             speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
             speechRecognizer.setRecognitionListener(new ChangePassword.SpeechListener());
         }
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        if(speechRecognizer!=null) {
-            speechRecognizer.stopListening();
-        }
-        pauseToastTimer();
-        if(wakeWordHelper!=null) {
-            wakeWordHelper.stopListening();
-            appstate= AState.AppState.TTS;
-        }
-        if (textToSpeech != null) {
-            textToSpeech.stop(); // Stop the TTS if the activity is no longer visible
-        }
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if(Rl.equals("Student")) {
-            if (speechRecognizer != null) {
-                speechRecognizer.stopListening(); // Destroy the speech recognizer when the app is no longer visible
-            }
-            if (textToSpeech != null) {
-                textToSpeech.stop();
-            }
-
-            if (wakeWordHelper != null) {
-                wakeWordHelper.stopListening();
-            }
-        }
-        pauseToastTimer();
-    }
-
-    @Override
-    protected void onDestroy() {
-        // Release resources
-        if(Rl.equals("Student")) {
-            if (textToSpeech != null) {
-                textToSpeech.stop();
-                textToSpeech.shutdown();
-            }
-            if (speechRecognizer != null) {
-                speechRecognizer.destroy(); // Destroy the speech recognizer when the app is no longer visible
-            }
-            if (wakeWordHelper != null) {
-                wakeWordHelper.stopListening();
-            }
-        }
-        handler.removeCallbacks(toastRunnable);
-        super.onDestroy();
     }
 
     private class SpeechListener implements RecognitionListener {
@@ -412,6 +414,134 @@ public class ChangePassword extends AppCompatActivity implements TextToSpeech.On
                     }
                 }, 5000);
             }
+            else if(utteranceId.equals("TTS_UTTERANCE_CHANGE_PASSWORD")){
+                appstate = AState.AppState.STT;
+                runOnUiThread(() -> {
+                    try {
+                        speechRecognizer.startListening(speechRecognizerIntent);
+                        Log.d("STT", "Speech recognizer started listening.");
+                    } catch (Exception e) {
+                        Log.e("STT", "Exception starting speech recognizer", e);
+                    }
+
+                    // Ensure the Toast is shown on the main thread
+                    Toast.makeText(ChangePassword.this, "Listening", Toast.LENGTH_SHORT).show();
+                });
+                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        speechRecognizer.stopListening();
+                        String userPwdCur = STTData;
+                        CP_Password.setText(userPwdCur);
+                        AuthCredential credential = EmailAuthProvider.getCredential(firebaseUser.getEmail(), userPwdCur);
+                        firebaseUser.reauthenticate(credential).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                if (task.isSuccessful()) {
+                                    AutomateChangePwd();
+                                } else {
+                                    try {
+                                        throw task.getException();
+                                    } catch (FirebaseAuthInvalidCredentialsException e) {
+                                        int tts2 = textToSpeech.speak("Wrong Password Entered. Starting WakeWord Engine", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                                        if (tts2 == TextToSpeech.SUCCESS) {
+                                            // Pause the timer until TTS completes
+                                            pauseToastTimer();
+                                        }
+                                        CP_Password.setError("Wrong Password Entered");
+                                        CP_Password.requestFocus();
+                                    } catch (Exception e) {
+                                        Toast.makeText(ChangePassword.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            }
+
+                        });
+                    }
+                },7000);
+            }
+            else if(utteranceId.equals("TTS_UTTERANCE_AUTOMATE_PASSWORD")){
+                appstate = AState.AppState.STT;
+                runOnUiThread(() -> {
+                    try {
+                        speechRecognizer.startListening(speechRecognizerIntent);
+                        Log.d("STT", "Speech recognizer started listening.");
+                    } catch (Exception e) {
+                        Log.e("STT", "Exception starting speech recognizer", e);
+                    }
+
+                    // Ensure the Toast is shown on the main thread
+                    Toast.makeText(ChangePassword.this, "Listening", Toast.LENGTH_SHORT).show();
+                });
+                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        speechRecognizer.stopListening();
+                        String change = STTData;
+                        CP_NewPassword.setText(change);
+                        int tts2 = textToSpeech.speak("Please confirm your new password", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+                        if (tts2 == TextToSpeech.SUCCESS) {
+                            // Pause the timer until TTS completes
+                            pauseToastTimer();
+                        }
+                        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                speechRecognizer.stopListening();
+                                String userPwdCur = STTData;
+                                if (!change.matches(userPwdCur)) {
+                                    int tts3 = textToSpeech.speak("Password did not match. Please Restart the Process. Starting WakeWord Engine", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                                    if (tts3 == TextToSpeech.SUCCESS) {
+                                        // Pause the timer until TTS completes
+                                        pauseToastTimer();
+                                    }// Toast.makeText(ChangePassword.this, "Password did not match", Toast.LENGTH_SHORT).show();
+                                    CP_ConfirmPassword.setError("Please re-enter same password");
+                                    CP_ConfirmPassword.requestFocus();
+                                } else if (change.matches(userPwdCur)) {
+                                    int tts4 = textToSpeech.speak("New password cannot be same as old password. Please Restart the Process. Starting WakeWord Engine", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+                                    //Toast.makeText(ChangePassword.this, "New password cannot be same as old password", Toast.LENGTH_SHORT).show();
+                                    if (tts4 == TextToSpeech.SUCCESS) {
+                                        // Pause the timer until TTS completes
+                                        pauseToastTimer();
+                                    }
+                                    CP_NewPassword.setError("Please enter a new password");
+                                    CP_NewPassword.requestFocus();
+                                } else {
+                                    CP_progressBar.setVisibility(View.VISIBLE);
+                                    firebaseUser.updatePassword(userPwdCur).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            if (task.isSuccessful()) {
+                                                int tts5 = textToSpeech.speak("Password has been changed. Starting WakeWord Engine", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+                                                //Toast.makeText(ChangePassword.this, "New password cannot be same as old password", Toast.LENGTH_SHORT).show();
+                                                if (tts5 == TextToSpeech.SUCCESS) {
+                                                    // Pause the timer until TTS completes
+                                                    pauseToastTimer();
+                                                }
+                                                Toast.makeText(ChangePassword.this, "Password has been changed", Toast.LENGTH_SHORT).show();
+                                                Intent intent = new Intent(ChangePassword.this, Profile.class);
+                                                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                                intent.putExtra("Rl", Rl);
+                                                startActivity(intent);
+                                                finish();
+                                                } else {
+                                                    try {
+                                                        throw task.getException();
+                                                    } catch (Exception e) {
+                                                        Toast.makeText(ChangePassword.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                                                    }
+                                                }
+                                                CP_progressBar.setVisibility(View.GONE);
+
+                                        }
+                                    });
+                                }
+                            }
+                        },5000);
+                    }
+                },7000);
+
+            }
             resetToastTimer();
         }
     };
@@ -438,34 +568,25 @@ public class ChangePassword extends AppCompatActivity implements TextToSpeech.On
 
     @Override
     public void onInit(int status) {
-        if (status == TextToSpeech.SUCCESS) {
-            // TTS initialization successful, set language and convert text to speech
-            isTTSInitialized = true;
-            textToSpeech.setLanguage(Locale.US);
-            //Locale locale = new Locale("en","IN");
-            //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
-            //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
-            //textToSpeech.setVoice(voice);
-            int ttsResult=textToSpeech.speak("Hello, Welcome to the Student Home Page of Exam Care, Would you like to listen to a Detailed introduction of the page.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-            if (ttsResult == TextToSpeech.SUCCESS) {
-                // Pause the timer until TTS completes
-                pauseToastTimer();
-            }
-
-            String YN="";
-            if(YN.equals("YES")){
-                StarUpRepeat();
-            }
-            else{
-                int tts1=textToSpeech.speak("No Input Detected, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
-                if (tts1== TextToSpeech.SUCCESS) {
+        if(Rl.equals("Student")) {
+            if (status == TextToSpeech.SUCCESS) {
+                // TTS initialization successful, set language and convert text to speech
+                isTTSInitialized = true;
+                textToSpeech.setLanguage(Locale.US);
+                //Locale locale = new Locale("en","IN");
+                //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
+                //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
+                //textToSpeech.setVoice(voice);
+                int ttsResult = textToSpeech.speak("Hello, Welcome to the Student Home Page of Exam Care, Would you like to listen to a Detailed introduction of the page.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ONINIT");
+                if (ttsResult == TextToSpeech.SUCCESS) {
                     // Pause the timer until TTS completes
                     pauseToastTimer();
                 }
+
+            } else {
+                // TTS initialization failed, handle error
+                Log.e("TTS", "Initialization failed");
             }
-        } else {
-            // TTS initialization failed, handle error
-            Log.e("TTS", "Initialization failed");
         }
     }
 
@@ -485,10 +606,12 @@ public class ChangePassword extends AppCompatActivity implements TextToSpeech.On
             // Pause the timer until TTS completes
             pauseToastTimer();
         }
-        Repeat();
     }
 
     public void Repeat(){
+        if(appstate== AState.AppState.WAKEWORD){
+            wakeWordHelper.stopListening();
+        }
         textToSpeech.setLanguage(Locale.US);
         //Locale locale = new Locale("en","IN");
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
@@ -500,127 +623,37 @@ public class ChangePassword extends AppCompatActivity implements TextToSpeech.On
             pauseToastTimer();
         }
         //Enter the Condition Over here that is tts to take input from the user if they wants us to repeat the introduction and change r respectively.
-        boolean r=false;
-        if(r==true){
-            StarUpRepeat();
-        }
-        else{
-            int tts1=textToSpeech.speak("No Input Detected, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
-            if (tts1== TextToSpeech.SUCCESS) {
-                // Pause the timer until TTS completes
-                pauseToastTimer();
-            }
-        }
     }
 
 
     public void Automate(String Temp) {
+        wakeWordHelper.stopListening();
         textToSpeech.setLanguage(Locale.US);
         //Locale locale = new Locale("en","IN");
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
-        if(Temp.equals("Repeat Introduction")){
+        if(Temp.equals("repeat introduction")){
             StarUpRepeat();
         }else if(Temp.equals("back")){
             Intent intent=new Intent(ChangePassword.this,Profile.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            intent.putExtra("Rl","Student");
+            intent.putExtra("Rl",Rl);
             startActivity(intent);
             finish();
         }else if (Temp.equals("change password")) {
-            int tts1 = textToSpeech.speak("Please say your old password", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+            int tts1 = textToSpeech.speak("Please say your old password", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_CHANGE_PASSWORD");
             if (tts1 == TextToSpeech.SUCCESS) {
                 // Pause the timer until TTS completes
                 pauseToastTimer();
             }
-            String userPwdCur="";
-            AuthCredential credential= EmailAuthProvider.getCredential(firebaseUser.getEmail(), userPwdCur);
-            firebaseUser.reauthenticate(credential).addOnCompleteListener(new OnCompleteListener<Void>() {
-                @Override
-                public void onComplete(@NonNull Task<Void> task) {
-                    if (task.isSuccessful()) {
-                        AutomateChangePwd ();
-
-                    } else {
-                        try {
-                            throw task.getException();
-                        } catch (FirebaseAuthInvalidCredentialsException e) {
-                            int tts2 = textToSpeech.speak("Wrong Password Entered", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
-                            if (tts2 == TextToSpeech.SUCCESS) {
-                                // Pause the timer until TTS completes
-                                pauseToastTimer();
-                            }
-                            CP_Password.setError("Wrong Password Entered");
-                            CP_Password.requestFocus();
-                        } catch (Exception e) {
-                            Toast.makeText(ChangePassword.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                }
-
-                String change = "";
-
-
-            });
         }
-        wakeWordHelper.startListening();
-
     }
     public void AutomateChangePwd () {
-        int tts1 = textToSpeech.speak("Please say your new password", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+        int tts1 = textToSpeech.speak("Please say your new password", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_AUTOMATE_PASSWORD");
         if (tts1 == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();
-        }
-        String change="";
-        int tts2 = textToSpeech.speak("Please confirm your new password", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
-        if (tts2 == TextToSpeech.SUCCESS) {
-            // Pause the timer until TTS completes
-            pauseToastTimer();
-        }
-        String userPwdCur="";
-        if(!change.matches(userPwdCur)){
-            int tts3 = textToSpeech.speak("Password did not match", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
-            if (tts3 == TextToSpeech.SUCCESS) {
-                // Pause the timer until TTS completes
-                pauseToastTimer();
-            }// Toast.makeText(ChangePassword.this, "Password did not match", Toast.LENGTH_SHORT).show();
-            CP_ConfirmPassword.setError("Please re-enter same password");
-            CP_ConfirmPassword.requestFocus();
-        }
-        else if(change.matches(userPwdCur)){
-            int tts4 = textToSpeech.speak("New password cannot be same as old password", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
-            //Toast.makeText(ChangePassword.this, "New password cannot be same as old password", Toast.LENGTH_SHORT).show();
-            if (tts4 == TextToSpeech.SUCCESS) {
-                // Pause the timer until TTS completes
-                pauseToastTimer();
-            }CP_NewPassword.setError("Please enter a new password");
-            CP_NewPassword.requestFocus();
-        }else {
-            CP_progressBar.setVisibility(View.VISIBLE);
-            firebaseUser.updatePassword(userPwdCur).addOnCompleteListener(new OnCompleteListener<Void>() {
-                @Override
-                public void onComplete(@NonNull Task<Void> task) {
-                    if (task.isSuccessful()) {
-                        int tts5 = textToSpeech.speak("New password cannot be same as old password", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
-                        //Toast.makeText(ChangePassword.this, "New password cannot be same as old password", Toast.LENGTH_SHORT).show();
-                        if (tts5 == TextToSpeech.SUCCESS) {
-                            // Pause the timer until TTS completes
-                            pauseToastTimer();
-                            Toast.makeText(ChangePassword.this, "Password has been changed", Toast.LENGTH_SHORT).show();
-                            finish();
-                        } else {
-                            try {
-                                throw task.getException();
-                            } catch (Exception e) {
-                                Toast.makeText(ChangePassword.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                        CP_progressBar.setVisibility(View.GONE);
-                    }
-                }
-            });
         }
     }
     private void reAuthenticateUser(FirebaseUser firebaseUser){
@@ -714,6 +747,10 @@ public class ChangePassword extends AppCompatActivity implements TextToSpeech.On
                 public void onComplete(@NonNull Task<Void> task){
                     if(task.isSuccessful()){
                         Toast.makeText(ChangePassword.this, "Password has been changed", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(ChangePassword.this, Profile.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                        intent.putExtra("Rl", Rl);
+                        startActivity(intent);
                         finish();
                     }else{
                         try{

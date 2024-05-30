@@ -747,7 +747,7 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
         if(Temp.equals("back")){
             Intent intent=new Intent(UpdateProfile.this,Profile.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            intent.putExtra("Rl","Student");
+            intent.putExtra("Rl",Rl);
             startActivity(intent);
             finish();
         }

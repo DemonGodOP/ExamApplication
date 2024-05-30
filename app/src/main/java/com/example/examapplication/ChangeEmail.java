@@ -160,15 +160,12 @@ public class ChangeEmail extends AppCompatActivity implements TextToSpeech.OnIni
 
         if(firebaseUser.equals("")){
             Toast.makeText(ChangeEmail.this, "Something went wrong! User's details not available", Toast.LENGTH_SHORT).show();
+            Intent intent1=new Intent(ChangeEmail.this, Profile.class);
+            intent1.putExtra("Rl",Rl);
+            startActivity(intent1);
+            finish();
         }else{
             reAuthenticate (firebaseUser);
-        }
-        appstate = AState.AppState.TTS;
-        if (hasRecordPermission()){
-            wakeWordHelper=new WakeWordHelper(this,appstate,this);
-        } else {
-            // Permission already granted
-            requestRecordPermission();
         }
             handler = new Handler();//2
 
@@ -191,7 +188,6 @@ public class ChangeEmail extends AppCompatActivity implements TextToSpeech.OnIni
         super.onResume();
         // Reset the timer whenever the user interacts with the app
         resetToastTimer();
-        isUserInteracted = false; // Reset user interaction flag
         if(Rl.equals("Student")) {
             isUserInteracted = false; // Reset user interaction flag
             if (textToSpeech != null) {
@@ -200,17 +196,72 @@ public class ChangeEmail extends AppCompatActivity implements TextToSpeech.OnIni
                     // Pause the timer until TTS completes
                     pauseToastTimer();
                 }
-            //Enter the Condition Over here that is tts to take input from the user if they wants us to repeat the introduction and change r respectively.
+                //Enter the Condition Over here that is tts to take input from the user if they wants us to repeat the introduction and change r respectively.
             /*boolean r=false;
             if(r==true){
                 StarUpRepeat();
             } // Restart the TTS when the activity is resumed
             else{
                 appstate= AState.AppState.WAKEWORD;
-                wakeWordHelper.startListening();*/
+                wakeWordHelper.startListening();
+            }*/
             }
         }
     }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(Rl.equals("Student")) {
+            if (speechRecognizer != null) {
+                speechRecognizer.stopListening();
+            }
+            if (wakeWordHelper != null) {
+                wakeWordHelper.stopListening();
+                appstate = AState.AppState.TTS;
+            }
+            if (textToSpeech != null) {
+                textToSpeech.stop();
+            }
+        }
+        pauseToastTimer();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if(Rl.equals("Student")) {
+            if (speechRecognizer != null) {
+                speechRecognizer.stopListening(); // Destroy the speech recognizer when the app is no longer visible
+            }
+            if (textToSpeech != null) {
+                textToSpeech.stop();
+            }
+
+            if (wakeWordHelper != null) {
+                wakeWordHelper.stopListening();
+            }
+        }
+        pauseToastTimer();
+    }
+    @Override
+    protected void onDestroy() {
+        // Release resources
+        if(Rl.equals("Student")) {
+            if (textToSpeech != null) {
+                textToSpeech.stop();
+                textToSpeech.shutdown();
+            }
+            if (speechRecognizer != null) {
+                speechRecognizer.destroy(); // Destroy the speech recognizer when the app is no longer visible
+            }
+            if (wakeWordHelper != null) {
+                wakeWordHelper.stopListening();
+            }
+        }
+        handler.removeCallbacks(toastRunnable);
+        super.onDestroy();
+    }//3
     private boolean hasRecordPermission() {
         return ActivityCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO)
                 == PackageManager.PERMISSION_GRANTED;
@@ -236,58 +287,7 @@ public class ChangeEmail extends AppCompatActivity implements TextToSpeech.OnIni
         }
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        if(speechRecognizer!=null) {
-            speechRecognizer.stopListening();
-        }
-        pauseToastTimer();
-        if(wakeWordHelper!=null) {
-            wakeWordHelper.stopListening();
-            appstate= AState.AppState.TTS;
-        }
-        if (textToSpeech != null) {
-            textToSpeech.stop(); // Stop the TTS if the activity is no longer visible
-        }
-    }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if(Rl.equals("Student")) {
-            if (speechRecognizer != null) {
-                speechRecognizer.stopListening(); // Destroy the speech recognizer when the app is no longer visible
-            }
-            if (textToSpeech != null) {
-                textToSpeech.stop();
-            }
-
-            if (wakeWordHelper != null) {
-                wakeWordHelper.stopListening();
-            }
-        }
-        pauseToastTimer();
-    }
-
-    @Override
-    protected void onDestroy() {
-        // Release resources
-        if(Rl.equals("Student")) {
-            if (textToSpeech != null) {
-                textToSpeech.stop();
-                textToSpeech.shutdown();
-            }
-            if (speechRecognizer != null) {
-                speechRecognizer.destroy(); // Destroy the speech recognizer when the app is no longer visible
-            }
-            if (wakeWordHelper != null) {
-                wakeWordHelper.stopListening();
-            }
-        }
-        handler.removeCallbacks(toastRunnable);
-        super.onDestroy();
-    }
 
     private class SpeechListener implements RecognitionListener {
         @Override
@@ -446,6 +446,143 @@ public class ChangeEmail extends AppCompatActivity implements TextToSpeech.OnIni
                     }
                 }, 5000);
             }
+            else if(utteranceId.equals("TTS_UTTERANCE_CHANGE_EMAIL")){
+                appstate = AState.AppState.STT;
+                runOnUiThread(() -> {
+                    try {
+                        speechRecognizer.startListening(speechRecognizerIntent);
+                        Log.d("STT", "Speech recognizer started listening.");
+                    } catch (Exception e) {
+                        Log.e("STT", "Exception starting speech recognizer", e);
+                    }
+
+                    // Ensure the Toast is shown on the main thread
+                    Toast.makeText(ChangeEmail.this, "Listening", Toast.LENGTH_SHORT).show();
+                });
+                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        speechRecognizer.stopListening();
+                        String userPwd = STTData;
+                        AuthCredential credential = EmailAuthProvider.getCredential(Old_Email, userPwd);
+
+                        firebaseUser.reauthenticate(credential).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                if (task.isSuccessful()) {
+                                    int tts2 = textToSpeech.speak("Password has been verified,You can update email now.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+                                    if (tts2 == TextToSpeech.SUCCESS) {
+                                        // Pause the timer until TTS completes
+                                        pauseToastTimer();
+                                    }
+
+                                    //set TextView to show the user is authenticated
+                                    CE_Text.setText("You are authenticated. You can update your email now");
+
+                                    //disable editText for password and enable editText for new email and update
+                                    CE_NewEmail.setEnabled(true);
+                                    CE_Password.setEnabled(false);
+                                    buttonVerifyUser.setEnabled(false);
+                                    CE_Button.setEnabled(true);
+
+                                    //change color of update Email button
+                                    CE_Button.setBackgroundTintList(ContextCompat.getColorStateList(ChangeEmail.this, R.color.dark_green));
+                                    AutomateChangeEmail();
+                                } else {
+                                    try {
+                                        throw task.getException();
+                                    } catch (FirebaseAuthInvalidCredentialsException e) {
+                                        CE_Password.setError("Incorrect Credentials");
+                                        CE_Password.requestFocus();
+                                    } catch (FirebaseAuthUserCollisionException e) {
+                                        CE_NewEmail.setError("User Already exists with this Email ID");
+                                        CE_NewEmail.requestFocus();
+                                    } catch (Exception e) {
+                                        Toast.makeText(ChangeEmail.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            }
+                        });
+                    }
+                },7000);
+            }
+            else if(utteranceId.equals("TTS_UTTERANCE_AUTOMATE_EMAIL")){
+                appstate = AState.AppState.STT;
+                runOnUiThread(() -> {
+                    try {
+                        speechRecognizer.startListening(speechRecognizerIntent);
+                        Log.d("STT", "Speech recognizer started listening.");
+                    } catch (Exception e) {
+                        Log.e("STT", "Exception starting speech recognizer", e);
+                    }
+
+                    // Ensure the Toast is shown on the main thread
+                    Toast.makeText(ChangeEmail.this, "Listening", Toast.LENGTH_SHORT).show();
+                });
+                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        speechRecognizer.stopListening();
+                        String New_Email = STTData;
+                        if (!Patterns.EMAIL_ADDRESS.matcher(New_Email).matches()) {
+                            int tts2 = textToSpeech.speak("Invalid Email Provided. Please Start the Process From the Beginning. Starting WakeWord Engine", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                            if (tts2 == TextToSpeech.SUCCESS) {
+                                // Pause the timer until TTS completes
+                                pauseToastTimer();
+                            }
+                            CE_NewEmail.setError("Please provide valid email");
+                            CE_NewEmail.requestFocus();
+                        } else if (Old_Email.matches(New_Email)) {
+                            int tts3 = textToSpeech.speak("Old Email same as new email, Please enter new email, Please Start the Process From the Beginning. Starting WakeWord Engine", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                            if (tts3 == TextToSpeech.SUCCESS) {
+                                // Pause the timer until TTS completes
+                                pauseToastTimer();
+                            }
+                            CE_NewEmail.setError("Please enter new email");
+                            CE_NewEmail.requestFocus();
+                        } else {
+                            boolean res[] = {false};
+                            DatabaseReference CheckEmail = FirebaseDatabase.getInstance().getReference().child("Registered Users");
+                            CheckEmail.addValueEventListener(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                    for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                                        ReadWriteUserDetails readWriteUserDetails = dataSnapshot.child("User Details").getValue(ReadWriteUserDetails.class);
+                                        if (readWriteUserDetails != null) {
+                                            if (readWriteUserDetails.email.equals(New_Email)) {
+                                                res[0] = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (res[0] == true) {
+                                        int tts4 = textToSpeech.speak("Email Already Exists in the Database. Please Start the Process From the Beginning. Starting WakeWord Engine", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                                        if (tts4 == TextToSpeech.SUCCESS) {
+                                            // Pause the timer until TTS completes
+                                            pauseToastTimer();
+                                        }
+                                        CE_NewEmail.setError("Email Already Exists in the Database.");
+                                        CE_NewEmail.requestFocus();
+                                    } else {
+                                        int tts4 = textToSpeech.speak("Email Update Activity Started, You Would Need To Verify the Email First in order to Update It. Please Take Some Outside help to Complete the Process. Sorry for Any Inconvinience", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                                        if (tts4 == TextToSpeech.SUCCESS) {
+                                            // Pause the timer until TTS completes
+                                            pauseToastTimer();
+                                        }
+                                        updateEmail(firebaseUser);
+                                    }
+                                }
+
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError error) {
+
+                                }
+                            });
+                        }
+                    }
+                },10000);
+
+            }
             resetToastTimer();
         }
     };
@@ -472,34 +609,25 @@ public class ChangeEmail extends AppCompatActivity implements TextToSpeech.OnIni
 
     @Override
     public void onInit(int status) {
-        if (status == TextToSpeech.SUCCESS) {
-            // TTS initialization successful, set language and convert text to speech
-            isTTSInitialized = true;
-            textToSpeech.setLanguage(Locale.US);
-            //Locale locale = new Locale("en","IN");
-            //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
-            //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
-            //textToSpeech.setVoice(voice);
-            int ttsResult=textToSpeech.speak("Hello, Welcome to the Change Email Page of Exam Care, Would you like to listen to a Detailed introduction of the page.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-            if (ttsResult == TextToSpeech.SUCCESS) {
-                // Pause the timer until TTS completes
-                pauseToastTimer();
-            }
-
-            String YN="";
-            if(YN.equals("YES")){
-                StarUpRepeat();
-            }
-            else{
-                int tts1=textToSpeech.speak("No Input Detected, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
-                if (tts1== TextToSpeech.SUCCESS) {
+        if(Rl.equals("Student")) {
+            if (status == TextToSpeech.SUCCESS) {
+                // TTS initialization successful, set language and convert text to speech
+                isTTSInitialized = true;
+                textToSpeech.setLanguage(Locale.US);
+                //Locale locale = new Locale("en","IN");
+                //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
+                //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
+                //textToSpeech.setVoice(voice);
+                int ttsResult = textToSpeech.speak("Hello, Welcome to the Change Email Page of Exam Care, Would you like to listen to a Detailed introduction of the page.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ONINIT");
+                if (ttsResult == TextToSpeech.SUCCESS) {
                     // Pause the timer until TTS completes
                     pauseToastTimer();
                 }
+
+            } else {
+                // TTS initialization failed, handle error
+                Log.e("TTS", "Initialization failed");
             }
-        } else {
-            // TTS initialization failed, handle error
-            Log.e("TTS", "Initialization failed");
         }
     }
 
@@ -518,10 +646,12 @@ public class ChangeEmail extends AppCompatActivity implements TextToSpeech.OnIni
             // Pause the timer until TTS completes
             pauseToastTimer();
         }
-        Repeat();
     }
 
     public void Repeat(){
+        if(appstate== AState.AppState.WAKEWORD){
+            wakeWordHelper.stopListening();
+        }
         textToSpeech.setLanguage(Locale.US);
         //Locale locale = new Locale("en","IN");
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
@@ -533,145 +663,40 @@ public class ChangeEmail extends AppCompatActivity implements TextToSpeech.OnIni
             pauseToastTimer();
         }
         //Enter the Condition Over here that is tts to take input from the user if they wants us to repeat the introduction and change r respectively.
-        boolean r=false;
-        if(r==true){
-            StarUpRepeat();
-        }
-        else{
-            int tts1=textToSpeech.speak("No Input Detected, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
-            if (tts1== TextToSpeech.SUCCESS) {
-                // Pause the timer until TTS completes
-                pauseToastTimer();
-            }
-        }
     }
 
 
 
     public void Automate(String Temp) {
+        wakeWordHelper.stopListening();
         textToSpeech.setLanguage(Locale.US);
         //Locale locale = new Locale("en","IN");
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
-        if(Temp.equals("Repeat Introduction")){
+        if(Temp.equals("repeat introduction")){
             StarUpRepeat();
         }else if(Temp.equals("back")){
             Intent intent=new Intent(ChangeEmail.this,Profile.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            intent.putExtra("Rl","Student");
+            intent.putExtra("Rl",Rl);
             startActivity(intent);
             finish();
         }else if (Temp.equals("change email")) {
-            int tts1 = textToSpeech.speak("Please say your password", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+            int tts1 = textToSpeech.speak("Please say your password", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_CHANGE_EMAIL");
             if (tts1 == TextToSpeech.SUCCESS) {
                 // Pause the timer until TTS completes
                 pauseToastTimer();
             }
-            String userPwdCur = "";
-            AuthCredential credential = EmailAuthProvider.getCredential(Old_Email, userPwd);
-
-            firebaseUser.reauthenticate(credential).addOnCompleteListener(new OnCompleteListener<Void>() {
-                @Override
-                public void onComplete(@NonNull Task<Void> task) {
-                    if (task.isSuccessful()) {
-                        CE_progressBar.setVisibility(View.VISIBLE);
-                        int tts2 = textToSpeech.speak("Password has been verified,You can update email now.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
-                        if (tts2 == TextToSpeech.SUCCESS) {
-                            // Pause the timer until TTS completes
-                            pauseToastTimer();
-                        }
-
-                        //set TextView to show the user is authenticated
-                        CE_Text.setText("You are authenticated. You can update your email now");
-
-                        //disable editText for password and enable editText for new email and update
-                        CE_NewEmail.setEnabled(true);
-                        CE_Password.setEnabled(false);
-                        buttonVerifyUser.setEnabled(false);
-                        CE_Button.setEnabled(true);
-
-                        //change color of update Email button
-                        CE_Button.setBackgroundTintList(ContextCompat.getColorStateList(ChangeEmail.this, R.color.dark_green));
-                        AutomateChangeEmail ();
-                    }
-                    else {
-                        try {
-                            throw task.getException();
-                        } catch(FirebaseAuthInvalidCredentialsException e){
-                            CE_Password.setError("Incorrect Credentials");
-                            CE_Password.requestFocus();
-                        }catch(FirebaseAuthUserCollisionException e){
-                            CE_NewEmail.setError("User Already exists with this Email ID");
-                            CE_NewEmail.requestFocus();
-                        }catch (Exception e) {
-                            Toast.makeText(ChangeEmail.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                }
-            });
         }
         wakeWordHelper.startListening();
     }
 
     public void AutomateChangeEmail () {
-        int tts1 = textToSpeech.speak("Please say your new email", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+        int tts1 = textToSpeech.speak("Please say your new email", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_AUTOMATE_EMAIL");
         if (tts1 == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();
-        }
-        String New_Email="";
-        if (!Patterns.EMAIL_ADDRESS.matcher(New_Email).matches()) {
-            int tts2 = textToSpeech.speak("Please provide valid email", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
-            if (tts2 == TextToSpeech.SUCCESS) {
-                // Pause the timer until TTS completes
-                pauseToastTimer();
-            }
-            CE_NewEmail.setError("Please provide valid email");
-            CE_NewEmail.requestFocus();
-        }
-        else if (Old_Email.matches(New_Email)) {
-            int tts3 = textToSpeech.speak("Please enter new email", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
-            if (tts3 == TextToSpeech.SUCCESS) {
-                // Pause the timer until TTS completes
-                pauseToastTimer();
-            }
-            CE_NewEmail.setError("Please enter new email");
-            CE_NewEmail.requestFocus();
-        } else {
-            boolean res[]={false};
-            DatabaseReference CheckEmail=FirebaseDatabase.getInstance().getReference().child("Registered Users");
-            CheckEmail.addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    for(DataSnapshot dataSnapshot:snapshot.getChildren()){
-                        ReadWriteUserDetails readWriteUserDetails=dataSnapshot.child("User Details").getValue(ReadWriteUserDetails.class);
-                        if(readWriteUserDetails!=null){
-                            if(readWriteUserDetails.email.equals(New_Email)){
-                                res[0]=true;
-                                break;
-                            }
-                        }
-                    }
-                    if(res[0]==true){
-                        int tts4 = textToSpeech.speak("Email Already Exists in the Database.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
-                        if (tts4 == TextToSpeech.SUCCESS) {
-                            // Pause the timer until TTS completes
-                            pauseToastTimer();
-                        }
-                        CE_NewEmail.setError("Email Already Exists in the Database.");
-                        CE_NewEmail.requestFocus();
-                    }
-                    else{
-                        updateEmail(firebaseUser);
-                    }
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-
-                }
-            });
         }
     }
 
@@ -792,8 +817,7 @@ public class ChangeEmail extends AppCompatActivity implements TextToSpeech.OnIni
                             ReadWriteUserDetails WriteUserDetails = new ReadWriteUserDetails(New_Email, Name, Phone, Institute, Username, finalRole);
                             referenceProfile.child(firebaseUser.getUid()).child("User Details").setValue(WriteUserDetails);
                             CE_progressBar.setVisibility(View.GONE);
-                            CE_Password.setError("Email Updated");
-                            CE_Password.requestFocus();
+                            Toast.makeText(ChangeEmail.this, "Email Updated", Toast.LENGTH_SHORT).show();
                 } else {
                     // Email verification failed, handle accordingly
                     Exception exception = task.getException();
