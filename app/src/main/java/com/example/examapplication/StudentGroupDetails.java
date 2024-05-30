@@ -11,6 +11,10 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
+import android.speech.RecognitionListener;
+import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.util.Log;
@@ -27,6 +31,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
 import java.util.Locale;
 
 public class StudentGroupDetails extends AppCompatActivity implements TextToSpeech.OnInitListener,WakeWordListener  {
@@ -49,9 +54,13 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
     // Flag to indicate if TextToSpeech engine is initialized
     boolean isTTSInitialized;//1
 
+    private SpeechRecognizer speechRecognizer;
+    private Intent speechRecognizerIntent;
     AState.AppState appstate;
 
     WakeWordHelper wakeWordHelper;
+
+    String STTData;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,6 +77,15 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
 
         Intent intent = getIntent();
         Group_ID = intent.getStringExtra("GROUP_ID");
+
+        speechRecognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
+        speechRecognizerIntent.putExtra(
+                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+
+        appstate = AState.AppState.TTS;
 
         authProfile = FirebaseAuth.getInstance();
         FirebaseUser firebaseUser = authProfile.getCurrentUser();
@@ -90,9 +108,10 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
             }
         });
 
-        appstate = AState.AppState.TTS;
         if (hasRecordPermission()){
             wakeWordHelper=new WakeWordHelper(this,appstate,this);
+            speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+            speechRecognizer.setRecognitionListener(new StudentGroupDetails.SpeechListener());
         } else {
             // Permission already granted
             requestRecordPermission();
@@ -112,6 +131,22 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
         // Start the initial delay
         startToastTimer();//2
     }
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(speechRecognizer!=null) {
+            speechRecognizer.stopListening();
+        }
+        pauseToastTimer();
+        if(wakeWordHelper!=null) {
+            wakeWordHelper.stopListening();
+            appstate= AState.AppState.TTS;
+        }
+        if(textToSpeech!=null) {
+            textToSpeech.stop();
+        }
+    }
+
     @Override //3
     protected void onResume() {
         super.onResume();
@@ -119,22 +154,54 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
         resetToastTimer();
         isUserInteracted = false; // Reset user interaction flag
         if (textToSpeech != null) {
-            int ttsResult=textToSpeech.speak("If you want me to repeat the introduction of the page again please say, Exam Care Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+            int ttsResult=textToSpeech.speak("If you want me to repeat the introduction of the page again please say, Exam Care, Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
             if (ttsResult == TextToSpeech.SUCCESS) {
                 // Pause the timer until TTS completes
                 pauseToastTimer();
             }
             //Enter the Condition Over here that is tts to take input from the user if they wants us to repeat the introduction and change r respectively.
-            boolean r=false;
+            /*boolean r=false;
             if(r==true){
                 StarUpRepeat();
             } // Restart the TTS when the activity is resumed
             else{
                 appstate= AState.AppState.WAKEWORD;
                 wakeWordHelper.startListening();
-            }
+            }*/
         }
     }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (speechRecognizer != null) {
+            speechRecognizer.stopListening(); // Destroy the speech recognizer when the app is no longer visible
+        }
+        if(textToSpeech!=null){
+            textToSpeech.stop();
+        }
+        pauseToastTimer();
+        if(wakeWordHelper!=null) {
+            wakeWordHelper.stopListening();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        // Release resources
+        if (textToSpeech != null) {
+            textToSpeech.stop();
+            textToSpeech.shutdown();
+        }
+        if (speechRecognizer != null) {
+            speechRecognizer.destroy(); // Destroy the speech recognizer when the app is no longer visible
+        }
+        if(wakeWordHelper!=null) {
+            wakeWordHelper.stopListening();
+        }
+        handler.removeCallbacks(toastRunnable);
+        super.onDestroy();
+    }//3
 
     private boolean hasRecordPermission() {
         return ActivityCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO)
@@ -156,21 +223,101 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
             Toast.makeText(this, "App Cannot be Used Without Record Permission", Toast.LENGTH_SHORT).show();
         } else {
             wakeWordHelper=new WakeWordHelper(this,appstate,this);
+            speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+            speechRecognizer.setRecognitionListener(new StudentGroupDetails.SpeechListener());
         }
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        pauseToastTimer();
-        if (textToSpeech != null) {
-            textToSpeech.stop(); // Stop the TTS if the activity is no longer visible
+    private class SpeechListener implements RecognitionListener {
+        @Override
+        public void onReadyForSpeech(Bundle params) {
         }
-        if(appstate== AState.AppState.WAKEWORD) {
-            wakeWordHelper.stopListening();
-            appstate = AState.AppState.TTS;
+
+        @Override
+        public void onBeginningOfSpeech() {
+        }
+
+        @Override
+        public void onRmsChanged(float rmsdB) {
+        }
+
+        @Override
+        public void onBufferReceived(byte[] buffer) {
+        }
+
+        @Override
+        public void onEndOfSpeech() {
+        }
+
+        @Override
+        public void onError(int error) {
+            switch (error) {
+                case SpeechRecognizer.ERROR_AUDIO:
+                    Toast.makeText(StudentGroupDetails.this, "Error recording audio.", Toast.LENGTH_SHORT).show();
+                    break;
+                case SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS:
+                    Toast.makeText(StudentGroupDetails.this, "Insufficient permissions.", Toast.LENGTH_SHORT).show();
+                    break;
+                case SpeechRecognizer.ERROR_NETWORK_TIMEOUT:
+                case SpeechRecognizer.ERROR_NETWORK:
+                    Toast.makeText(StudentGroupDetails.this, "Network Error.", Toast.LENGTH_SHORT).show();
+                    break;
+                case SpeechRecognizer.ERROR_NO_MATCH:
+                    Toast.makeText(StudentGroupDetails.this, "No recognition result matched.", Toast.LENGTH_SHORT).show();
+                    break;
+                case SpeechRecognizer.ERROR_CLIENT:
+                    return;
+                case SpeechRecognizer.ERROR_RECOGNIZER_BUSY:
+                    Toast.makeText(StudentGroupDetails.this, "Recognition service is busy.", Toast.LENGTH_SHORT).show();
+                    break;
+                case SpeechRecognizer.ERROR_SERVER:
+                    Toast.makeText(StudentGroupDetails.this, "Server Error.", Toast.LENGTH_SHORT).show();
+                    break;
+                case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
+                    Toast.makeText(StudentGroupDetails.this, "No speech input.", Toast.LENGTH_SHORT).show();
+                    break;
+                default:
+                    Toast.makeText(StudentGroupDetails.this, "Something wrong occurred.", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        @Override
+        public void onResults(Bundle results) {
+            ArrayList<String> data = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+            if(appstate==AState.AppState.STT) {
+                STTData = data.get(0).toLowerCase();
+            }
+            else if(appstate== AState.AppState.AUTOMATE){
+                if(data.get(0).toLowerCase()!=null)
+                    Automate(data.get(0).toLowerCase());
+                else{
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            speechRecognizer.startListening(speechRecognizerIntent);
+                            Toast.makeText(StudentGroupDetails.this, "Listening", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            }
+        }
+
+        @Override
+        public void onPartialResults(Bundle partialResults) {
+
+            ArrayList<String> data = partialResults.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+            if(appstate==AState.AppState.STT) {
+                STTData = data.get(0).toLowerCase();
+            }
+        }
+
+        @Override
+        public void onEvent(int i, Bundle bundle) {
+
         }
     }
+
+
 
     // Method to start the Toast timer
     private void startToastTimer() {
@@ -206,7 +353,38 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
             if(utteranceId.equals("TTS_UTTERANCE_STARTWAKEWORD")){
                 appstate= AState.AppState.WAKEWORD;
                 wakeWordHelper.startListening();
+                resetToastTimer();
+                Toast.makeText(StudentGroupDetails.this, "Listening", Toast.LENGTH_SHORT).show();
+            }
+            else if(utteranceId.equals("TTS_UTTERANCE_ONINIT")){
+                appstate = AState.AppState.STT;
+                runOnUiThread(() -> {
+                    try {
+                        speechRecognizer.startListening(speechRecognizerIntent);
+                        Log.d("STT", "Speech recognizer started listening.");
+                    } catch (Exception e) {
+                        Log.e("STT", "Exception starting speech recognizer", e);
+                    }
 
+                    // Ensure the Toast is shown on the main thread
+                    Toast.makeText(StudentGroupDetails.this, "Listening", Toast.LENGTH_SHORT).show();
+                });
+                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        speechRecognizer.stopListening();
+                        String YN = STTData;
+                        if (YN != null && YN.equals("yes")) {
+                            StarUpRepeat();
+                        } else {
+                            int tts1 = textToSpeech.speak("No Input Detected, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                            if (tts1 == TextToSpeech.SUCCESS) {
+                                // Pause the timer until TTS completes
+                                pauseToastTimer();
+                            }
+                        }
+                    }
+                }, 5000);
             }
             resetToastTimer();
         }
@@ -240,21 +418,10 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
             //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
             //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
             //textToSpeech.setVoice(voice);
-            int ttsResult=textToSpeech.speak("Welcome to the student Group Details Page of Exam Care,  Would you like to listen to a Detailed introduction of the page.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+            int ttsResult=textToSpeech.speak("Welcome to the student Group Details Page of Exam Care,  Would you like to listen to a Detailed introduction of the page.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ONINIT");
             if (ttsResult == TextToSpeech.SUCCESS) {
                 // Pause the timer until TTS completes
                 pauseToastTimer();
-            }
-            String YN="";
-            if(YN.equals("YES")){
-                StarUpRepeat();
-            }
-            else{
-                int tts1=textToSpeech.speak("No Input Detected, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
-                if (tts1== TextToSpeech.SUCCESS) {
-                    // Pause the timer until TTS completes
-                    pauseToastTimer();
-                }
             }
         } else {
             // TTS initialization failed, handle error
@@ -275,59 +442,39 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
             // Pause the timer until TTS completes
             pauseToastTimer();
         }
-        Repeat();
     }
 
     public void Repeat(){
+        if(appstate== AState.AppState.WAKEWORD){
+            wakeWordHelper.stopListening();
+        }
         textToSpeech.setLanguage(Locale.US);
         //Locale locale = new Locale("en","IN");
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
-        int ttsResult=textToSpeech.speak("If you want me to repeat the introduction of the page again please say, Exam Care Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        int ttsResult=textToSpeech.speak("If you want me to repeat the introduction of the page again please say, Exam Care Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();
         }
         //Enter the Condition Over here that is tts to take input from the user if they wants us to repeat the introduction and change r respectively.
-        boolean r=false;
-        if(r==true){
-            StarUpRepeat();
-        }
-        else{
-            int tts1=textToSpeech.speak("No Input Detected, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
-            if (tts1== TextToSpeech.SUCCESS) {
-                // Pause the timer until TTS completes
-                pauseToastTimer();
-            }
-        }
     }
 
 
 
-    @Override
-    protected void onDestroy() {
-        // Release resources
-        if (textToSpeech != null) {
-            textToSpeech.stop();
-            textToSpeech.shutdown();
-        }
-        wakeWordHelper.stopListening();
-        super.onDestroy();
-        handler.removeCallbacks(toastRunnable);
-    }//3
-
     public void Automate(String Temp){
+        wakeWordHelper.stopListening();
         textToSpeech.setLanguage(Locale.US);
         //Locale locale = new Locale("en","IN");
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
         appstate= AState.AppState.TTS;
-        if(Temp.equals("Repeat Introduction")){
+        if(Temp.equals("repeat introduction")){
             StarUpRepeat();
         }
-        else if(Temp.equals("Back")){
+        else if(Temp.equals("back")){
             Intent intent = new Intent(StudentGroupDetails.this, StudentGroup.class);
 
             // Pass the unique key to the new activity
@@ -338,21 +485,20 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
             startActivity(intent);
             finish();
         }
-        else if(Temp.equals("Group Details")){
-            int tts1=textToSpeech.speak("Group Name of the Current group is"+readUserDetails.Group_Name+"Subject Name is"+readUserDetails.Subject_Code+"Subject Code is"+readUserDetails.Subject_Code+"Teacher Name is"+readUserDetails.TeacherName+"Group Description is"+readUserDetails.Description, TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        else if(Temp.equals("group details")){
+            int tts1=textToSpeech.speak("Group Name of the Current group is"+readUserDetails.Group_Name+"Subject Name is"+readUserDetails.Subject_Code+"Subject Code is"+readUserDetails.Subject_Code+"Teacher Name is"+readUserDetails.TeacherName+"Group Description is"+readUserDetails.Description, TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
             if (tts1 == TextToSpeech.SUCCESS) {
                 // Pause the timer until TTS completes
                 pauseToastTimer();
             }
         }
         else{
-            int tts1=textToSpeech.speak("Wrong input provided. Please start the process from the beginning. Sorry for any inconvenience", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+            int tts1=textToSpeech.speak("Wrong input provided. Please start the process from the beginning. Sorry for any inconvenience", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
             if (tts1 == TextToSpeech.SUCCESS) {
                 // Pause the timer until TTS completes
                 pauseToastTimer();
             }
         }
-        wakeWordHelper.startListening();
     }
 
     public void showGroupDetails(FirebaseUser firebaseUser){
@@ -389,5 +535,13 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
     @Override
     public void onWakeWordDetected() {
         Toast.makeText(this, "Wakeword Detected"+appstate, Toast.LENGTH_SHORT).show();
+        if(speechRecognizerIntent!=null){
+            appstate= AState.AppState.AUTOMATE;
+            pauseToastTimer();
+            speechRecognizer.startListening(speechRecognizerIntent);
+        }
+        else{
+            Toast.makeText(this, "Null Speech 2", Toast.LENGTH_SHORT).show();
+        }
     }
 }

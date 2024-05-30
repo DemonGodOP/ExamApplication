@@ -5,6 +5,7 @@ public class AState {
         TTS,
         WAKEWORD,
         STT,
-        AUTOMATE
+        AUTOMATE,
+        ANSWERING
     }
 }

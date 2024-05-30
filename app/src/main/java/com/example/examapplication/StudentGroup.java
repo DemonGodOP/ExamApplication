@@ -160,6 +160,23 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
         // Start the initial delay
         startToastTimer();//2
     }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(speechRecognizer!=null) {
+            speechRecognizer.stopListening();
+        }
+        pauseToastTimer();
+        if(wakeWordHelper!=null) {
+            wakeWordHelper.stopListening();
+            appstate= AState.AppState.TTS;
+        }
+        if(textToSpeech!=null) {
+            textToSpeech.stop();
+        }
+    }
+
     @Override //3
     protected void onResume() {
         super.onResume();
@@ -579,8 +596,9 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
 
     // Repeat The Introduction if Repeat Method is Triggered.
     public void StarUpRepeat(){
-
-        resetToastTimer();
+        if(appstate== AState.AppState.WAKEWORD){
+            wakeWordHelper.stopListening();
+        }
         textToSpeech.setLanguage(Locale.US);
         //Locale locale = new Locale("en","IN");
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
@@ -592,7 +610,6 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
             // Pause the timer until TTS completes
             pauseToastTimer();
         }
-        Repeat();
 
     }
 
