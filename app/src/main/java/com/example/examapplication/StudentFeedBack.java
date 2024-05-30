@@ -11,6 +11,10 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
+import android.speech.RecognitionListener;
+import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.util.Log;
@@ -27,6 +31,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -53,9 +58,13 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
 
     FeedBackDetails feedBackDetails;
 
+    private SpeechRecognizer speechRecognizer;
+    private Intent speechRecognizerIntent;
     AState.AppState appstate;
 
     WakeWordHelper wakeWordHelper;
+
+    String STTData;
    int n=0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -215,9 +224,17 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
             }
         });
 
+        speechRecognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
+        speechRecognizerIntent.putExtra(
+                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
         appstate = AState.AppState.TTS;
         if (hasRecordPermission()){
             wakeWordHelper=new WakeWordHelper(this,appstate,this);
+            speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+            speechRecognizer.setRecognitionListener(new StudentFeedBack.SpeechListener());
         } else {
             // Permission already granted
             requestRecordPermission();
@@ -239,6 +256,22 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
         startToastTimer();//2
 
     }
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(speechRecognizer!=null) {
+            speechRecognizer.stopListening();
+        }
+        pauseToastTimer();
+        if(wakeWordHelper!=null) {
+            wakeWordHelper.stopListening();
+            appstate= AState.AppState.TTS;
+        }
+        if(textToSpeech!=null) {
+            textToSpeech.stop();
+        }
+    }
+
     @Override //3
     protected void onResume() {
         super.onResume();
@@ -246,22 +279,54 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
         resetToastTimer();
         isUserInteracted = false; // Reset user interaction flag
         if (textToSpeech != null) {
-            int ttsResult=textToSpeech.speak("If you want me to repeat the introduction of the page again please say, Exam Care Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+            int ttsResult=textToSpeech.speak("If you want me to repeat the introduction of the page again please say, Exam Care, Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
             if (ttsResult == TextToSpeech.SUCCESS) {
                 // Pause the timer until TTS completes
                 pauseToastTimer();
             }
             //Enter the Condition Over here that is tts to take input from the user if they wants us to repeat the introduction and change r respectively.
-            boolean r=false;
+            /*boolean r=false;
             if(r==true){
                 StarUpRepeat();
             } // Restart the TTS when the activity is resumed
             else{
                 appstate= AState.AppState.WAKEWORD;
                 wakeWordHelper.startListening();
-            }
+            }*/
         }
     }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (speechRecognizer != null) {
+            speechRecognizer.stopListening(); // Destroy the speech recognizer when the app is no longer visible
+        }
+        if(textToSpeech!=null){
+            textToSpeech.stop();
+        }
+        pauseToastTimer();
+        if(wakeWordHelper!=null) {
+            wakeWordHelper.stopListening();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        // Release resources
+        if (textToSpeech != null) {
+            textToSpeech.stop();
+            textToSpeech.shutdown();
+        }
+        if (speechRecognizer != null) {
+            speechRecognizer.destroy(); // Destroy the speech recognizer when the app is no longer visible
+        }
+        if(wakeWordHelper!=null) {
+            wakeWordHelper.stopListening();
+        }
+        handler.removeCallbacks(toastRunnable);
+        super.onDestroy();
+    }//3
 
     private boolean hasRecordPermission() {
         return ActivityCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO)
@@ -283,21 +348,73 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
             Toast.makeText(this, "App Cannot be Used Without Record Permission", Toast.LENGTH_SHORT).show();
         } else {
             wakeWordHelper=new WakeWordHelper(this,appstate,this);
+            speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+            speechRecognizer.setRecognitionListener(new StudentFeedBack.SpeechListener());
         }
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        pauseToastTimer();
-        if (textToSpeech != null) {
-            textToSpeech.stop(); // Stop the TTS if the activity is no longer visible
+    private class SpeechListener implements RecognitionListener {
+        @Override
+        public void onReadyForSpeech(Bundle params) {
         }
-        if(appstate== AState.AppState.WAKEWORD) {
-            wakeWordHelper.stopListening();
-            appstate = AState.AppState.TTS;
+
+        @Override
+        public void onBeginningOfSpeech() {
+
+        }
+
+        @Override
+        public void onRmsChanged(float rmsdB) {
+        }
+
+        @Override
+        public void onBufferReceived(byte[] buffer) {
+        }
+
+        @Override
+        public void onEndOfSpeech() {
+        }
+
+        @Override
+        public void onError(int error) {
+        }
+
+        @Override
+        public void onResults(Bundle results) {
+            ArrayList<String> data = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+            if (appstate == AState.AppState.STT) {
+                STTData = data.get(0).toLowerCase();
+            } else if (appstate == AState.AppState.AUTOMATE) {
+                if (data.get(0).toLowerCase() != null)
+                    Automate(data.get(0).toLowerCase());
+                else {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            speechRecognizer.startListening(speechRecognizerIntent);
+                            Toast.makeText(StudentFeedBack.this, "Listening", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            }
+        }
+
+
+        @Override
+        public void onPartialResults(Bundle partialResults) {
+
+            ArrayList<String> data = partialResults.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+            if(appstate==AState.AppState.STT) {
+                STTData = data.get(0).toLowerCase();
+            }
+        }
+
+        @Override
+        public void onEvent(int i, Bundle bundle) {
+
         }
     }
+
 
 
     // Method to start the Toast timer
@@ -333,7 +450,38 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
             if(utteranceId.equals("TTS_UTTERANCE_STARTWAKEWORD")){
                 appstate= AState.AppState.WAKEWORD;
                 wakeWordHelper.startListening();
+                resetToastTimer();
+                Toast.makeText(StudentFeedBack.this, "Listening", Toast.LENGTH_SHORT).show();
+            }
+            else if(utteranceId.equals("TTS_UTTERANCE_ONINIT")){
+                appstate = AState.AppState.STT;
+                runOnUiThread(() -> {
+                    try {
+                        speechRecognizer.startListening(speechRecognizerIntent);
+                        Log.d("STT", "Speech recognizer started listening.");
+                    } catch (Exception e) {
+                        Log.e("STT", "Exception starting speech recognizer", e);
+                    }
 
+                    // Ensure the Toast is shown on the main thread
+                    Toast.makeText(StudentFeedBack.this, "Listening", Toast.LENGTH_SHORT).show();
+                });
+                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        speechRecognizer.stopListening();
+                        String YN = STTData;
+                        if (YN != null && YN.equals("yes")) {
+                            StarUpRepeat();
+                        }  else {
+                            int tts1 = textToSpeech.speak("No Input Detected, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                            if (tts1 == TextToSpeech.SUCCESS) {
+                                // Pause the timer until TTS completes
+                                pauseToastTimer();
+                            }
+                        }
+                    }
+                }, 5000);
             }
             resetToastTimer();
         }
@@ -367,22 +515,10 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
             //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
             //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
             //textToSpeech.setVoice(voice);
-            int ttsResult=textToSpeech.speak("Hello, Welcome to the Student feedback Page of Exam Care,  Do you want to listen to the Detailed instructions of how to easily surf through this page. If So say, Yes ", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+            int ttsResult=textToSpeech.speak("Hello, Welcome to the Student feedback Page of Exam Care,  Do you want to listen to the Detailed instructions of how to easily surf through this page. If So say, Yes else No", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ONINIT");
             if (ttsResult == TextToSpeech.SUCCESS) {
                 // Pause the timer until TTS completes
                 pauseToastTimer();
-            }
-            String YN="";
-            if(YN.equals("YES")){
-                StarUpRepeat();
-            }
-            else{
-                String Q=Questions.get(n);
-                int tts5=textToSpeech.speak("Question No."+n+"is"+Q+"Wake word engine started you can surf through the page now", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
-                if (tts5 == TextToSpeech.SUCCESS) {
-                    // Pause the timer until TTS completes
-                    pauseToastTimer();
-                }
             }
         } else {
             // TTS initialization failed, handle error
@@ -397,163 +533,171 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
-        int ttsResult=textToSpeech.speak("Hello, Welcome to the Student feedback Page of Exam Care, This page provides you with the facility, to \" +\n" +
+        int ttsResult=textToSpeech.speak("Hello, Welcome to the Student feedback Page of Exam Care, This page provides you with the facility, to " +
                 "to enquire about the feedback provided by your teacher for this particular assignment.for that you have to say, Hello Exam care, feedback," +
                 " it also allows you to review your answers for various" +
                 "questions as provided in this assignment, and for that you have to say, Hello Exam care, Review Assignment.  You can also ask me to repeat the questions just by saying, " +
-                "Exam Care, Repeat Question or you can ask\" +\n" +
-                "\" me to repeat the answer by saying, Exam Care, Repeat answer. You can Surf through question review with simple Commands like, in order to\" +\n" +
-                "\" go to the next question just say, Exam Care, Next, or Inorder to go to the previous Question say,Exam Care, Previous or you can go back to the student group page just say " +
+                "Exam Care, Repeat Question or you can ask" +
+                " me to repeat the answer by saying, Exam Care, Repeat answer. You can Surf through question review with simple Commands like, in order to" +
+                " go to the next question just say, Exam Care, Next, or Inorder to go to the previous Question say,Exam Care, Previous or you can go back to the student group page just say " +
                 "Exam care, back", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();
         }
-        Repeat();
     }
 
     public void Repeat(){
+        if(appstate== AState.AppState.WAKEWORD){
+            wakeWordHelper.stopListening();
+        }
         textToSpeech.setLanguage(Locale.US);
         //Locale locale = new Locale("en","IN");
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
-        int ttsResult=textToSpeech.speak("If you want me to repeat the introduction of the page again please say, Exam Care Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        int ttsResult=textToSpeech.speak("If you want me to repeat the introduction of the page again please say, Exam Care Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();
         }
         //Enter the Condition Over here that is tts to take input from the user if they wants us to repeat the introduction and change r respectively.
-        boolean r=false;
-        if(r==true){
-            StarUpRepeat();
-        }
-        else{
-            int tts1=textToSpeech.speak("No Input Detected, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
-            if (tts1== TextToSpeech.SUCCESS) {
-                // Pause the timer until TTS completes
-                pauseToastTimer();
-            }
-        }
     }
 
 
 
-    @Override
-    protected void onDestroy() {
-        // Release resources
-        if (textToSpeech != null) {
-            textToSpeech.stop();
-            textToSpeech.shutdown();
-        }
-        wakeWordHelper.stopListening();
-        super.onDestroy();
-        handler.removeCallbacks(toastRunnable);
-    }//3
+
     public void Automate(String Temp){
+        wakeWordHelper.stopListening();
         textToSpeech.setLanguage(Locale.US);
         //Locale locale = new Locale("en","IN");
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
         appstate= AState.AppState.TTS;
-        if(Temp.equals("Repeat Introduction")){
+        if(Temp.equals("repeat introduction")){
             StarUpRepeat();
         }
         else if(Temp.equals("feedback")){
-            SF_QN.setVisibility(View.GONE);
-            SN_Q.setVisibility(View.GONE);
-            SF_Prev.setVisibility(View.GONE);
-            SF_Next.setVisibility(View.GONE);
-            SN_A.setVisibility(View.GONE);
-            SF_AnswerText.setVisibility(View.GONE);
-
-            SN_F.setVisibility(View.VISIBLE);
-            SF_FText.setVisibility(View.VISIBLE);
-
-            SF_FB.setText("Answers");
-            if (feedBackDetails != null) {
-                String feedback=feedBackDetails.FeedBack;
-                SN_F.setText(feedback);
-                int tts1=textToSpeech.speak(feedback, TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-                if (tts1 == TextToSpeech.SUCCESS) {
+            if(!SF_FB.getText().toString().equals("FeedBack")){
+                int tts5=textToSpeech.speak("You are already at the feedback page", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
+                if (tts5 == TextToSpeech.SUCCESS) {
                     // Pause the timer until TTS completes
                     pauseToastTimer();
                 }
             }
-            else{
-                int tts2=textToSpeech.speak("feedback not yet provided by the teacher for this assignment.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-                if (tts2 == TextToSpeech.SUCCESS) {
+            else {
+                SF_QN.setVisibility(View.GONE);
+                SN_Q.setVisibility(View.GONE);
+                SF_Prev.setVisibility(View.GONE);
+                SF_Next.setVisibility(View.GONE);
+                SN_A.setVisibility(View.GONE);
+                SF_AnswerText.setVisibility(View.GONE);
+
+                SN_F.setVisibility(View.VISIBLE);
+                SF_FText.setVisibility(View.VISIBLE);
+
+                SF_FB.setText("Answers");
+                if (feedBackDetails != null) {
+                    String feedback = feedBackDetails.FeedBack;
+                    SN_F.setText(feedback);
+                    int tts1 = textToSpeech.speak(feedback+". Starting wakeword engine", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                    if (tts1 == TextToSpeech.SUCCESS) {
+                        // Pause the timer until TTS completes
+                        pauseToastTimer();
+                    }
+                } else {
+                    int tts2 = textToSpeech.speak("feedback not yet provided by the teacher for this assignment. Starting wakeword engine", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                    if (tts2 == TextToSpeech.SUCCESS) {
+                        // Pause the timer until TTS completes
+                        pauseToastTimer();
+                    }
+                }
+            }
+        }
+        else if(Temp.equals("review assignment")){
+            if(!SF_FB.getText().toString().equals("Answers")){
+                int tts5=textToSpeech.speak("You are already at the review assignment page", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
+                if (tts5 == TextToSpeech.SUCCESS) {
+                    // Pause the timer until TTS completes
+                    pauseToastTimer();
+                }
+            }
+            else {
+                SF_QN.setVisibility(View.VISIBLE);
+                SN_Q.setVisibility(View.VISIBLE);
+                SF_Prev.setVisibility(View.VISIBLE);
+                SF_Next.setVisibility(View.VISIBLE);
+                SN_A.setVisibility(View.VISIBLE);
+                SF_AnswerText.setVisibility(View.VISIBLE);
+
+                SN_F.setVisibility(View.GONE);
+                SF_FText.setVisibility(View.GONE);
+
+                SF_FB.setText("FeedBack");
+                int tts3 = textToSpeech.speak("Now you can use the various functionalities as mentioned in the introduction in order to review your assignment.Starting WakeWord Engine.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                if (tts3 == TextToSpeech.SUCCESS) {
                     // Pause the timer until TTS completes
                     pauseToastTimer();
                 }
             }
         }
-        else if(Temp.equals("Review Assignment")){
-            SF_QN.setVisibility(View.VISIBLE);
-            SN_Q.setVisibility(View.VISIBLE);
-            SF_Prev.setVisibility(View.VISIBLE);
-            SF_Next.setVisibility(View.VISIBLE);
-            SN_A.setVisibility(View.VISIBLE);
-            SF_AnswerText.setVisibility(View.VISIBLE);
-
-            SN_F.setVisibility(View.GONE);
-            SF_FText.setVisibility(View.GONE);
-
-            SF_FB.setText("FeedBack");
-            int tts3=textToSpeech.speak("Now you can use the various functionalities as mentioned in the introduction in order to review your assignment", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-            if (tts3 == TextToSpeech.SUCCESS) {
-                // Pause the timer until TTS completes
-                pauseToastTimer();
-            }
-        }
-        else if(Temp.equals("Repeat Question")){
-            if(SF_FB.getText().toString().equals("Feedback")){
+        else if(Temp.equals("repeat question")){
+            if(SF_FB.getText().toString().equals("FeedBack")){
                 String Q=Questions.get(n);
-                int tts4=textToSpeech.speak("Question No."+n+"is"+Q, TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-                if (tts4 == TextToSpeech.SUCCESS) {
-                    // Pause the timer until TTS completes
-                    pauseToastTimer();
-                }
-            }
-            else{
-                int tts5=textToSpeech.speak("You are on the Feedback page go back to the review assignment page to review your" +
-                        " assignment, for this you have to say, Exam care, Review Assignment", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+                int tts5=textToSpeech.speak("Question No."+(n+1)+"is"+Q+". Starting WakeWord Engine.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
                 if (tts5 == TextToSpeech.SUCCESS) {
                     // Pause the timer until TTS completes
                     pauseToastTimer();
                 }
             }
+            else{
+                int tts6=textToSpeech.speak("You are on the Feedback page go back to the review assignment page to review your" +
+                        " assignment, for this you have to say, Exam care, Review Assignment", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
+                if (tts6 == TextToSpeech.SUCCESS) {
+                    // Pause the timer until TTS completes
+                    pauseToastTimer();
+                }
+            }
         }
-        else if(Temp.equals("Repeat Answer")){
-            if(SF_FB.getText().toString().equals("Feedback")){
+        else if(Temp.equals("repeat answer")){
+            if(SF_FB.getText().toString().equals("FeedBack")){
                 String A=Answers.get(n);
-                int tts4=textToSpeech.speak(A, TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-                if (tts4 == TextToSpeech.SUCCESS) {
-                    // Pause the timer until TTS completes
-                    pauseToastTimer();
+                if(A.length()==0){
+                    int tts3=textToSpeech.speak("You have not yet answered this question please answer the question,", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
+                    if (tts3 == TextToSpeech.SUCCESS) {
+                        // Pause the timer until TTS completes
+                        pauseToastTimer();
+                    }
+                }
+                else{
+                    int tts4=textToSpeech.speak("The Answer You Provided is: "+A+". Starting WakeWord engine.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
+                    if (tts4 == TextToSpeech.SUCCESS) {
+                        // Pause the timer until TTS completes
+                        pauseToastTimer();
+                    }
                 }
             }
             else{
-                int tts5=textToSpeech.speak("You are on the Feedback page go back to the review assignment page to review your" +
-                        " assignment, for this you have to say, Exam care, Review Assignment", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-                if (tts5 == TextToSpeech.SUCCESS) {
+                int tts7=textToSpeech.speak("You are on the Feedback page go back to the review assignment page to review your" +
+                        " assignment, for this you have to say, Exam care, Review Assignment", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
+                if (tts7 == TextToSpeech.SUCCESS) {
                     // Pause the timer until TTS completes
                     pauseToastTimer();
                 }
             }
         }
-        else if(Temp.equals("Next")){
-            if(!SF_FB.getText().toString().equals("Feedback")){
+        else if(Temp.equals("next")){
+            if(!SF_FB.getText().toString().equals("FeedBack")){
                 int tts5=textToSpeech.speak("You are on the Feedback page go back to the review assignment page to review your" +
-                        " assignment, for this you have to say, Exam care, Review Assignment", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+                        " assignment, for this you have to say, Exam care, Review Assignment", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
                 if (tts5 == TextToSpeech.SUCCESS) {
                     // Pause the timer until TTS completes
                     pauseToastTimer();
                 }
             }
             else if(n==Questions.size()-1) {
-                int tts6 = textToSpeech.speak("You Have Reached the End of the of the Assignment.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+                int tts6 = textToSpeech.speak("You Have Reached the End of the of the Assignment.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
                 if (tts6 == TextToSpeech.SUCCESS) {
                     // Pause the timer until TTS completes
                     pauseToastTimer();
@@ -569,17 +713,17 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
                 }
                 SF_Prev.setEnabled(true);
                 String Q=Questions.get(n);
-                int tts7=textToSpeech.speak("Question No."+n+"is"+Q, TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-                if (tts7 == TextToSpeech.SUCCESS) {
+                int tts5=textToSpeech.speak("Question No."+(n+1)+"is"+Q+". Starting WakeWord Engine.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
+                if (tts5 == TextToSpeech.SUCCESS) {
                     // Pause the timer until TTS completes
                     pauseToastTimer();
                 }
             }
         }
         else if(Temp.equals("previous")){
-            if(!SF_FB.getText().toString().equals("Feedback")){
+            if(!SF_FB.getText().toString().equals("FeedBack")){
                 int tts5=textToSpeech.speak("You are on the Feedback page go back to the review assignment page to review your" +
-                        " assignment, for this you have to say, Exam care, Review Assignment", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+                        " assignment, for this you have to say, Exam care, Review Assignment", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
                 if (tts5 == TextToSpeech.SUCCESS) {
                     // Pause the timer until TTS completes
                     pauseToastTimer();
@@ -587,7 +731,7 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
             }
             else if(n==0){
                 int tts8=textToSpeech.speak("You are already at the beginning of the Assignment. You can't use the" +
-                        " previous command at this moment.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+                        " previous command at this moment. Starting WakeWord Engine", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
                 if (tts8 == TextToSpeech.SUCCESS) {
                     // Pause the timer until TTS completes
                     pauseToastTimer();
@@ -603,14 +747,14 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
                 }
                 SF_Next.setEnabled(true);
                 String Q=Questions.get(n);
-                int tts7=textToSpeech.speak("Question No."+n+"is"+Q, TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-                if (tts7 == TextToSpeech.SUCCESS) {
+                int tts5=textToSpeech.speak("Question No."+(n+1)+"is"+Q+". Starting WakeWord Engine.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
+                if (tts5 == TextToSpeech.SUCCESS) {
                     // Pause the timer until TTS completes
                     pauseToastTimer();
                 }
             }
         }
-        else if(Temp.equals("Back")){
+        else if(Temp.equals("back")){
             Intent intent = new Intent(StudentFeedBack.this, StudentGroup.class);
 
             // Pass the unique key to the new activity
@@ -622,17 +766,24 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
             finish();
         }
         else{
-            int tts1=textToSpeech.speak("Wrong input provided. Please start the process from the beginning. Sorry for any inconvenience", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+            int tts1=textToSpeech.speak("Wrong input provided. Please start the process from the beginning. Sorry for any inconvenience. Starting WakeWord Engine", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
             if (tts1 == TextToSpeech.SUCCESS) {
                 // Pause the timer until TTS completes
                 pauseToastTimer();
             }
         }
-        wakeWordHelper.startListening();
     }
     @Override
     public void onWakeWordDetected() {
         Toast.makeText(this, "Wakeword Detected"+appstate, Toast.LENGTH_SHORT).show();
+        if(speechRecognizerIntent!=null){
+            appstate= AState.AppState.AUTOMATE;
+            pauseToastTimer();
+            speechRecognizer.startListening(speechRecognizerIntent);
+        }
+        else{
+            Toast.makeText(this, "Null Speech 2", Toast.LENGTH_SHORT).show();
+        }
     }
 }
 

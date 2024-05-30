@@ -162,17 +162,19 @@ public class Profile extends AppCompatActivity implements TextToSpeech.OnInitLis
     @Override
     protected void onPause() {
         super.onPause();
-        if(speechRecognizer!=null) {
-            speechRecognizer.stopListening();
+        if(Rl.equals("Student")) {
+            if (speechRecognizer != null) {
+                speechRecognizer.stopListening();
+            }
+            if (wakeWordHelper != null) {
+                wakeWordHelper.stopListening();
+                appstate = AState.AppState.TTS;
+            }
+            if (textToSpeech != null) {
+                textToSpeech.stop();
+            }
         }
         pauseToastTimer();
-        if(wakeWordHelper!=null) {
-            wakeWordHelper.stopListening();
-            appstate= AState.AppState.TTS;
-        }
-        if(textToSpeech!=null) {
-            textToSpeech.stop();
-        }
     }
 
     @Override //3
@@ -515,8 +517,8 @@ public class Profile extends AppCompatActivity implements TextToSpeech.OnInitLis
             finish();
         }
         else if(Temp.equals("describe profile details")){
-            int tts1=textToSpeech.speak("Your Name is"+name+"Your email address is"+email+"your phone number is"+phone+
-                            "Your institute name is"+institute+"your username is"+username+"", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
+            int tts1=textToSpeech.speak("Your Name is, "+name+", Your email address is, "+email+", your phone number is, "+phone+
+                            ", Your institute name is, "+institute+", your username is, "+username+"", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
             if (tts1 == TextToSpeech.SUCCESS) {
                 // Pause the timer until TTS completes
                 pauseToastTimer();
