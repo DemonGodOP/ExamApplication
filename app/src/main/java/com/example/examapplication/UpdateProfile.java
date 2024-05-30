@@ -4,10 +4,17 @@ import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
+import android.speech.RecognitionListener;
+import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.text.TextUtils;
@@ -30,9 +37,10 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
 import java.util.Locale;
 
-public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnInitListener{
+public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnInitListener,WakeWordListener{
     EditText UP_Name, UP_Phone, UP_Institute,UP_UserName;
     String Name, Phone, Institute,  Username, finalRole, email;
     FirebaseAuth authProfile;
@@ -51,6 +59,13 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
 
     String Rl;
     FirebaseUser firebaseUser;
+    private SpeechRecognizer speechRecognizer;
+    private Intent speechRecognizerIntent;
+
+    AState.AppState appstate;
+    String STTData;
+
+    WakeWordHelper wakeWordHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,11 +88,19 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
         UPTH.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                    Intent intent = new Intent(UpdateProfile.this, Profile.class);
+                if (Rl.equals("Teacher")) {
+                    Intent intent = new Intent(UpdateProfile.this,  Profile.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                    intent.putExtra("Rl",Rl);
+                    intent.putExtra("Rl", "Teacher");
                     startActivity(intent);
                     finish();
+                } else {
+                    Intent intent = new Intent(UpdateProfile.this,  Profile.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    intent.putExtra("Rl", "Student");
+                    startActivity(intent);
+                    finish();
+                }
             }
         });
         authProfile = FirebaseAuth.getInstance();
@@ -93,6 +116,24 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
                 updateProfile(firebaseUser);
             }
         });
+        if(Rl.equals("Student")) {
+            speechRecognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+            speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
+            speechRecognizerIntent.putExtra(
+                    RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                    RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+            speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+
+            appstate = AState.AppState.TTS;
+            if (hasRecordPermission()) {
+                wakeWordHelper = new WakeWordHelper(this, appstate, this);
+                speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+                speechRecognizer.setRecognitionListener(new UpdateProfile.SpeechListener());
+            } else {
+                // Permission already granted
+                requestRecordPermission();
+            }
+        }
 
             handler = new Handler();//2
 
@@ -116,27 +157,191 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
         super.onResume();
         // Reset the timer whenever the user interacts with the app
         resetToastTimer();
-        isUserInteracted = false; // Reset user interaction flag
-        if (textToSpeech != null) {
-            int ttsResult=textToSpeech.speak("If you want me to repeat the introduction of the page again please say, Exam Care Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
-            if (ttsResult == TextToSpeech.SUCCESS) {
-                // Pause the timer until TTS completes
-                pauseToastTimer();
-            }
-            //Enter the Condition Over here that is tts to take input from the user if they wants us to repeat the introduction and change r respectively.
-            boolean r=false;
+        if(Rl.equals("Student")) {
+            isUserInteracted = false; // Reset user interaction flag
+            if (textToSpeech != null) {
+                int ttsResult = textToSpeech.speak("If you want me to repeat the introduction of the page again please say, Exam Care, Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                if (ttsResult == TextToSpeech.SUCCESS) {
+                    // Pause the timer until TTS completes
+                    pauseToastTimer();
+                }
+                //Enter the Condition Over here that is tts to take input from the user if they wants us to repeat the introduction and change r respectively.
+            /*boolean r=false;
             if(r==true){
                 StarUpRepeat();
             } // Restart the TTS when the activity is resumed
+            else{
+                appstate= AState.AppState.WAKEWORD;
+                wakeWordHelper.startListening();
+            }*/
+            }
         }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        if(speechRecognizer!=null) {
+            speechRecognizer.stopListening();
+        }
         pauseToastTimer();
+        if(wakeWordHelper!=null) {
+            wakeWordHelper.stopListening();
+            appstate= AState.AppState.TTS;
+        }
         if (textToSpeech != null) {
             textToSpeech.stop(); // Stop the TTS if the activity is no longer visible
+        }
+    }
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if(Rl.equals("Student")) {
+            if (speechRecognizer != null) {
+                speechRecognizer.stopListening(); // Destroy the speech recognizer when the app is no longer visible
+            }
+            if (textToSpeech != null) {
+                textToSpeech.stop();
+            }
+
+            if (wakeWordHelper != null) {
+                wakeWordHelper.stopListening();
+            }
+        }
+        pauseToastTimer();
+    }
+    @Override
+    protected void onDestroy() {
+        // Release resources
+        if(Rl.equals("Student")) {
+            if (textToSpeech != null) {
+                textToSpeech.stop();
+                textToSpeech.shutdown();
+            }
+            if (speechRecognizer != null) {
+                speechRecognizer.destroy(); // Destroy the speech recognizer when the app is no longer visible
+            }
+            if (wakeWordHelper != null) {
+                wakeWordHelper.stopListening();
+            }
+        }
+        handler.removeCallbacks(toastRunnable);
+        super.onDestroy();
+    }//3
+    private boolean hasRecordPermission() {
+        return ActivityCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO)
+                == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void requestRecordPermission() {
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, 0);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (grantResults.length == 0 ||
+                grantResults[0] == PackageManager.PERMISSION_DENIED) {
+            // handle permission denied
+            Toast.makeText(this, "App Cannot be Used Without Record Permission", Toast.LENGTH_SHORT).show();
+        } else {
+            wakeWordHelper=new WakeWordHelper(this,appstate,this);
+            speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+            speechRecognizer.setRecognitionListener(new UpdateProfile.SpeechListener());
+        }
+    }
+
+
+    private class SpeechListener implements RecognitionListener {
+        @Override
+        public void onReadyForSpeech(Bundle params) {
+        }
+
+        @Override
+        public void onBeginningOfSpeech() {
+        }
+
+        @Override
+        public void onRmsChanged(float rmsdB) {
+        }
+
+        @Override
+        public void onBufferReceived(byte[] buffer) {
+        }
+
+        @Override
+        public void onEndOfSpeech() {
+        }
+
+        @Override
+        public void onError(int error) {
+            switch (error) {
+                case SpeechRecognizer.ERROR_AUDIO:
+                    Toast.makeText(UpdateProfile.this, "Error recording audio.", Toast.LENGTH_SHORT).show();
+                    break;
+                case SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS:
+                    Toast.makeText(UpdateProfile.this, "Insufficient permissions.", Toast.LENGTH_SHORT).show();
+                    break;
+                case SpeechRecognizer.ERROR_NETWORK_TIMEOUT:
+                case SpeechRecognizer.ERROR_NETWORK:
+                    Toast.makeText(UpdateProfile.this, "Network Error.", Toast.LENGTH_SHORT).show();
+                    break;
+                case SpeechRecognizer.ERROR_NO_MATCH:
+                    Toast.makeText(UpdateProfile.this, "No recognition result matched.", Toast.LENGTH_SHORT).show();
+                    break;
+                case SpeechRecognizer.ERROR_CLIENT:
+                    return;
+                case SpeechRecognizer.ERROR_RECOGNIZER_BUSY:
+                    Toast.makeText(UpdateProfile.this, "Recognition service is busy.", Toast.LENGTH_SHORT).show();
+                    break;
+                case SpeechRecognizer.ERROR_SERVER:
+                    Toast.makeText(UpdateProfile.this, "Server Error.", Toast.LENGTH_SHORT).show();
+                    break;
+                case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
+                    Toast.makeText(UpdateProfile.this, "No speech input.", Toast.LENGTH_SHORT).show();
+                    break;
+                default:
+                    Toast.makeText(UpdateProfile.this, "Something wrong occurred.", Toast.LENGTH_SHORT).show();
+            }
+
+
+        }
+
+        @Override
+        public void onResults(Bundle results) {
+            ArrayList<String> data = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+            if(appstate==AState.AppState.STT) {
+                STTData = data.get(0).toLowerCase();
+            }
+            else if(appstate== AState.AppState.AUTOMATE){
+                if(data.get(0).toLowerCase()!=null)
+                    Automate(data.get(0).toLowerCase());
+                else{
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            speechRecognizer.startListening(speechRecognizerIntent);
+                            Toast.makeText(UpdateProfile.this, "Listening", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            }
+        }
+
+        @Override
+        public void onPartialResults(Bundle partialResults) {
+
+            ArrayList<String> data = partialResults.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+            if(appstate==AState.AppState.STT) {
+                STTData = data.get(0).toLowerCase();
+            }
+        }
+
+        @Override
+        public void onEvent(int i, Bundle bundle) {
+
         }
     }
 
@@ -170,6 +375,42 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
 
         @Override
         public void onDone(String utteranceId) {
+            if(utteranceId.equals("TTS_UTTERANCE_STARTWAKEWORD")){
+                appstate= AState.AppState.WAKEWORD;
+                wakeWordHelper.startListening();
+                resetToastTimer();
+                Toast.makeText(UpdateProfile.this, "Listening", Toast.LENGTH_SHORT).show();
+            }
+            else if(utteranceId.equals("TTS_UTTERANCE_ONINIT")){
+                appstate = AState.AppState.STT;
+                runOnUiThread(() -> {
+                    try {
+                        speechRecognizer.startListening(speechRecognizerIntent);
+                        Log.d("STT", "Speech recognizer started listening.");
+                    } catch (Exception e) {
+                        Log.e("STT", "Exception starting speech recognizer", e);
+                    }
+
+                    // Ensure the Toast is shown on the main thread
+                    Toast.makeText(UpdateProfile.this, "Listening", Toast.LENGTH_SHORT).show();
+                });
+                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        speechRecognizer.stopListening();
+                        String YN = STTData;
+                        if (YN != null && YN.equals("yes")) {
+                            StarUpRepeat();
+                        } else {
+                            int tts1 = textToSpeech.speak("No Input Detected, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                            if (tts1 == TextToSpeech.SUCCESS) {
+                                // Pause the timer until TTS completes
+                                pauseToastTimer();
+                            }
+                        }
+                    }
+                }, 5000);
+            }
             resetToastTimer();
         }
     };
@@ -205,7 +446,7 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
                 //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
                 //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
                 //textToSpeech.setVoice(voice);
-                int ttsResult = textToSpeech.speak("Hello, Welcome to the Update Profile Page of Exam Care, Would you like to listen to a Detailed introduction of the page.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+                int ttsResult = textToSpeech.speak("Hello, Welcome to the Update Profile Page of Exam Care, Would you like to listen to a Detailed introduction of the page.Say Yes or No", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
                 if (ttsResult == TextToSpeech.SUCCESS) {
                     // Pause the timer until TTS completes
                     pauseToastTimer();
@@ -262,17 +503,6 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
     }
 
 
-
-    @Override
-    protected void onDestroy() {
-        // Release resources
-        if (textToSpeech != null) {
-            textToSpeech.stop();
-            textToSpeech.shutdown();
-        }
-        super.onDestroy();
-        handler.removeCallbacks(toastRunnable);
-    }//3
 
     public void Automate(String Temp) {
         textToSpeech.setLanguage(Locale.US);
@@ -463,5 +693,18 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
                 finish();
             }
         });
+    }
+
+    @Override
+    public void onWakeWordDetected() {
+        Toast.makeText(this, "Wakeword Detected"+appstate, Toast.LENGTH_SHORT).show();
+        if(speechRecognizerIntent!=null){
+            appstate= AState.AppState.AUTOMATE;
+            pauseToastTimer();
+            speechRecognizer.startListening(speechRecognizerIntent);
+        }
+        else{
+            Toast.makeText(this, "Null Speech 2", Toast.LENGTH_SHORT).show();
+        }
     }
 }
