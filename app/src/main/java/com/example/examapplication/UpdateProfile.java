@@ -438,14 +438,14 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
                                 pauseToastTimer();
                             }
                         }
-                        if (change.equals("phone number")) {
+                        else if (change.equals("phone number")) {
                             int tts3 = textToSpeech.speak("Please say your new phone number", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_EDIT_PHONE");
                             if (tts3 == TextToSpeech.SUCCESS) {
                                 // Pause the timer until TTS completes
                                 pauseToastTimer();
                             }
                         }
-                        if (change.equals("institute")) {
+                        else if (change.equals("institute")) {
                             int tts3 = textToSpeech.speak("Please say your new institute", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_EDIT_INSTITUTE");
                             if (tts3 == TextToSpeech.SUCCESS) {
                                 // Pause the timer until TTS completes
@@ -453,14 +453,14 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
                             }
 
                         }
-                        if (change.equals("username")) {
+                        else if (change.equals("username")) {
                             int tts3 = textToSpeech.speak("Please say your new username", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_EDIT_USERNAME");
                             if (tts3 == TextToSpeech.SUCCESS) {
                                 // Pause the timer until TTS completes
                                 pauseToastTimer();
                             }
                         } else {
-                            int tts1 = textToSpeech.speak("Wrong input provided. Please start the process from the beginning. Sorry for any inconvenience", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                            int tts1 = textToSpeech.speak("Wrong input provided"+change+"Please start the process from the beginning. Sorry for any inconvenience", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
                             if (tts1 == TextToSpeech.SUCCESS) {
                                 // Pause the timer until TTS completes
                                 pauseToastTimer();
@@ -577,7 +577,8 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
                     public void run() {
                         speechRecognizer.stopListening();
                         String phone2 = STTData;
-                        ReadWriteUserDetails WriteUserDetails = new ReadWriteUserDetails(email, Name, phone2, Institute, Username, finalRole);
+                        String Phone3 = phone2.replaceAll(" ", "");
+                        ReadWriteUserDetails WriteUserDetails = new ReadWriteUserDetails(email, Name, Phone3, Institute, Username, finalRole);
                         DatabaseReference referenceProfile = FirebaseDatabase.getInstance().getReference("Registered Users");
                         assert firebaseUser != null;
                         referenceProfile.child(firebaseUser.getUid()).child("User Details").setValue(WriteUserDetails).addOnCompleteListener(new OnCompleteListener<Void>() {
