@@ -409,8 +409,8 @@ public class DeleteUser extends AppCompatActivity implements TextToSpeech.OnInit
         public void onDone(String utteranceId) {
             if(utteranceId.equals("TTS_UTTERANCE_STARTWAKEWORD")){
                 appstate= AState.AppState.WAKEWORD;
+                STTData=" ";
                 wakeWordHelper.startListening();
-                resetToastTimer();
                 Toast.makeText(DeleteUser.this, "Listening", Toast.LENGTH_SHORT).show();
             }
             else if(utteranceId.equals("TTS_UTTERANCE_ONINIT")){

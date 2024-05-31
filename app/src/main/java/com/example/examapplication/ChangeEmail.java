@@ -412,8 +412,8 @@ public class ChangeEmail extends AppCompatActivity implements TextToSpeech.OnIni
         public void onDone(String utteranceId) {
             if(utteranceId.equals("TTS_UTTERANCE_STARTWAKEWORD")){
                 appstate= AState.AppState.WAKEWORD;
+                STTData=" ";
                 wakeWordHelper.startListening();
-                resetToastTimer();
                 Toast.makeText(ChangeEmail.this, "Listening", Toast.LENGTH_SHORT).show();
             }
             else if(utteranceId.equals("TTS_UTTERANCE_ONINIT")){
@@ -618,7 +618,7 @@ public class ChangeEmail extends AppCompatActivity implements TextToSpeech.OnIni
                 //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
                 //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
                 //textToSpeech.setVoice(voice);
-                int ttsResult = textToSpeech.speak("Hello, Welcome to the Change Email Page of Exam Care, Would you like to listen to a Detailed introduction of the page.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ONINIT");
+                int ttsResult = textToSpeech.speak("Hello, Welcome to the Change Email Page of Exam Care, Would you like to listen to a Detailed introduction of the page.  Please say Yes or No", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ONINIT");
                 if (ttsResult == TextToSpeech.SUCCESS) {
                     // Pause the timer until TTS completes
                     pauseToastTimer();
@@ -657,7 +657,7 @@ public class ChangeEmail extends AppCompatActivity implements TextToSpeech.OnIni
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
-        int ttsResult=textToSpeech.speak("If you want me to repeat the introduction of the page again please say, Exam Care Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_ID");
+        int ttsResult=textToSpeech.speak("If you want me to repeat the introduction of the page again please say, Exam Care Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();

@@ -389,6 +389,7 @@ public class Profile extends AppCompatActivity implements TextToSpeech.OnInitLis
         public void onDone(String utteranceId) {
             if(utteranceId.equals("TTS_UTTERANCE_STARTWAKEWORD")){
                 appstate= AState.AppState.WAKEWORD;
+                STTData=" ";
                 wakeWordHelper.startListening();
                 Toast.makeText(Profile.this, "Listening", Toast.LENGTH_SHORT).show();
             }

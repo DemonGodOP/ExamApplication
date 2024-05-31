@@ -484,7 +484,6 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
            else  if(utteranceId.equals("TTS_UTTERANCE_STARTWAKEWORD")){
                 appstate= AState.AppState.WAKEWORD;
                 wakeWordHelper.startListening();
-                resetToastTimer();
                 Toast.makeText(AssignmentSubmission.this, "Listening", Toast.LENGTH_SHORT).show();
             }
             else if(utteranceId.equals("TTS_UTTERANCE_ONINIT")){

@@ -351,9 +351,9 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
         public void onDone(String utteranceId) {
 
             if(utteranceId.equals("TTS_UTTERANCE_STARTWAKEWORD")){
+                STTData=" ";
                 appstate= AState.AppState.WAKEWORD;
                 wakeWordHelper.startListening();
-                resetToastTimer();
                 Toast.makeText(StudentGroupDetails.this, "Listening", Toast.LENGTH_SHORT).show();
             }
             else if(utteranceId.equals("TTS_UTTERANCE_ONINIT")){

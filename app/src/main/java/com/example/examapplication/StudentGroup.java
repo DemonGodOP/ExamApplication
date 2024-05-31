@@ -297,7 +297,6 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
             if(utteranceId.equals("TTS_UTTERANCE_STARTWAKEWORD")){
                 appstate= AState.AppState.WAKEWORD;
                 wakeWordHelper.startListening();
-                resetToastTimer();
                 Toast.makeText(StudentGroup.this, "Listening", Toast.LENGTH_SHORT).show();
             }
             else if(utteranceId.equals("TTS_UTTERANCE_ONINIT")){

@@ -450,7 +450,6 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
             if(utteranceId.equals("TTS_UTTERANCE_STARTWAKEWORD")){
                 appstate= AState.AppState.WAKEWORD;
                 wakeWordHelper.startListening();
-                resetToastTimer();
                 Toast.makeText(StudentFeedBack.this, "Listening", Toast.LENGTH_SHORT).show();
             }
             else if(utteranceId.equals("TTS_UTTERANCE_ONINIT")){

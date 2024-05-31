@@ -378,8 +378,8 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
         public void onDone(String utteranceId) {
             if(utteranceId.equals("TTS_UTTERANCE_STARTWAKEWORD")){
                 appstate= AState.AppState.WAKEWORD;
+                STTData=" ";
                 wakeWordHelper.startListening();
-                resetToastTimer();
                 Toast.makeText(UpdateProfile.this, "Listening", Toast.LENGTH_SHORT).show();
             }
             else if(utteranceId.equals("TTS_UTTERANCE_ONINIT")){
