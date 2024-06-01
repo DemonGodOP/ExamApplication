@@ -32,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         toolbar=findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        Objects.requireNonNull(getSupportActionBar()).setTitle("ExamApplication");
+        Objects.requireNonNull(getSupportActionBar()).setTitle("XamCare");
         M_progressBar=findViewById(R.id.M_progressBar);
         M_progressBar.setVisibility(View.VISIBLE);
         authProfile = FirebaseAuth.getInstance();
