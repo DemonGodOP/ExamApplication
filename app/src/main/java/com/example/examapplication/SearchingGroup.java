@@ -74,6 +74,7 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
         setContentView(R.layout.activity_searching_group);
         Intent intent=getIntent();
         Group_ID=intent.getStringExtra("GROUP_ID");
+        Toast.makeText(this, Group_ID, Toast.LENGTH_SHORT).show();
 
 
 
@@ -656,59 +657,70 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
             finish();
         }
         else if(Temp.equals("enter group")){
-            DatabaseReference database = FirebaseDatabase.getInstance().getReference("Groups").child(Group_ID).child("Current Participants").child(firebaseUser.getUid());
-            database.addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    if(snapshot.exists()){
+            if(foundGroup!=null) {
+                DatabaseReference database = FirebaseDatabase.getInstance().getReference("Groups").child(Group_ID).child("Current Participants").child(firebaseUser.getUid());
+                database.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.exists()) {
 
-                        ParticipantDetails participantDetails = snapshot.getValue(ParticipantDetails.class);
-                        if (participantDetails != null) {
-                            Intent intent = new Intent(SearchingGroup.this, StudentGroup.class);
+                            ParticipantDetails participantDetails = snapshot.getValue(ParticipantDetails.class);
+                            if (participantDetails != null) {
+                                Intent intent = new Intent(SearchingGroup.this, StudentGroup.class);
 
-                            // Pass the unique key to the new activity
-                            intent.putExtra("GROUP_ID", Group_ID);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                // Pass the unique key to the new activity
+                                intent.putExtra("GROUP_ID", Group_ID);
+                                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
 
-                            // Start the new activity
-                            startActivity(intent);
-                            finish();
-                        } }else {
-                        DatabaseReference database2 = FirebaseDatabase.getInstance().getReference("Groups").child(Group_ID).child("Joining Request").child(firebaseUser.getUid());
-                        database2.addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                if (snapshot.exists()) {
-                                    ParticipantDetails participantDetails = snapshot.getValue(ParticipantDetails.class);
-                                    if (participantDetails != null) {
-                                        int ttsResult=textToSpeech.speak("Joining Request Not Accepted yet. Please Wait Until the Group Owner Accepts your joining request. If You want to Go Back Say Exam Care, Home Page", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
-                                        if (ttsResult == TextToSpeech.SUCCESS) {
+                                // Start the new activity
+                                startActivity(intent);
+                                finish();
+                            }
+                        } else {
+                            DatabaseReference database2 = FirebaseDatabase.getInstance().getReference("Groups").child(Group_ID).child("Joining Request").child(firebaseUser.getUid());
+                            database2.addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                    if (snapshot.exists()) {
+                                        ParticipantDetails participantDetails = snapshot.getValue(ParticipantDetails.class);
+                                        if (participantDetails != null) {
+                                            int ttsResult = textToSpeech.speak("Joining Request Not Accepted yet. Please Wait Until the Group Owner Accepts your joining request. If You want to Go Back Say Exam Care, Home Page", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                                            if (ttsResult == TextToSpeech.SUCCESS) {
+                                                // Pause the timer until TTS completes
+                                                pauseToastTimer();
+                                            }
+                                        }
+                                    } else {
+                                        int tts2 = textToSpeech.speak("You have not Joined the Group Yet, Do you want to send a joining request. If So Say Yes else No", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_JOINGROUP");
+                                        if (tts2 == TextToSpeech.SUCCESS) {
                                             // Pause the timer until TTS completes
                                             pauseToastTimer();
                                         }
-                                    } }else {
-                                    int tts2=textToSpeech.speak("You have not Joined the Group Yet, Do you want to send a joining request. If So Say Yes else No", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_JOINGROUP");
-                                    if (tts2 == TextToSpeech.SUCCESS) {
-                                        // Pause the timer until TTS completes
-                                        pauseToastTimer();
                                     }
                                 }
-                            }
-                            @Override
-                            public void onCancelled (@NonNull DatabaseError error){
-                                Toast.makeText(SearchingGroup.this, "Something went wrong!", Toast.LENGTH_LONG).show();
 
-                            }
-                        });
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError error) {
+                                    Toast.makeText(SearchingGroup.this, "Something went wrong!", Toast.LENGTH_LONG).show();
+
+                                }
+                            });
+                        }
+
                     }
 
-                }
-                @Override
-                public void onCancelled (@NonNull DatabaseError error){
-                    Toast.makeText(SearchingGroup.this, "Something went wrong!", Toast.LENGTH_LONG).show();
-                    //UP_progressBar.setVisibility(View.GONE);
-                }
-            });
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Toast.makeText(SearchingGroup.this, "Something went wrong!", Toast.LENGTH_LONG).show();
+                        //UP_progressBar.setVisibility(View.GONE);
+                    }
+                });
+            }
+            int tts1=textToSpeech.speak("No Group Exists With Such Group ID. Please Go Back to the Homepage and try Again. Starting WakeWord Engine", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
+            if (tts1 == TextToSpeech.SUCCESS) {
+                // Pause the timer until TTS completes
+                pauseToastTimer();
+            }
         }
         else{
             int tts1=textToSpeech.speak("Wrong input provided"+Temp+"Please start the process from the beginning. Sorry for any inconvenience", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");

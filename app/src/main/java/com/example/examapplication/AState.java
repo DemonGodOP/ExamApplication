@@ -6,6 +6,7 @@ public class AState {
         WAKEWORD,
         STT,
         AUTOMATE,
-        ANSWERING
+        ANSWERING,
+        SEARCH
     }
 }

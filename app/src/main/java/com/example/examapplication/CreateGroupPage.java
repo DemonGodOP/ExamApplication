@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -22,6 +23,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.Objects;
+import java.util.Random;
 
 public class CreateGroupPage extends AppCompatActivity {
     EditText CG_GroupName,CG_SubjectName,CG_SubjectCode,CG_Institute,CG_GroupDescription;
@@ -32,6 +34,7 @@ public class CreateGroupPage extends AppCompatActivity {
     FirebaseAuth authProfile;
 
     String GroupName, SubjectName, SubjectCode, Institute, GroupDescription, TeacherName;
+    DatabaseReference database;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,6 +49,7 @@ public class CreateGroupPage extends AppCompatActivity {
         CG_progressBar = findViewById(R.id.CG_progressBar);
         authProfile=FirebaseAuth.getInstance();
         FirebaseUser firebaseUser=authProfile.getCurrentUser();
+        database = FirebaseDatabase.getInstance().getReference("Groups");
         GCTTH.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -88,10 +92,50 @@ public class CreateGroupPage extends AppCompatActivity {
         });
     }
 
+    // Helper function to generate a random alphanumeric string
+    private void generateUniqueGroupId(int length, FirebaseCallback callback) {
+        String tempGroupId = generateRandomString(length);
+        database.child(tempGroupId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    // If the group ID exists, generate a new one recursively
+                    generateUniqueGroupId(length, callback);
+                } else {
+                    // If the group ID does not exist, use this one
+                    callback.onCallback(tempGroupId);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.e("Firebase", "Database error", databaseError.toException());
+            }
+        });
+    }
+
+    // Helper function to generate a random alphanumeric string
+    private String generateRandomString(int length) {
+        String characters = "abcdefghijklmnopqrstuvwxyz0123456789";
+        StringBuilder sb = new StringBuilder(length);
+        Random random = new Random();
+        for (int i = 0; i < length; i++) {
+            int index = random.nextInt(characters.length());
+            sb.append(characters.charAt(index));
+        }
+        return sb.toString();
+    }
+
+    // Method to save data to Firebase using the generated group ID
+
+    // Callback interface
+    private interface FirebaseCallback {
+        void onCallback(String uniqueGroupId);
+    }
+
     public void CreateGroup(FirebaseUser firebaseUser){
         String teacherId = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
 
-        DatabaseReference database = FirebaseDatabase.getInstance().getReference("Groups");
         DatabaseReference referenceProfile = FirebaseDatabase.getInstance().getReference("Registered Users");
 
         referenceProfile.child(firebaseUser.getUid()).child("User Details").addListenerForSingleValueEvent(new ValueEventListener() {
@@ -100,7 +144,16 @@ public class CreateGroupPage extends AppCompatActivity {
                 ReadWriteUserDetails readUserDetails=snapshot.getValue(ReadWriteUserDetails.class);
                 if(readUserDetails != null){
                     TeacherName=readUserDetails.userName;
-                    String groupId = database.push().getKey(); // Generate a unique key for the group
+                    String groupId[] = {generateRandomString(7)}; // Generate a unique key for the group
+                    generateUniqueGroupId(7, new FirebaseCallback() {
+                        @Override
+                        public void onCallback(String uniqueGroupId) {
+                            groupId[0] = uniqueGroupId;
+                            // Use the generated unique group ID in other parts of your code
+                            Log.d("Firebase", "Generated unique group ID: " + groupId);
+
+                        }
+                    });
 
                     // Save group details in teacher's directory
                     assert groupId != null;
@@ -108,14 +161,14 @@ public class CreateGroupPage extends AppCompatActivity {
                             .child("Registered Users") // Assuming this is where teachers are stored
                             .child(teacherId) // Use the teacher's user ID
                             .child("Groups") // Create a child node for groups
-                            .child(groupId);
+                            .child(groupId[0]);
 
                     // Creating a Group object with its details within Teacher User
-                    Group newGroup = new Group(GroupName,SubjectName,SubjectCode,GroupDescription, groupId, Institute,TeacherName);
+                    Group newGroup = new Group(GroupName,SubjectName,SubjectCode,GroupDescription, groupId[0], Institute,TeacherName);
                     teacherGroupsRef.setValue(newGroup);
 
                     // Creating a Group Object Within the Main Group Directory
-                    database.child(groupId).child("Group Details").setValue(newGroup);
+                    database.child(groupId[0]).child("Group Details").setValue(newGroup);
                 }else {
                     Toast.makeText(CreateGroupPage.this, "Something went wrong", Toast.LENGTH_SHORT).show();
                 }

@@ -313,7 +313,7 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
             switch (error) {
                 case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
                     Toast.makeText(StudentHomePage.this, "No speech input.", Toast.LENGTH_SHORT).show();
-                    if(appstate== AState.AppState.AUTOMATE){
+                    if(appstate== AState.AppState.AUTOMATE||appstate==AState.AppState.SEARCH){
                         int tts1 = textToSpeech.speak("No Input Detected, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
                         if (tts1 == TextToSpeech.SUCCESS) {
                             // Pause the timer until TTS completes
@@ -336,7 +336,7 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
                     break;
                 case SpeechRecognizer.ERROR_NO_MATCH:
                     Toast.makeText(StudentHomePage.this, "No recognition result matched.", Toast.LENGTH_SHORT).show();
-                    if(appstate== AState.AppState.AUTOMATE){
+                    if(appstate== AState.AppState.AUTOMATE||appstate==AState.AppState.SEARCH){
                         int tts1 = textToSpeech.speak("No Input Detected, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
                         if (tts1 == TextToSpeech.SUCCESS) {
                             // Pause the timer until TTS completes
@@ -378,6 +378,15 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
                         }
                     });
                 }
+            }
+            else if(appstate== AState.AppState.SEARCH){
+                String groupId = data.get(0).toLowerCase().replace(" ","");
+                Intent intent = new Intent(StudentHomePage.this, SearchingGroup.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                // Pass the unique key to the new activity
+                intent.putExtra("GROUP_ID", groupId);
+                // Start the new activity
+                startActivity(intent);
             }
         }
 
@@ -475,20 +484,7 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
                     // Ensure the Toast is shown on the main thread
                     Toast.makeText(StudentHomePage.this, "Listening", Toast.LENGTH_SHORT).show();
                 });
-                appstate= AState.AppState.STT;
-                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        speechRecognizer.stopListening();
-                        String groupId = STTData;
-                        Intent intent = new Intent(StudentHomePage.this, SearchingGroup.class);
-                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                        // Pass the unique key to the new activity
-                        intent.putExtra("GROUP_ID", groupId);
-                        // Start the new activity
-                        startActivity(intent);
-                    }
-                },5000);
+                appstate= AState.AppState.SEARCH;
             }
             else if(utteranceId.length()<6) {
                 if (Integer.parseInt(utteranceId) < groupsList.size()) {
@@ -680,7 +676,7 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
             finish();
         }
         else if(Temp.equals("search group")){
-            int tts4=textToSpeech.speak("Please say your group Id now", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_SEARCHGROUP");
+            int tts4=textToSpeech.speak("Please say your group Id now", TextToSpeech.QUEUE_FLUSH, null,"STT_UTTERANCE_SEARCHGROUP");
             if (tts4 == TextToSpeech.SUCCESS) {
                 // Pause the timer until TTS completes
                 pauseToastTimer();
