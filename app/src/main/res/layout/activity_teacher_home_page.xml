@@ -98,8 +98,8 @@
 
     <ListView
         android:id="@+id/TGL"
-        android:layout_width="365dp"
-        android:layout_height="466dp"
+        android:layout_width="383dp"
+        android:layout_height="462dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
