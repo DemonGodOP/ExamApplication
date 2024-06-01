@@ -392,6 +392,54 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
 
         @Override
         public void onError(int error) {
+            switch (error) {
+                case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
+                    Toast.makeText(AssignmentSubmission.this, "No speech input.", Toast.LENGTH_SHORT).show();
+                    if(appstate== AState.AppState.AUTOMATE||appstate == AState.AppState.ANSWERING){
+                        int tts1 = textToSpeech.speak("No Input Detected, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                        if (tts1 == TextToSpeech.SUCCESS) {
+                            // Pause the timer until TTS completes
+                            pauseToastTimer();
+                        }
+                    }
+                    else if(appstate== AState.AppState.STT){
+                        STTData="";
+                    }
+                    break;
+                case SpeechRecognizer.ERROR_AUDIO:
+                    Toast.makeText(AssignmentSubmission.this, "Error recording audio.", Toast.LENGTH_SHORT).show();
+                    break;
+                case SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS:
+                    Toast.makeText(AssignmentSubmission.this, "Insufficient permissions.", Toast.LENGTH_SHORT).show();
+                    break;
+                case SpeechRecognizer.ERROR_NETWORK_TIMEOUT:
+                case SpeechRecognizer.ERROR_NETWORK:
+                    Toast.makeText(AssignmentSubmission.this, "Network Error.", Toast.LENGTH_SHORT).show();
+                    break;
+                case SpeechRecognizer.ERROR_NO_MATCH:
+                    Toast.makeText(AssignmentSubmission.this, "No recognition result matched.", Toast.LENGTH_SHORT).show();
+                    if(appstate== AState.AppState.AUTOMATE||appstate == AState.AppState.ANSWERING){
+                        int tts1 = textToSpeech.speak("No Input Detected, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                        if (tts1 == TextToSpeech.SUCCESS) {
+                            // Pause the timer until TTS completes
+                            pauseToastTimer();
+                        }
+                    }
+                    else if(appstate== AState.AppState.STT){
+                        STTData="";
+                    }
+                    break;
+                case SpeechRecognizer.ERROR_CLIENT:
+                    return;
+                case SpeechRecognizer.ERROR_RECOGNIZER_BUSY:
+                    Toast.makeText(AssignmentSubmission.this, "Recognition service is busy.", Toast.LENGTH_SHORT).show();
+                    break;
+                case SpeechRecognizer.ERROR_SERVER:
+                    Toast.makeText(AssignmentSubmission.this, "Server Error.", Toast.LENGTH_SHORT).show();
+                    break;
+                default:
+                    Toast.makeText(AssignmentSubmission.this, "Something wrong occurred.", Toast.LENGTH_SHORT).show();
+            }
         }
 
         @Override
@@ -484,6 +532,7 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
            else  if(utteranceId.equals("TTS_UTTERANCE_STARTWAKEWORD")){
                 appstate= AState.AppState.WAKEWORD;
                 wakeWordHelper.startListening();
+                resetToastTimer();
                 Toast.makeText(AssignmentSubmission.this, "Listening", Toast.LENGTH_SHORT).show();
             }
             else if(utteranceId.equals("TTS_UTTERANCE_ONINIT")){
@@ -551,7 +600,7 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
                     public void run() {
                         speechRecognizer.stopListening();
                         String YN = STTData;
-                        if (YN.equals("yes")) {
+                        if (YN!=null&&YN.equals("yes")) {
                             int tts11 = textToSpeech.speak("Your Assignment Submission Process has started once submitted you will " +
                                     "be redirected to the Student Group page from where you can check the assignment feedback.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_SUBMISSION");
                             if (tts11 == TextToSpeech.SUCCESS) {

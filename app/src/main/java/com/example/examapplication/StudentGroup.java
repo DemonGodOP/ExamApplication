@@ -297,6 +297,7 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
             if(utteranceId.equals("TTS_UTTERANCE_STARTWAKEWORD")){
                 appstate= AState.AppState.WAKEWORD;
                 wakeWordHelper.startListening();
+                resetToastTimer();
                 Toast.makeText(StudentGroup.this, "Listening", Toast.LENGTH_SHORT).show();
             }
             else if(utteranceId.equals("TTS_UTTERANCE_ONINIT")){
@@ -486,6 +487,19 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
         @Override
         public void onError(int error) {
             switch (error) {
+                case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
+                    Toast.makeText(StudentGroup.this, "No speech input.", Toast.LENGTH_SHORT).show();
+                    if(appstate== AState.AppState.AUTOMATE){
+                        int tts1 = textToSpeech.speak("No Input Detected, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                        if (tts1 == TextToSpeech.SUCCESS) {
+                            // Pause the timer until TTS completes
+                            pauseToastTimer();
+                        }
+                    }
+                    else if(appstate== AState.AppState.STT){
+                        STTData="";
+                    }
+                    break;
                 case SpeechRecognizer.ERROR_AUDIO:
                     Toast.makeText(StudentGroup.this, "Error recording audio.", Toast.LENGTH_SHORT).show();
                     break;
@@ -498,6 +512,16 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
                     break;
                 case SpeechRecognizer.ERROR_NO_MATCH:
                     Toast.makeText(StudentGroup.this, "No recognition result matched.", Toast.LENGTH_SHORT).show();
+                    if(appstate== AState.AppState.AUTOMATE){
+                        int tts1 = textToSpeech.speak("No Input Detected, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                        if (tts1 == TextToSpeech.SUCCESS) {
+                            // Pause the timer until TTS completes
+                            pauseToastTimer();
+                        }
+                    }
+                    else if(appstate== AState.AppState.STT){
+                        STTData="";
+                    }
                     break;
                 case SpeechRecognizer.ERROR_CLIENT:
                     return;
@@ -506,9 +530,6 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
                     break;
                 case SpeechRecognizer.ERROR_SERVER:
                     Toast.makeText(StudentGroup.this, "Server Error.", Toast.LENGTH_SHORT).show();
-                    break;
-                case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
-                    Toast.makeText(StudentGroup.this, "No speech input.", Toast.LENGTH_SHORT).show();
                     break;
                 default:
                     Toast.makeText(StudentGroup.this, "Something wrong occurred.", Toast.LENGTH_SHORT).show();

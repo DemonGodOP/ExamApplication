@@ -11,7 +11,7 @@
         android:layout_width="350dp"
         android:layout_height="109dp"
         android:gravity="center"
-        android:text=" You can update your email after you authenticate your profile"
+        android:text=" You can Delete your Profile after you authenticate yourself"
         android:textAlignment="center"
         android:textSize="24sp"
         android:textStyle="bold"

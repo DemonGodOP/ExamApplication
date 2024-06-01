@@ -310,6 +310,19 @@ public class Profile extends AppCompatActivity implements TextToSpeech.OnInitLis
         @Override
         public void onError(int error) {
             switch (error) {
+                case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
+                    Toast.makeText(Profile.this, "No speech input.", Toast.LENGTH_SHORT).show();
+                    if(appstate== AState.AppState.AUTOMATE){
+                        int tts1 = textToSpeech.speak("No Input Detected, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                        if (tts1 == TextToSpeech.SUCCESS) {
+                            // Pause the timer until TTS completes
+                            pauseToastTimer();
+                        }
+                    }
+                    else if(appstate== AState.AppState.STT){
+                        STTData="";
+                    }
+                    break;
                 case SpeechRecognizer.ERROR_AUDIO:
                     Toast.makeText(Profile.this, "Error recording audio.", Toast.LENGTH_SHORT).show();
                     break;
@@ -322,23 +335,29 @@ public class Profile extends AppCompatActivity implements TextToSpeech.OnInitLis
                     break;
                 case SpeechRecognizer.ERROR_NO_MATCH:
                     Toast.makeText(Profile.this, "No recognition result matched.", Toast.LENGTH_SHORT).show();
+                    if(appstate== AState.AppState.AUTOMATE){
+                        int tts1 = textToSpeech.speak("No Input Detected, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                        if (tts1 == TextToSpeech.SUCCESS) {
+                            // Pause the timer until TTS completes
+                            pauseToastTimer();
+                        }
+                    }
+                    else if(appstate== AState.AppState.STT){
+                        STTData="";
+                    }
                     break;
                 case SpeechRecognizer.ERROR_CLIENT:
                     return;
                 case SpeechRecognizer.ERROR_RECOGNIZER_BUSY:
-                    Toast.makeText(Profile.this, "Recognition service is busy.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(
+                            Profile.this, "Recognition service is busy.", Toast.LENGTH_SHORT).show();
                     break;
                 case SpeechRecognizer.ERROR_SERVER:
                     Toast.makeText(Profile.this, "Server Error.", Toast.LENGTH_SHORT).show();
                     break;
-                case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
-                    Toast.makeText(Profile.this, "No speech input.", Toast.LENGTH_SHORT).show();
-                    break;
                 default:
                     Toast.makeText(Profile.this, "Something wrong occurred.", Toast.LENGTH_SHORT).show();
             }
-
-
         }
 
         @Override
@@ -389,7 +408,7 @@ public class Profile extends AppCompatActivity implements TextToSpeech.OnInitLis
         public void onDone(String utteranceId) {
             if(utteranceId.equals("TTS_UTTERANCE_STARTWAKEWORD")){
                 appstate= AState.AppState.WAKEWORD;
-                STTData=" ";
+                resetToastTimer();
                 wakeWordHelper.startListening();
                 Toast.makeText(Profile.this, "Listening", Toast.LENGTH_SHORT).show();
             }
@@ -472,7 +491,6 @@ public class Profile extends AppCompatActivity implements TextToSpeech.OnInitLis
     // Repeat The Introduction if Repeat Method is Triggered.
     public void StarUpRepeat() {
 
-        resetToastTimer();
         textToSpeech.setLanguage(Locale.US);
         //Locale locale = new Locale("en","IN");
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true

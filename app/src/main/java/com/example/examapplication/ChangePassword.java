@@ -383,6 +383,7 @@ public class ChangePassword extends AppCompatActivity implements TextToSpeech.On
             if(utteranceId.equals("TTS_UTTERANCE_STARTWAKEWORD")){
                 STTData=" ";
                 appstate= AState.AppState.WAKEWORD;
+                resetToastTimer();
                 wakeWordHelper.startListening();
                 Toast.makeText(ChangePassword.this, "Listening", Toast.LENGTH_SHORT).show();
             }
@@ -434,8 +435,8 @@ public class ChangePassword extends AppCompatActivity implements TextToSpeech.On
                     public void run() {
                         speechRecognizer.stopListening();
                         String userPwdCur = STTData;
-                        if(userPwdCur==null||userPwdCur.length()<0) {
-                            int tts1 = textToSpeech.speak("No Input Detected, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                        if(userPwdCur==null||userPwdCur.length()<8) {
+                            int tts1 = textToSpeech.speak("Wrong Password Entered, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
                             if (tts1 == TextToSpeech.SUCCESS) {
                                 // Pause the timer until TTS completes
                                 pauseToastTimer();
@@ -725,6 +726,14 @@ public class ChangePassword extends AppCompatActivity implements TextToSpeech.On
 
             CP_Button.setBackgroundColor(Color.parseColor("#ff6750a4"));
             int tts1 = textToSpeech.speak("Please say your old password", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_CHANGE_PASSWORD");
+            if (tts1 == TextToSpeech.SUCCESS) {
+                // Pause the timer until TTS completes
+                pauseToastTimer();
+            }
+        }
+        else{
+            Toast.makeText(this, Temp, Toast.LENGTH_SHORT).show();
+            int tts1=textToSpeech.speak("Wrong input provided "+Temp+ " Please start the process from the beginning. Sorry for any inconvenience", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
             if (tts1 == TextToSpeech.SUCCESS) {
                 // Pause the timer until TTS completes
                 pauseToastTimer();

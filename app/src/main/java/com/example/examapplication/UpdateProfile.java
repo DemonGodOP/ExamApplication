@@ -281,6 +281,19 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
         @Override
         public void onError(int error) {
             switch (error) {
+                case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
+                    Toast.makeText(UpdateProfile.this, "No speech input.", Toast.LENGTH_SHORT).show();
+                    if(appstate== AState.AppState.AUTOMATE){
+                        int tts1 = textToSpeech.speak("No Input Detected, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                        if (tts1 == TextToSpeech.SUCCESS) {
+                            // Pause the timer until TTS completes
+                            pauseToastTimer();
+                        }
+                    }
+                    else if(appstate== AState.AppState.STT){
+                        STTData="";
+                    }
+                    break;
                 case SpeechRecognizer.ERROR_AUDIO:
                     Toast.makeText(UpdateProfile.this, "Error recording audio.", Toast.LENGTH_SHORT).show();
                     break;
@@ -293,6 +306,16 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
                     break;
                 case SpeechRecognizer.ERROR_NO_MATCH:
                     Toast.makeText(UpdateProfile.this, "No recognition result matched.", Toast.LENGTH_SHORT).show();
+                    if(appstate== AState.AppState.AUTOMATE){
+                        int tts1 = textToSpeech.speak("No Input Detected, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                        if (tts1 == TextToSpeech.SUCCESS) {
+                            // Pause the timer until TTS completes
+                            pauseToastTimer();
+                        }
+                    }
+                    else if(appstate== AState.AppState.STT){
+                        STTData="";
+                    }
                     break;
                 case SpeechRecognizer.ERROR_CLIENT:
                     return;
@@ -301,9 +324,6 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
                     break;
                 case SpeechRecognizer.ERROR_SERVER:
                     Toast.makeText(UpdateProfile.this, "Server Error.", Toast.LENGTH_SHORT).show();
-                    break;
-                case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
-                    Toast.makeText(UpdateProfile.this, "No speech input.", Toast.LENGTH_SHORT).show();
                     break;
                 default:
                     Toast.makeText(UpdateProfile.this, "Something wrong occurred.", Toast.LENGTH_SHORT).show();
@@ -378,8 +398,8 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
         public void onDone(String utteranceId) {
             if(utteranceId.equals("TTS_UTTERANCE_STARTWAKEWORD")){
                 appstate= AState.AppState.WAKEWORD;
-                STTData=" ";
                 wakeWordHelper.startListening();
+                resetToastTimer();
                 Toast.makeText(UpdateProfile.this, "Listening", Toast.LENGTH_SHORT).show();
             }
             else if(utteranceId.equals("TTS_UTTERANCE_ONINIT")){
@@ -431,21 +451,21 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
                     public void run() {
                         speechRecognizer.stopListening();
                         String change = STTData;
-                        if (change.equals("name")) {
+                        if (change.length()!=0&&change.equals("name")) {
                             int tts3 = textToSpeech.speak("Please say your new name", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_EDIT_NAME");
                             if (tts3 == TextToSpeech.SUCCESS) {
                                 // Pause the timer until TTS completes
                                 pauseToastTimer();
                             }
                         }
-                        else if (change.equals("phone number")) {
+                        else if (change.length()!=0&&change.equals("phone number")) {
                             int tts3 = textToSpeech.speak("Please say your new phone number", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_EDIT_PHONE");
                             if (tts3 == TextToSpeech.SUCCESS) {
                                 // Pause the timer until TTS completes
                                 pauseToastTimer();
                             }
                         }
-                        else if (change.equals("institute")) {
+                        else if (change.length()!=0&&change.equals("institute")) {
                             int tts3 = textToSpeech.speak("Please say your new institute", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_EDIT_INSTITUTE");
                             if (tts3 == TextToSpeech.SUCCESS) {
                                 // Pause the timer until TTS completes
@@ -453,7 +473,7 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
                             }
 
                         }
-                        else if (change.equals("username")) {
+                        else if (change.length()!=0&&change.equals("username")) {
                             int tts3 = textToSpeech.speak("Please say your new username", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_EDIT_USERNAME");
                             if (tts3 == TextToSpeech.SUCCESS) {
                                 // Pause the timer until TTS completes
@@ -487,30 +507,40 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
                     public void run() {
                         speechRecognizer.stopListening();
                         String name2 = STTData;
-                        ReadWriteUserDetails WriteUserDetails = new ReadWriteUserDetails(email, name2, Phone, Institute, Username, finalRole);
-                        DatabaseReference referenceProfile = FirebaseDatabase.getInstance().getReference("Registered Users");
-                        assert firebaseUser != null;
-                        referenceProfile.child(firebaseUser.getUid()).child("User Details").setValue(WriteUserDetails).addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                Toast.makeText(UpdateProfile.this, "Profile Updated", Toast.LENGTH_SHORT).show();
-                                Intent intent = new Intent(UpdateProfile.this, Profile.class);
-                                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                                intent.putExtra("Rl", Rl);
-                                startActivity(intent);
-                                finish();
+                        if(name2.length()==0){
+                            int tts1 = textToSpeech.speak("No Input Detected, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                            if (tts1 == TextToSpeech.SUCCESS) {
+                                // Pause the timer until TTS completes
+                                pauseToastTimer();
                             }
-                        });
-                        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                int tts1 = textToSpeech.speak("Name Updated. Starting WakeWord Engine.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
-                                if (tts1 == TextToSpeech.SUCCESS) {
-                                    // Pause the timer until TTS completes
-                                    pauseToastTimer();
+                        }
+                        else {
+                            ReadWriteUserDetails WriteUserDetails = new ReadWriteUserDetails(email, name2, Phone, Institute, Username, finalRole);
+                            DatabaseReference referenceProfile = FirebaseDatabase.getInstance().getReference("Registered Users");
+                            assert firebaseUser != null;
+                            referenceProfile.child(firebaseUser.getUid()).child("User Details").setValue(WriteUserDetails).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    int tts1 = textToSpeech.speak("Name Updated. Redirecting to Profile Page", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+                                    if (tts1 == TextToSpeech.SUCCESS) {
+                                        // Pause the timer until TTS completes
+                                        pauseToastTimer();
+                                    }
+                                    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            Toast.makeText(UpdateProfile.this, "Profile Updated", Toast.LENGTH_SHORT).show();
+                                            Intent intent = new Intent(UpdateProfile.this, Profile.class);
+                                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                            intent.putExtra("Rl", Rl);
+                                            startActivity(intent);
+                                            finish();
+                                        }
+                                    }, 4000);
                                 }
-                            }
-                        },2000);
+                            });
+
+                        }
                     }
                 },5000);
             }
@@ -532,30 +562,39 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
                     public void run() {
                         speechRecognizer.stopListening();
                         String institute2 = STTData;
-                        ReadWriteUserDetails WriteUserDetails = new ReadWriteUserDetails(email, Name, Phone, institute2, Username, finalRole);
-                        DatabaseReference referenceProfile = FirebaseDatabase.getInstance().getReference("Registered Users");
-                        assert firebaseUser != null;
-                        referenceProfile.child(firebaseUser.getUid()).child("User Details").setValue(WriteUserDetails).addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                Toast.makeText(UpdateProfile.this, "Profile Updated", Toast.LENGTH_SHORT).show();
-                                Intent intent = new Intent(UpdateProfile.this, Profile.class);
-                                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                                intent.putExtra("Rl", Rl);
-                                startActivity(intent);
-                                finish();
+                        if(institute2.length()==0){
+                            int tts1 = textToSpeech.speak("No Input Detected, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                            if (tts1 == TextToSpeech.SUCCESS) {
+                                // Pause the timer until TTS completes
+                                pauseToastTimer();
                             }
-                        });
-                        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                int tts1 = textToSpeech.speak("Institute Updated. Starting WakeWord Engine.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
-                                if (tts1 == TextToSpeech.SUCCESS) {
-                                    // Pause the timer until TTS completes
-                                    pauseToastTimer();
+                        }
+                        else {
+                            ReadWriteUserDetails WriteUserDetails = new ReadWriteUserDetails(email, Name, Phone, institute2, Username, finalRole);
+                            DatabaseReference referenceProfile = FirebaseDatabase.getInstance().getReference("Registered Users");
+                            assert firebaseUser != null;
+                            referenceProfile.child(firebaseUser.getUid()).child("User Details").setValue(WriteUserDetails).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    int tts1 = textToSpeech.speak("Institute Updated. Redirecting to Profile Page", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+                                    if (tts1 == TextToSpeech.SUCCESS) {
+                                        // Pause the timer until TTS completes
+                                        pauseToastTimer();
+                                    }
+                                    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            Toast.makeText(UpdateProfile.this, "Profile Updated", Toast.LENGTH_SHORT).show();
+                                            Intent intent = new Intent(UpdateProfile.this, Profile.class);
+                                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                            intent.putExtra("Rl", Rl);
+                                            startActivity(intent);
+                                            finish();
+                                        }
+                                    }, 4000);
                                 }
-                            }
-                        },2000);
+                            });
+                        }
                     }
                 },5000);
             }
@@ -578,30 +617,39 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
                         speechRecognizer.stopListening();
                         String phone2 = STTData;
                         String Phone3 = phone2.replaceAll(" ", "");
-                        ReadWriteUserDetails WriteUserDetails = new ReadWriteUserDetails(email, Name, Phone3, Institute, Username, finalRole);
-                        DatabaseReference referenceProfile = FirebaseDatabase.getInstance().getReference("Registered Users");
-                        assert firebaseUser != null;
-                        referenceProfile.child(firebaseUser.getUid()).child("User Details").setValue(WriteUserDetails).addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                Toast.makeText(UpdateProfile.this, "Profile Updated", Toast.LENGTH_SHORT).show();
-                                Intent intent = new Intent(UpdateProfile.this, Profile.class);
-                                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                                intent.putExtra("Rl", Rl);
-                                startActivity(intent);
-                                finish();
+                        if(Phone3.length()!=10){
+                            int tts1 = textToSpeech.speak("Wrong Input Detected, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                            if (tts1 == TextToSpeech.SUCCESS) {
+                                // Pause the timer until TTS completes
+                                pauseToastTimer();
                             }
-                        });
-                        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                int tts1 = textToSpeech.speak("Phone Updated. Starting WakeWord Engine.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
-                                if (tts1 == TextToSpeech.SUCCESS) {
-                                    // Pause the timer until TTS completes
-                                    pauseToastTimer();
+                        }
+                        else {
+                            ReadWriteUserDetails WriteUserDetails = new ReadWriteUserDetails(email, Name, Phone3, Institute, Username, finalRole);
+                            DatabaseReference referenceProfile = FirebaseDatabase.getInstance().getReference("Registered Users");
+                            assert firebaseUser != null;
+                            referenceProfile.child(firebaseUser.getUid()).child("User Details").setValue(WriteUserDetails).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    int tts1 = textToSpeech.speak("Phone Number Updated. Redirecting to Profile Page", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+                                    if (tts1 == TextToSpeech.SUCCESS) {
+                                        // Pause the timer until TTS completes
+                                        pauseToastTimer();
+                                    }
+                                    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            Toast.makeText(UpdateProfile.this, "Profile Updated", Toast.LENGTH_SHORT).show();
+                                            Intent intent = new Intent(UpdateProfile.this, Profile.class);
+                                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                            intent.putExtra("Rl", Rl);
+                                            startActivity(intent);
+                                            finish();
+                                        }
+                                    }, 4000);
                                 }
-                            }
-                        },2000);
+                            });
+                        }
                     }
                 },5000);
             }
@@ -623,30 +671,39 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
                     public void run() {
                         speechRecognizer.stopListening();
                         String username2 = STTData;
-                        ReadWriteUserDetails WriteUserDetails = new ReadWriteUserDetails(email, Name, Phone, Institute, username2, finalRole);
-                        DatabaseReference referenceProfile = FirebaseDatabase.getInstance().getReference("Registered Users");
-                        assert firebaseUser != null;
-                        referenceProfile.child(firebaseUser.getUid()).child("User Details").setValue(WriteUserDetails).addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                Toast.makeText(UpdateProfile.this, "Profile Updated", Toast.LENGTH_SHORT).show();
-                                Intent intent = new Intent(UpdateProfile.this, Profile.class);
-                                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                                intent.putExtra("Rl", Rl);
-                                startActivity(intent);
-                                finish();
+                        if(username2.length()==0){
+                            int tts1 = textToSpeech.speak("No Input Detected, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                            if (tts1 == TextToSpeech.SUCCESS) {
+                                // Pause the timer until TTS completes
+                                pauseToastTimer();
                             }
-                        });
-                        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                int tts1 = textToSpeech.speak("UserName Updated. Starting WakeWord Engine.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
-                                if (tts1 == TextToSpeech.SUCCESS) {
-                                    // Pause the timer until TTS completes
-                                    pauseToastTimer();
+                        }
+                        else {
+                            ReadWriteUserDetails WriteUserDetails = new ReadWriteUserDetails(email, Name, Phone, Institute, username2, finalRole);
+                            DatabaseReference referenceProfile = FirebaseDatabase.getInstance().getReference("Registered Users");
+                            assert firebaseUser != null;
+                            referenceProfile.child(firebaseUser.getUid()).child("User Details").setValue(WriteUserDetails).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    int tts1 = textToSpeech.speak("Username Updated. Redirecting to Profile Page", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+                                    if (tts1 == TextToSpeech.SUCCESS) {
+                                        // Pause the timer until TTS completes
+                                        pauseToastTimer();
+                                    }
+                                    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            Toast.makeText(UpdateProfile.this, "Profile Updated", Toast.LENGTH_SHORT).show();
+                                            Intent intent = new Intent(UpdateProfile.this, Profile.class);
+                                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                            intent.putExtra("Rl", Rl);
+                                            startActivity(intent);
+                                            finish();
+                                        }
+                                    }, 4000);
                                 }
-                            }
-                        },2000);
+                            });
+                        }
                     }
                 },5000);
             }

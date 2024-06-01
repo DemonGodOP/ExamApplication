@@ -13,6 +13,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
@@ -410,6 +411,7 @@ public class DeleteUser extends AppCompatActivity implements TextToSpeech.OnInit
             if(utteranceId.equals("TTS_UTTERANCE_STARTWAKEWORD")){
                 appstate= AState.AppState.WAKEWORD;
                 STTData=" ";
+                resetToastTimer();
                 wakeWordHelper.startListening();
                 Toast.makeText(DeleteUser.this, "Listening", Toast.LENGTH_SHORT).show();
             }
@@ -461,30 +463,58 @@ public class DeleteUser extends AppCompatActivity implements TextToSpeech.OnInit
                     public void run() {
                         speechRecognizer.stopListening();
                         String userPwdCur=STTData;
-                        AuthCredential credential= EmailAuthProvider.getCredential(firebaseUser.getEmail(), userPwdCur);
-                        firebaseUser.reauthenticate(credential).addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                if (task.isSuccessful()) {
-                                    AutomateDeleteUser();
+                        if(userPwdCur==null||userPwdCur.length()<8) {
+                            int tts1 = textToSpeech.speak("Password Cannot be less than 8 character,Please Start the Process again, Starting WakeWord Engine.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                            if (tts1 == TextToSpeech.SUCCESS) {
+                                // Pause the timer until TTS completes
+                                pauseToastTimer();
+                            }
+                        }
+                        else {
 
-                                } else {
-                                    try {
-                                        throw task.getException();
-                                    } catch (FirebaseAuthInvalidCredentialsException e) {
-                                        int tts2 = textToSpeech.speak("Wrong Password Entered", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
-                                        if (tts2 == TextToSpeech.SUCCESS) {
-                                            // Pause the timer until TTS completes
-                                            pauseToastTimer();
+                            AuthCredential credential = EmailAuthProvider.getCredential(firebaseUser.getEmail(), userPwdCur);
+                            firebaseUser.reauthenticate(credential).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if (task.isSuccessful()) {
+                                        DU_progressBar.setVisibility(View.GONE);
+
+                                        DU_Password.setEnabled(false);
+                                        DU_Authenticate.setEnabled(false);
+                                        DU_Button.setEnabled(true);
+
+                                        //set TextView to show user is authenticated/verified
+                                        Text.setText("You are authenticated/verified. You can delete your profile now.");
+                                        Toast.makeText(DeleteUser.this,"Password has been verified", Toast.LENGTH_SHORT).show();
+
+                                        //update color of change password button
+                                        int color= ContextCompat.getColor(DeleteUser.this, R.color.dark_green);;
+                                        DU_Button.setBackgroundTintList(ColorStateList.valueOf(color));
+                                        DU_Button.setOnClickListener(new View.OnClickListener(){
+                                            @Override
+                                            public void onClick(View V){
+                                                showAlertDialog();
+                                            }
+                                        });
+                                        AutomateDeleteUser();
+                                    } else {
+                                        try {
+                                            throw task.getException();
+                                        } catch (FirebaseAuthInvalidCredentialsException e) {
+                                            int tts2 = textToSpeech.speak("Wrong Password Entered. Please Start The Process Again. Starting WakeWord Engine", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                                            if (tts2 == TextToSpeech.SUCCESS) {
+                                                // Pause the timer until TTS completes
+                                                pauseToastTimer();
+                                            }
+                                            DU_Password.setError("Wrong Password Entered");
+                                            DU_Password.requestFocus();
+                                        } catch (Exception e) {
+                                            Toast.makeText(DeleteUser.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                                         }
-                                        DU_Password.setError("Wrong Password Entered");
-                                        DU_Password.requestFocus();
-                                    } catch (Exception e) {
-                                        Toast.makeText(DeleteUser.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                                     }
                                 }
-                            }
-                        });
+                            });
+                        }
                     }
                 },7000);
             }
@@ -506,16 +536,15 @@ public class DeleteUser extends AppCompatActivity implements TextToSpeech.OnInit
                     public void run() {
                         speechRecognizer.stopListening();
                         String YN = STTData;
-                        if (YN.equals("yes")) {
+                        if (YN!=null&&YN.equals("yes")) {
                             int tts2 = textToSpeech.speak("Your Profile deletion process has been started. After the deletion, you will be redirected " +
-                                    "to the login page.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+                                    "to the login page.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_DELETED");
                             if (tts2 == TextToSpeech.SUCCESS) {
                                 // Pause the timer until TTS completes
                                 pauseToastTimer();
                             }
-                            deleteUser(firebaseUser);
                         } else {
-                            int tts3 = textToSpeech.speak("Your profile deletion operation has been cancelled .", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
+                            int tts3 = textToSpeech.speak("Your profile deletion operation has been canceled. Starting WakeWord Engine", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
                             if (tts3 == TextToSpeech.SUCCESS) {
                                 // Pause the timer until TTS completes
                                 pauseToastTimer();
@@ -524,6 +553,9 @@ public class DeleteUser extends AppCompatActivity implements TextToSpeech.OnInit
                         }
                     }
                 }, 5000);
+            }
+            else if(utteranceId.equals("TTS_UTTERANCE_DELETED")){
+                deleteUser(firebaseUser);
             }
             resetToastTimer();
         }
@@ -554,6 +586,8 @@ public class DeleteUser extends AppCompatActivity implements TextToSpeech.OnInit
         if(Rl.equals("Student")) {
             if (status == TextToSpeech.SUCCESS) {
                 // TTS initialization successful, set language and convert text to speech
+                authProfile=FirebaseAuth.getInstance();
+                firebaseUser=authProfile.getCurrentUser();
                 isTTSInitialized = true;
                 textToSpeech.setLanguage(Locale.US);
                 //Locale locale = new Locale("en","IN");
@@ -582,8 +616,8 @@ public class DeleteUser extends AppCompatActivity implements TextToSpeech.OnInit
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
         int ttsResult=textToSpeech.speak("Hello, Welcome to the Delete account Page of Exam Care, This page provides you with the facility, to" +
-                "to delete your existing account, if you want to delete your account, you just have to say, Hello" +
-                "Exam Care Delete my account to start the delete functionality.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
+                " delete your existing account, if you want to delete your account, you just have to say, Hello" +
+                "Exam Care Delete User to start the delete functionality. else you can go back to the Profile just say Exam Care, Back, If you want to Listen to the Introduction again say Exam Care, Repeat Introduction, Starting WakeWord Engine", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();
@@ -626,7 +660,26 @@ public class DeleteUser extends AppCompatActivity implements TextToSpeech.OnInit
             startActivity(intent);
             finish();
         }else if (Temp.equals("delete user")) {
+
+            DU_Password.setEnabled(true);
+            DU_Password.setText("");
+            DU_Authenticate.setEnabled(true);
+            DU_Button.setEnabled(false);
+
+            //set TextView to show user is authenticated/verified
+            Text.setText(" You can Delete your Profile after you authenticate yourself");
+
+            //update color of change password button
+            DU_Button.setBackgroundColor(Color.parseColor("#ff6750a4"));
             int tts1 = textToSpeech.speak("Please say your password", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_DELETE_USER");
+            if (tts1 == TextToSpeech.SUCCESS) {
+                // Pause the timer until TTS completes
+                pauseToastTimer();
+            }
+        }
+        else{
+            Toast.makeText(this, Temp, Toast.LENGTH_SHORT).show();
+            int tts1=textToSpeech.speak("Wrong input provided "+Temp+ " Please start the process from the beginning. Sorry for any inconvenience", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
             if (tts1 == TextToSpeech.SUCCESS) {
                 // Pause the timer until TTS completes
                 pauseToastTimer();
@@ -672,7 +725,7 @@ public class DeleteUser extends AppCompatActivity implements TextToSpeech.OnInit
 
                                 //set TextView to show user is authenticated/verified
                                 Text.setText("You are authenticated/verified. You can delete your profile now.");
-                                Toast.makeText(DeleteUser.this,"Password has been verified"+ "Change password now", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(DeleteUser.this,"Password has been verified", Toast.LENGTH_SHORT).show();
 
                                 //update color of change password button
                                 int color= ContextCompat.getColor(DeleteUser.this, R.color.dark_green);;
