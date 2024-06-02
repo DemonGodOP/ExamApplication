@@ -711,7 +711,7 @@ public class ChangeEmail extends AppCompatActivity implements TextToSpeech.OnIni
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
-        textToSpeech.setSpeechRate(0.75f);
+        textToSpeech.setSpeechRate(0.85f);
         int ttsResult=textToSpeech.speak("Hello, Welcome to the Change Email Page of Exam Care, This page provides you with the facility, to " +
                 "change your email, for that please say, Exam Care, change email, you have to first authenticate yourself with the password and then say the new email id. Then a link will be sent to your " +
                 "registered email id, from there you can reset, your email.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");

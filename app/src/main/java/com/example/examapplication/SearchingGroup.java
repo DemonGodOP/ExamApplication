@@ -610,7 +610,7 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
         else{
             voice="Hello, Welcome to the Searching Group Page of Exam Care, No Groups are present with the group id that you provided please go back to the homepage and try searching for the group again. For Going back to the HomePage say Exam Care, HomePage";
         }
-        textToSpeech.setSpeechRate(0.75f);
+        textToSpeech.setSpeechRate(0.85f);
         int ttsResult=textToSpeech.speak(voice, TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes

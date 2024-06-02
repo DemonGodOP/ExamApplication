@@ -667,7 +667,7 @@ public class ChangePassword extends AppCompatActivity implements TextToSpeech.On
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
-        textToSpeech.setSpeechRate(0.75f);
+        textToSpeech.setSpeechRate(0.85f);
         int ttsResult=textToSpeech.speak("Hello, Welcome to the Change Password Page of Exam Care, This page provides you with the facility, to " +
                 "change your password, for that please say your old password in order to authenticate yourself, then new password," +
                 "and after that say hello exam care password. Then a link will be sent to your " +
