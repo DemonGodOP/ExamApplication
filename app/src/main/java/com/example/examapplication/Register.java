@@ -74,11 +74,11 @@ public class Register extends AppCompatActivity  {
                 int selectedRole = role.getCheckedRadioButtonId();
                 Selected = findViewById(selectedRole);
                 String Name = R_Name.getText().toString();
-                String Email = R_Email.getText().toString();
-                String PhoneNo = R_PhoneNo.getText().toString();
+                String Email = R_Email.getText().toString().replace(" ","");
+                String PhoneNo = R_PhoneNo.getText().toString().replace(" ","");
                 String Institute = R_Institute.getText().toString();
                 String UserName = R_UserName.getText().toString();
-                String Password = R_Password.getText().toString();
+                String Password = R_Password.getText().toString().replace(" ","").toLowerCase();
                 if (TextUtils.isEmpty(Name)) {
                     R_Name.setError("Please enter your Name");
                     R_Name.requestFocus();
