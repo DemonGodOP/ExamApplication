@@ -802,7 +802,7 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
             }
             @Override
             public void onCancelled (@NonNull DatabaseError databaseError){
-                Toast.makeText(StudentHomePage.this, "Something Went Wrong Please Restart The Application", Toast.LENGTH_SHORT).show();
+
             }
         });
     }
