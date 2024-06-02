@@ -582,6 +582,7 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
+        textToSpeech.setSpeechRate(0.75f);
         int ttsResult=textToSpeech.speak("Hello, Welcome to the Student feedback Page of Exam Care, This page provides you with the facility, to " +
                 "to enquire about the feedback provided by your teacher for this particular assignment.for that you have to say, Hello Exam care, feedback," +
                 " it also allows you to review your answers for various" +
@@ -593,6 +594,7 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();
+            textToSpeech.setSpeechRate(1.0f);
         }
     }
 

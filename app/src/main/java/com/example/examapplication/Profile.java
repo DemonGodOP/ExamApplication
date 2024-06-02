@@ -496,11 +496,13 @@ public class Profile extends AppCompatActivity implements TextToSpeech.OnInitLis
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
+        textToSpeech.setSpeechRate(0.75f);
         int ttsResult = textToSpeech.speak("Hello, Welcome to the Profile Page of Exam Care, This page provides you with the facility, to " +
                 "see your profile details such as name, email, phone number, institute, username and role, you just have to say, Hello Exam care,describe profile details.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();
+            textToSpeech.setSpeechRate(1.0f);
         }
     }
 

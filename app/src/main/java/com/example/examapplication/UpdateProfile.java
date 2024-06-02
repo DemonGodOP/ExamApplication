@@ -762,6 +762,7 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
+        textToSpeech.setSpeechRate(0.75f);
         int ttsResult=textToSpeech.speak("Hello, Welcome to the Update Profile Page of Exam Care, This page provides you with the facility, to " +
                 "edit your profile, change password, change email, and delete your account" +
                 "To edit your profile, please just say, Exam Care edit profile,and you can move on to the edit profile page " +
@@ -771,6 +772,7 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();
+            textToSpeech.setSpeechRate(1.0f);
         }
     }
 

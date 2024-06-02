@@ -663,6 +663,7 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
+        textToSpeech.setSpeechRate(0.75f);
         timeLeftInMillis+=120000;
         int ttsResult=textToSpeech.speak("Hello,your exam has started. Please Start Answering the following questions within the given time frame of"
                 +assignment.Duration+"mins"
@@ -675,6 +676,7 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();
+            textToSpeech.setSpeechRate(1.0f);
         }
     }
 

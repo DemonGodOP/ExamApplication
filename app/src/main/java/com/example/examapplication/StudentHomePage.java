@@ -602,6 +602,7 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
         //Name: en-in-x-end-network Locale: en_IN Is Network TTS: true
         //Voice voice = new Voice("en-in-x-end-network", locale, 400, 200, true, null); // Example voice
         //textToSpeech.setVoice(voice);
+        textToSpeech.setSpeechRate(0.75f);
         int ttsResult=textToSpeech.speak("Hello, Welcome to the Student Home Page of Exam Care, This page provides you with the facility, to " +
                 "see your profile details, for this you have to say, hello Exam care, profile details, " +
                 "you can also sign Out if you want, for this you have to say, hello Exam care, sign out, you can also search, existing groups for this,"+
@@ -610,6 +611,7 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();
+            textToSpeech.setSpeechRate(1.0f);
         }
     }
 
