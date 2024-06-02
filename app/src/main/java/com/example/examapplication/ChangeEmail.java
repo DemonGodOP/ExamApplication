@@ -486,7 +486,7 @@ public class ChangeEmail extends AppCompatActivity implements TextToSpeech.OnIni
                     @Override
                     public void run() {
                         speechRecognizer.stopListening();
-                        String userPwd = STTData;
+                        String userPwd = STTData.replace(" ","");
                         if(userPwd==null||userPwd.length()<8) {
                             int tts1 = textToSpeech.speak("Password Cannot be less than 8 character,Please Start the Process again, Starting WakeWord Engine.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
                             if (tts1 == TextToSpeech.SUCCESS) {

@@ -434,7 +434,7 @@ public class ChangePassword extends AppCompatActivity implements TextToSpeech.On
                     @Override
                     public void run() {
                         speechRecognizer.stopListening();
-                        String userPwdCur = STTData;
+                        String userPwdCur = STTData.replace(" ","");
                         if(userPwdCur==null||userPwdCur.length()<8) {
                             int tts1 = textToSpeech.speak("Wrong Password Entered, Starting WakeWord Engine, Please Say, Exam Care, Repeat Introduction, in order to listen to the introduction of the page.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
                             if (tts1 == TextToSpeech.SUCCESS) {
@@ -508,7 +508,7 @@ public class ChangePassword extends AppCompatActivity implements TextToSpeech.On
                     @Override
                     public void run() {
                         speechRecognizer.stopListening();
-                        String change = STTData;
+                        String change = STTData.replace(" ","");
                         if(change==null||change.length()<8) {
                             int tts1 = textToSpeech.speak("Password Cannot be less than 8 character,Please Start the Process again, Starting WakeWord Engine.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
                             if (tts1 == TextToSpeech.SUCCESS) {
@@ -542,7 +542,7 @@ public class ChangePassword extends AppCompatActivity implements TextToSpeech.On
                                         @Override
                                         public void run() {
                                             speechRecognizer.stopListening();
-                                            String userPwdCur = STTData;
+                                            String userPwdCur = STTData.replace(" ","");
                                             if(change==null||change.length()<8) {
                                                 int tts1 = textToSpeech.speak("Password Cannot be less than 8 character,Please Start the Process again, Starting WakeWord Engine.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
                                                 if (tts1 == TextToSpeech.SUCCESS) {

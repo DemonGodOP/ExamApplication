@@ -462,7 +462,7 @@ public class DeleteUser extends AppCompatActivity implements TextToSpeech.OnInit
                     @Override
                     public void run() {
                         speechRecognizer.stopListening();
-                        String userPwdCur=STTData;
+                        String userPwdCur=STTData.replace(" ","");
                         if(userPwdCur==null||userPwdCur.length()<8) {
                             int tts1 = textToSpeech.speak("Password Cannot be less than 8 character,Please Start the Process again, Starting WakeWord Engine.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
                             if (tts1 == TextToSpeech.SUCCESS) {
