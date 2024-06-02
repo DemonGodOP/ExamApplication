@@ -10,14 +10,15 @@
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar12"
-        android:layout_width="409dp"
-        android:layout_height="wrap_content"
+        android:layout_width="425dp"
+        android:layout_height="65dp"
         android:background="?attr/colorAccent"
         android:backgroundTint="#009688"
         android:minHeight="?attr/actionBarSize"
         android:theme="?attr/actionBarTheme"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.571"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0" />
@@ -29,7 +30,7 @@
         android:gravity="center"
         android:text="BACK"
         android:textAlignment="center"
-        android:textSize="24sp"
+        android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -40,12 +41,12 @@
 
     <TextView
         android:id="@+id/AD_Details"
-        android:layout_width="99dp"
+        android:layout_width="83dp"
         android:layout_height="61dp"
         android:gravity="center"
         android:text="DETAILS"
         android:textAlignment="center"
-        android:textSize="24sp"
+        android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

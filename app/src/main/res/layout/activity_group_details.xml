@@ -5,12 +5,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_gravity="center"
+    android:textAlignment="center"
     tools:context=".GroupDetailsActivity">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar8"
-        android:layout_width="409dp"
-        android:layout_height="wrap_content"
+        android:layout_width="435dp"
+        android:layout_height="64dp"
         android:background="?attr/colorAccent"
         android:backgroundTint="#009688"
         android:minHeight="?attr/actionBarSize"
@@ -119,17 +120,17 @@
 
     <TextView
         android:id="@+id/GD_SN"
-        android:layout_width="221dp"
-        android:layout_height="35dp"
+        android:layout_width="235dp"
+        android:layout_height="65dp"
         android:gravity="center"
         android:text="Loading..."
         android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.915"
+        app:layout_constraintHorizontal_bias="0.918"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.284" />
+        app:layout_constraintVertical_bias="0.275" />
 
     <TextView
         android:id="@+id/GD_SC"
