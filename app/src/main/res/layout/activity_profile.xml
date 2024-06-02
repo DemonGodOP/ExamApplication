@@ -49,10 +49,10 @@
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.209"
+        app:layout_constraintHorizontal_bias="0.212"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.336" />
+        app:layout_constraintVertical_bias="0.347" />
 
     <TextView
         android:id="@+id/textView5"
@@ -119,7 +119,7 @@
     <TextView
         android:id="@+id/P_Email"
         android:layout_width="203dp"
-        android:layout_height="63dp"
+        android:layout_height="69dp"
         android:gravity="center"
         android:text="Loading"
         android:textStyle="bold"
