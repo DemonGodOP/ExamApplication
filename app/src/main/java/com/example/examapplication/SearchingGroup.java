@@ -716,10 +716,12 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
                     }
                 });
             }
-            int tts1=textToSpeech.speak("No Group Exists With Such Group ID. Please Go Back to the Homepage and try Again. Starting WakeWord Engine", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
-            if (tts1 == TextToSpeech.SUCCESS) {
-                // Pause the timer until TTS completes
-                pauseToastTimer();
+            else {
+                int tts1 = textToSpeech.speak("No Group Exists With Such Group ID. Please Go Back to the Homepage and try Again. Starting WakeWord Engine", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                if (tts1 == TextToSpeech.SUCCESS) {
+                    // Pause the timer until TTS completes
+                    pauseToastTimer();
+                }
             }
         }
         else{
