@@ -665,12 +665,12 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
         //textToSpeech.setVoice(voice);
         timeLeftInMillis+=120000;
         int ttsResult=textToSpeech.speak("Hello,your exam has started. Please Start Answering the following questions within the given time frame of"
-                +assignment.Duration+"mins"+"I will Keep Updating you about the time duration left for you to complete your assignment"
+                +assignment.Duration+"mins"
                 +"The questions will be read out to you one by one and your task will be to answer them with the best of your ability. To Answer a Question" +
                 " you have to say Exam Care, Answer. You can also ask me to repeat the questions just by saying, Exam Care, Repeat Question or you can ask" +
                 " me to repeat the answer by saying, Exam Care, Repeat answer. You can Surf through the examination with simple Commands like, in order to" +
                 " go to the next question just say, Exam Care, Next, or Inorder to go to the previous Question say,Exam Care, Previous,You can also ask me to " +
-                "to inform you about the time duration left to complete the assignment just say Exam Care, Time left. and last but" +
+                "to inform you about the time duration left to complete the assignment just say Exam Care, duration. and last but" +
                 " not the least in order to submit the assignment, just say Exam Care, Submit", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
