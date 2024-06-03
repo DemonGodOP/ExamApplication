@@ -121,7 +121,7 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(StudentFeedBack.this, "Something Went Wrong", Toast.LENGTH_SHORT).show();
+
             }
         });
 
@@ -141,7 +141,7 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(StudentFeedBack.this, "Something Went Wrong", Toast.LENGTH_SHORT).show();
+
             }
         });
 

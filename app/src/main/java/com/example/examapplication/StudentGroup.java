@@ -433,7 +433,7 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
 
                                             @Override
                                             public void onCancelled(@NonNull DatabaseError error) {
-                                                Toast.makeText(StudentGroup.this, "SomeThing Went Wrong", Toast.LENGTH_SHORT).show();
+
                                             }
                                         });
                                     } else {
@@ -777,7 +777,7 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
 
                                 @Override
                                 public void onCancelled(@NonNull DatabaseError error) {
-                                    Toast.makeText(StudentGroup.this, "SomeThing Went Wrong", Toast.LENGTH_SHORT).show();
+
                                 }
                             });
                         }
@@ -787,7 +787,7 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                Toast.makeText(StudentGroup.this, "Something Went Wrong Please Restart The Application", Toast.LENGTH_SHORT).show();
+
             }
         });
     }

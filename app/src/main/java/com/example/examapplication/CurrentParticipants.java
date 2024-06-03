@@ -109,7 +109,6 @@ public class CurrentParticipants extends AppCompatActivity {
             }
             @Override
             public void onCancelled (@NonNull DatabaseError databaseError){
-                Toast.makeText(CurrentParticipants.this, "Something Went Wrong Please Restart The Application", Toast.LENGTH_SHORT).show();
             }
         });
     }

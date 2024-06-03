@@ -114,7 +114,7 @@ public class GroupJoiningRequest extends AppCompatActivity {
             }
             @Override
             public void onCancelled (@NonNull DatabaseError databaseError){
-                Toast.makeText(GroupJoiningRequest.this, "Something Went Wrong Please Restart The Application", Toast.LENGTH_SHORT).show();
+
             }
         });
     }
@@ -158,7 +158,6 @@ public class GroupJoiningRequest extends AppCompatActivity {
                       }
                       @Override
                       public void onCancelled (@NonNull DatabaseError error){
-                          Toast.makeText(GroupJoiningRequest.this, "Something went wrong!", Toast.LENGTH_LONG).show();
 
                       }
                   });

@@ -665,6 +665,7 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
         //textToSpeech.setVoice(voice);
         textToSpeech.setSpeechRate(0.85f);
         timeLeftInMillis+=120000;
+        String Q=Questions.get(n);
         int ttsResult=textToSpeech.speak("Hello,your exam has started. Please Start Answering the following questions within the given time frame of"
                 +assignment.Duration+"mins"
                 +"The questions will be read out to you one by one and your task will be to answer them with the best of your ability. To Answer a Question" +
@@ -672,7 +673,7 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
                 " me to repeat the answer by saying, Exam Care, Repeat answer. You can Surf through the examination with simple Commands like, in order to" +
                 " go to the next question just say, Exam Care, Next, or Inorder to go to the previous Question say,Exam Care, Previous,You can also ask me to " +
                 "to inform you about the time duration left to complete the assignment just say Exam Care, duration. and last but" +
-                " not the least in order to submit the assignment, just say Exam Care, Submit", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
+                " not the least in order to submit the assignment, just say Exam Care, Submit. Please Carry on With Your Exam Now,  Question No."+(n+1)+", is"+Q+", Wake word engine started ", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();
@@ -737,7 +738,7 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
                 }
             }
         }
-        else if(Temp.equals("repeat questions")){
+        else if(Temp.equals("repeat question")){
             String Q=Questions.get(n);
             int tts5=textToSpeech.speak("Question No."+(n+1)+"is"+Q+". Starting WakeWord Engine.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
             if (tts5 == TextToSpeech.SUCCESS) {
@@ -886,7 +887,6 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
 
                                 @Override
                                 public void onCancelled(@NonNull DatabaseError error) {
-                                    Toast.makeText(AssignmentSubmission.this, "SomeThing Went Wrong", Toast.LENGTH_SHORT).show();
                                 }
                             });
                             shouldAllowExit = true;
@@ -966,7 +966,6 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
             }
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(AssignmentSubmission.this, "SomeThing Went Wrong", Toast.LENGTH_SHORT).show();
             }
         });
         if (countDownTimer != null) {
@@ -1026,7 +1025,6 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
-                        Toast.makeText(AssignmentSubmission.this, "SomeThing Went Wrong", Toast.LENGTH_SHORT).show();
                     }
                 });
             }

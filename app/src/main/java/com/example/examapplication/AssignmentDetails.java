@@ -140,7 +140,6 @@ public class AssignmentDetails extends AppCompatActivity {
                     }
                     @Override
                     public void onCancelled (@NonNull DatabaseError error){
-                        Toast.makeText(AssignmentDetails.this, "Something went wrong!", Toast.LENGTH_LONG).show();
                         //UP_progressBar.setVisibility(View.GONE);
                     }
                 });
@@ -219,7 +218,7 @@ public class AssignmentDetails extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                Toast.makeText(AssignmentDetails.this, "Something Went Wrong Please Restart The Application", Toast.LENGTH_SHORT).show();
+
             }
         });
     }

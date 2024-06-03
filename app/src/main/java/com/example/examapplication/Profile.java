@@ -620,7 +620,7 @@ public class Profile extends AppCompatActivity implements TextToSpeech.OnInitLis
             }
             @Override
             public void onCancelled(@NonNull DatabaseError error){
-                Toast.makeText(Profile.this, "Something went wrong!", Toast.LENGTH_SHORT).show();
+
 
             }
         });

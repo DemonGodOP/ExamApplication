@@ -175,7 +175,6 @@ public class CreateGroupPage extends AppCompatActivity {
             }
             @Override
             public void onCancelled(@NonNull DatabaseError error){
-                Toast.makeText(CreateGroupPage.this, "Something went wrong!", Toast.LENGTH_SHORT).show();
 
             }
         });

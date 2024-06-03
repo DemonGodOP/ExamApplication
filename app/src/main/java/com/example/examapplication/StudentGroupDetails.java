@@ -549,7 +549,7 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
             }
             @Override
             public void onCancelled(@NonNull DatabaseError error){
-                Toast.makeText(StudentGroupDetails.this, "Something went wrong!", Toast.LENGTH_SHORT).show();
+
             }
         });
     }

@@ -159,7 +159,6 @@ public class Login extends AppCompatActivity {
 
                                 @Override
                                 public void onCancelled(@NonNull DatabaseError error) {
-                                    Toast.makeText(Login.this, "Error", Toast.LENGTH_SHORT).show();
                                 }
                             });
                         } else {

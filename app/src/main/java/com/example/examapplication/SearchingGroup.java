@@ -482,7 +482,7 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
 
                                 @Override
                                 public void onCancelled(@NonNull DatabaseError error) {
-                                    Toast.makeText(SearchingGroup.this, "Something went wrong!", Toast.LENGTH_LONG).show();
+
                                 }
                             });
                         } else {
@@ -703,7 +703,6 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
 
                                 @Override
                                 public void onCancelled(@NonNull DatabaseError error) {
-                                    Toast.makeText(SearchingGroup.this, "Something went wrong!", Toast.LENGTH_LONG).show();
 
                                 }
                             });
@@ -762,7 +761,7 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
                     }
                     @Override
                     public void onCancelled (@NonNull DatabaseError error){
-                        Toast.makeText(SearchingGroup.this, "Something went wrong!", Toast.LENGTH_LONG).show();
+
                     }
                 });
             }

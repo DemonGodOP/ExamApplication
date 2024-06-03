@@ -97,7 +97,7 @@ public class AssignmentInfo extends AppCompatActivity {
                 }
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                Toast.makeText(AssignmentInfo.this, "Something Went Wrong Please Restart The Application", Toast.LENGTH_SHORT).show();
+
             }
         });
 

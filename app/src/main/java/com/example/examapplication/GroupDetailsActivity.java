@@ -87,7 +87,6 @@ public class GroupDetailsActivity extends AppCompatActivity {
             }
             @Override
             public void onCancelled(@NonNull DatabaseError error){
-                Toast.makeText(GroupDetailsActivity.this, "Something went wrong!", Toast.LENGTH_SHORT).show();
             }
         });
     }

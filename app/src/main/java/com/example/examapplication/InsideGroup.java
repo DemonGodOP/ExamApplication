@@ -210,7 +210,6 @@ public class InsideGroup extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(InsideGroup.this, "Something Went Wrong", Toast.LENGTH_SHORT).show();
             }
         });
 

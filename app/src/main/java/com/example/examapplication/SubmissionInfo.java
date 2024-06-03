@@ -85,7 +85,7 @@ public class SubmissionInfo extends AppCompatActivity {
             }
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                Toast.makeText(SubmissionInfo.this, "Something Went Wrong Please Restart The Application", Toast.LENGTH_SHORT).show();
+
             }
         });
 
@@ -104,7 +104,7 @@ public class SubmissionInfo extends AppCompatActivity {
             }
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                Toast.makeText(SubmissionInfo.this, "Something Went Wrong Please Restart The Application", Toast.LENGTH_SHORT).show();
+
             }
         });
 
@@ -162,7 +162,7 @@ public class SubmissionInfo extends AppCompatActivity {
                     }
                     @Override
                     public void onCancelled(@NonNull DatabaseError databaseError) {
-                        Toast.makeText(SubmissionInfo.this, "Something Went Wrong Please Restart The Application", Toast.LENGTH_SHORT).show();
+
                     }
                 });
             }

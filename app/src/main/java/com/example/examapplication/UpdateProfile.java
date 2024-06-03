@@ -863,7 +863,7 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
             }
                 @Override
                 public void onCancelled (@NonNull DatabaseError error){
-                    Toast.makeText(UpdateProfile.this, "Something went wrong!", Toast.LENGTH_LONG).show();
+
                     UP_progressBar.setVisibility(View.GONE);
                 }
         });
