@@ -498,7 +498,11 @@ public class Profile extends AppCompatActivity implements TextToSpeech.OnInitLis
         //textToSpeech.setVoice(voice);
         textToSpeech.setSpeechRate(0.85f);
         int ttsResult = textToSpeech.speak("Hello, Welcome to the Profile Page of Exam Care, This page provides you with the facility, to " +
-                "see your profile details such as name, email, phone number, institute, username and role, you just have to say, Hello Exam care,describe profile details.", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                "see your profile details such as name, email, phone number, institute, username and role, you just have to say, Hello Exam care,describe" +
+                " profile details. You can Also Surf to other pages from here, like say Exam Care, change password, in order to go to the change password" +
+                " page, then their is, Exam Care, edit profile, in order to move on to that page, then their is, Exam Care, Delete Profile, " +
+                "and Exam Care, change email, in order to move to these respective pages. Last but not the Least in order to Go back to the " +
+                "HomePage Say, Exam Care, Back, If you want me to repeat the introduction of the page again please say, Exam Care Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();

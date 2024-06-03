@@ -626,7 +626,9 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
         //textToSpeech.setVoice(voice);
         textToSpeech.setSpeechRate(0.85f);
         int ttsResult = textToSpeech.speak("Hello, Welcome to the Student Group Page of Exam Care, This page provides you with the facility, to " +
-                " know about your assignments which you can attempt, you just have to say, Hello Exam care, assignment list or you can Query about the Group Details, you just have to say, Hello Exam care, Group Details or you can go back to the homepage just say Hello Exam Care, Home Page", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
+                " know about your assignments which you can attempt, you just have to say, Hello Exam care, assignment list, or you can " +
+                "Query about the Group Details, you just have to say, Hello Exam care, Group Details, or you can go back to the homepage " +
+                "just say Hello Exam Care, Home Page, If you want me to repeat the introduction of the page again please say, Exam Care Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_STARTWAKEWORD");
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();
@@ -662,12 +664,10 @@ public class StudentGroup extends AppCompatActivity implements TextToSpeech.OnIn
         if(Temp.equals("repeat introduction")){
             StarUpRepeat();
         }
-        else if(Temp.equals("HomePage")){
+        else if(Temp.equals("homepage")){
             Intent intent = new Intent(StudentGroup.this, StudentHomePage.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
             intent.putExtra("Rl","Student");
-
-
             // Start the new activity
             startActivity(intent);
 

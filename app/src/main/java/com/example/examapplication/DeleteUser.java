@@ -618,7 +618,8 @@ public class DeleteUser extends AppCompatActivity implements TextToSpeech.OnInit
         textToSpeech.setSpeechRate(0.85f);
         int ttsResult=textToSpeech.speak("Hello, Welcome to the Delete account Page of Exam Care, This page provides you with the facility, to" +
                 " delete your existing account, if you want to delete your account, you just have to say, Hello" +
-                "Exam Care Delete User to start the delete functionality. else you can go back to the Profile just say Exam Care, Back, If you want to Listen to the Introduction again say Exam Care, Repeat Introduction, Starting WakeWord Engine", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
+                "Exam Care Delete User to start the delete functionality. else you can go back to the Profile just say Exam Care, Back," +
+                " If you want to Listen to the Introduction again say Exam Care, Repeat Introduction, Starting WakeWord Engine", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();

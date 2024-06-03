@@ -584,13 +584,14 @@ public class StudentFeedBack extends AppCompatActivity implements TextToSpeech.O
         //textToSpeech.setVoice(voice);
         textToSpeech.setSpeechRate(0.85f);
         int ttsResult=textToSpeech.speak("Hello, Welcome to the Student feedback Page of Exam Care, This page provides you with the facility, to " +
-                "to enquire about the feedback provided by your teacher for this particular assignment.for that you have to say, Hello Exam care, feedback," +
+                "enquire about the feedback provided by your teacher for this particular assignment. For that you have to say, Hello Exam care, feedback," +
                 " it also allows you to review your answers for various" +
-                "questions as provided in this assignment, and for that you have to say, Hello Exam care, Review Assignment.  You can also ask me to repeat the questions just by saying, " +
+                "questions as provided in this assignment, and for that you have to say, Hello Exam care, Review Assignment. While on the Review Assignment Page" +
+                " You can also ask me to repeat the questions just by saying, " +
                 "Exam Care, Repeat Question or you can ask" +
                 " me to repeat the answer by saying, Exam Care, Repeat answer. You can Surf through question review with simple Commands like, in order to" +
                 " go to the next question just say, Exam Care, Next, or Inorder to go to the previous Question say,Exam Care, Previous or you can go back to the student group page just say " +
-                "Exam care, back", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
+                "Exam care, back, If you want me to repeat the introduction of the page again please say, Exam Care Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();

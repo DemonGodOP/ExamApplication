@@ -458,7 +458,9 @@ public class StudentGroupDetails extends AppCompatActivity implements TextToSpee
         //textToSpeech.setVoice(voice);
         textToSpeech.setSpeechRate(0.85f);
         int ttsResult=textToSpeech.speak("Hello, Welcome to the student Group Details Page of Exam Care, This page provides you with the facility, to " +
-                "know about your group name, subject name, subject code, creator, and group description, you just have to say Hello exam care, group details. or you can go back to the group page just by saying Exam care, Back", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
+                "know about your group name, subject name, subject code, creator, and group description, you just have to say Hello exam care, group details." +
+                " or you can go back to the group page just by saying Exam care, Back, If you want me to repeat the introduction of the page again " +
+                "please say, Exam Care Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();

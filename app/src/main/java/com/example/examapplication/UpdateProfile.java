@@ -764,11 +764,11 @@ public class UpdateProfile extends AppCompatActivity implements TextToSpeech.OnI
         //textToSpeech.setVoice(voice);
         textToSpeech.setSpeechRate(0.85f);
         int ttsResult=textToSpeech.speak("Hello, Welcome to the Update Profile Page of Exam Care, This page provides you with the facility, to " +
-                "edit your profile, change password, change email, and delete your account" +
-                "To edit your profile, please just say, Exam Care edit profile,and you can move on to the edit profile page " +
-                "to change password, please just say, Exam Care change password,and you can move on to the change password page "+
-                "to change Email, please just say, Exam Care change Email,and you can move on to the change Email page "+
-                "To delete your profile, please just say, Exam Care delete my profile,and you can move on to the delete profile page." , TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
+                "edit your profile, change your name, institute, username and phone number. One at a time," +
+                "To start editing your profile please say Exam Care, Edit Profile, followed by what you want to edit like, name, institute, username or phone number," +
+                " and then you will be prompted to input the new one, If you want to check your profile details before editing them, Say Exam Care, describe profile details," +
+                "In Order to go back to the profile page Say, Exam Care, Back, If you want me to repeat the introduction of the page again please say, Exam Care Repeat Introduction "
+                 , TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();

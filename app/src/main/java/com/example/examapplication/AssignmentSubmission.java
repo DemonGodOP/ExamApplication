@@ -673,7 +673,8 @@ public class AssignmentSubmission extends AppCompatActivity implements TextToSpe
                 " me to repeat the answer by saying, Exam Care, Repeat answer. You can Surf through the examination with simple Commands like, in order to" +
                 " go to the next question just say, Exam Care, Next, or Inorder to go to the previous Question say,Exam Care, Previous,You can also ask me to " +
                 "to inform you about the time duration left to complete the assignment just say Exam Care, duration. and last but" +
-                " not the least in order to submit the assignment, just say Exam Care, Submit. Please Carry on With Your Exam Now,  Question No."+(n+1)+", is"+Q+", Wake word engine started ", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
+                " not the least in order to submit the assignment, just say Exam Care, Submit. If you want me to repeat the introduction " +
+                "of the page again please say, Exam Care Repeat Introduction, Please Carry on With Your Exam Now,  Question No."+(n+1)+", is"+Q+", Wake word engine started ", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();

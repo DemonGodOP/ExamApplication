@@ -604,9 +604,9 @@ public class StudentHomePage extends AppCompatActivity implements TextToSpeech.O
         //textToSpeech.setVoice(voice);
         textToSpeech.setSpeechRate(0.85f);
         int ttsResult=textToSpeech.speak("Hello, Welcome to the Student Home Page of Exam Care, This page provides you with the facility, to " +
-                "see your profile details, for this you have to say, hello Exam care, profile details, " +
-                "you can also sign Out if you want, for this you have to say, hello Exam care, sign out, you can also search, existing groups for this,"+
-                " that you want to join, you just to say, hello exam care,search group and enter group id, and finally you can check the groups," +
+                "surf to your profile details, for this you have to say, hello Exam care, profile details, " +
+                "you can also sign Out if you want, for this you have to say, hello Exam care, sign out, you can also search, existing groups"+
+                " that you want to join, for this you just have to say, hello exam care,search group, and input the group id, and finally you can check the groups," +
                 "that you have already joined, by saying, hello exam care,group names. If you want me to repeat the introduction of the page again please say, Exam Care Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes

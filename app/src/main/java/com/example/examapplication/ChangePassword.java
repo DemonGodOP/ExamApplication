@@ -669,9 +669,9 @@ public class ChangePassword extends AppCompatActivity implements TextToSpeech.On
         //textToSpeech.setVoice(voice);
         textToSpeech.setSpeechRate(0.85f);
         int ttsResult=textToSpeech.speak("Hello, Welcome to the Change Password Page of Exam Care, This page provides you with the facility, to " +
-                "change your password, for that please say your old password in order to authenticate yourself, then new password," +
-                "and after that say hello exam care password. Then a link will be sent to your " +
-                "registered email id, from there you can change your password.", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
+                "change your password, for that please say, Exam Care, Change Password, following that you have to input your old password in " +
+                "order to authenticate yourself, then new password, In Order to go back to the profile page Say, Exam Care, Back. If you want" +
+                " me to repeat the introduction of the page again please say, Exam Care Repeat Introduction", TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
         if (ttsResult == TextToSpeech.SUCCESS) {
             // Pause the timer until TTS completes
             pauseToastTimer();

@@ -605,10 +605,16 @@ public class SearchingGroup extends AppCompatActivity implements TextToSpeech.On
         //textToSpeech.setVoice(voice);
         String voice;
         if(foundGroup!=null){
-            voice="Hello, Welcome to the Searching Group Page of Exam Care The Group Id that you searched for belongs to the group named"+foundGroup.Group_Name+"with subject code"+foundGroup.Subject_Code+"Do You Want to Enter or join the group if so say Exam Care, Enter Group";
+            voice="Hello, Welcome to the Searching Group Page of Exam Care The Group Id that you searched for belongs to the group " +
+                    "named"+foundGroup.Group_Name+"with subject code"+foundGroup.Subject_Code+"Do You Want to Enter or join the" +
+                    " group if so say Exam Care, Enter Group,  For Going back to the HomePage say Exam Care, HomePage, If you want " +
+                    "me to repeat the introduction of the page again please say, Exam Care Repeat Introduction";
         }
         else{
-            voice="Hello, Welcome to the Searching Group Page of Exam Care, No Groups are present with the group id that you provided please go back to the homepage and try searching for the group again. For Going back to the HomePage say Exam Care, HomePage";
+            voice="Hello, Welcome to the Searching Group Page of Exam Care, No Groups are present with the group id that you " +
+                    "provided please go back to the homepage and try searching for the group again. For Going back to the HomePage " +
+                    "say Exam Care, HomePage, If you want me to repeat the introduction of the page again please say, Exam Care" +
+                    " Repeat Introduction";
         }
         textToSpeech.setSpeechRate(0.85f);
         int ttsResult=textToSpeech.speak(voice, TextToSpeech.QUEUE_FLUSH, null,"TTS_UTTERANCE_STARTWAKEWORD");
