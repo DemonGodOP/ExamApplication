@@ -818,6 +818,41 @@ public class DeleteUser extends AppCompatActivity implements TextToSpeech.OnInit
     }
 
     public void deleteUserData(){
+        DatabaseReference userGroupsRef = FirebaseDatabase.getInstance().getReference("Registered Users")
+                .child(firebaseUser.getUid()).child("Groups");
+
+        userGroupsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot groupSnapshot : dataSnapshot.getChildren()) {
+                    String groupId = groupSnapshot.getKey();  // Assuming the group ID is the key
+
+                    if (groupId != null) {
+                        // Reference to the specific group's "Current Participants"
+                        DatabaseReference participantRef = FirebaseDatabase.getInstance().getReference("Groups")
+                                .child(groupId).child("Current Participants").child(firebaseUser.getUid());
+
+                        // Remove the user's UID from the "Current Participants" node
+                        participantRef.removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                if (task.isSuccessful()) {
+                                    Log.d("Firebase", "Successfully removed user from group: " + groupId);
+                                } else {
+                                    Log.d("Firebase", "Failed to remove user from group: " + groupId);
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
         DatabaseReference referenceProfile = FirebaseDatabase.getInstance().getReference("Registered Users");
         referenceProfile.child(firebaseUser.getUid()).removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
